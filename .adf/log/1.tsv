@@ -13,3 +13,7 @@ time	stage	decision	why	evidence	result
 2026-10-29T13:31:54+0800	E	Allen 選 Q27 (a)：修 6 個 major 後跑第 3 輪（comprehension、correctness、judge）	第 1 輪修改帶出新問題，再驗一次	fix2.py 套用到 proposal 第 1、3、4.4、4.5、5、6、7、8、9、10、11 節	第 3 輪開始
 2026-10-29T13:39:28+0800	E	第 3 輪 judge NOT READY（1 major：來源識別），已 FIX；existing-code、readiness、operations 本輪未跑	judge：READY 需全部 reviewer 執行或 Allen 豁免	TSMC repo 中 identity TcPOU 為 untracked、tmc 被 .gitignore:20 排除	等待 Allen 決定 Q28
 2026-10-29T13:43:13+0800	E	READY：Allen 選 Q28 (a)，書面豁免「所有 reviewer 都要執行」規則	correctness 第 3 輪 0 major；existing-code 第 2 輪 0 major；readiness、operations 第 2 輪 major 已修	.adf/proposals/1.review.md 第 3 輪	進入 stage F
+2026-10-29T13:51:19+0800	F	U1 完成：code review MERGE yes，24/24 通過（tip 2f0d6ee）	base 正確、184 個 plc 檔逐位元組保存	git ls-tree 184；identity SHA-256 一致；dotnet test 24 passed	等 U2→U3
+2026-10-29T13:51:19+0800	F	新增 .gitattributes（projects/Polar2Chamber/plc/** -text），並以 git add -f 補入被 .gitignore:30 [Aa][Rr][Mm]/ 忽略的 12 個 Arm DUT	core.autocrlf=true 會改換行；ignore 規則誤中 Arm 資料夾	implementer 回報第一版只有 172 檔	.gitignore 例外規則留待 stage G 決定
+2026-10-29T14:05:29+0800	F	U2→U3 實作完成（tip f4cafab），owner 重跑 270/270 通過；接受 4 項偏離 proposal：Register 第二次檢查允許空 root、NodeSettings.Symbols 公開、hosted task 放 runtime 層、Co-Authored-By 寫 Sonnet 5.5	偏離皆有理由且不改外部行為	implementer 報告 Brief errors 1-13	送 code review
+2026-10-29T14:06:20+0800	F	U2→U3 code review MERGE yes（0 blocker、0 major、3 nit）	scope、complexity、comment、lock 順序、測試皆符合	reviewer 報告；owner 重跑 270/270	U1、U2→U3 完成，進入 stage G 合併；U4 於合併後建立
