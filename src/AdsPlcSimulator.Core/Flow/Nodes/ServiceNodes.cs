@@ -31,6 +31,7 @@ public sealed class ServiceHostNode : HostedNode
     public override async Task RunAsync(HostedNodeContext context, CancellationToken cancellation)
     {
         _registry = context.Registry;
+        cancellation.ThrowIfCancellationRequested();
         context.Registry.Register(context.Workflow, _host);
         try
         {

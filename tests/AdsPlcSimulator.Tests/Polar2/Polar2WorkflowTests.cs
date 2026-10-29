@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using AdsPlcSimulator.Core.Flow;
 using AdsPlcSimulator.Core.PackML;
 using AdsPlcSimulator.Core.Plc;
+using static AdsPlcSimulator.Tests.TestWait;
 
 namespace AdsPlcSimulator.Tests.Polar2;
 
@@ -60,17 +61,6 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
         document.Links.Add(new WorkflowLink("trigger", "then", "hold", "exec"));
         document.Links.Add(new WorkflowLink("hold", "then", "complete", "exec"));
         return document;
-    }
-
-    private static async Task WaitUntilAsync(Func<bool> condition, string what, int timeoutMs = 5000)
-    {
-        DateTime deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
-        while (!condition())
-        {
-            if (DateTime.UtcNow > deadline)
-                throw new TimeoutException($"Timed out waiting for {what}.");
-            await Task.Delay(5);
-        }
     }
 
     private object Read(string path) => _image.ReadValue(_program.Symbols.Resolve(path));
@@ -286,26 +276,5 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
         Assert.Equal("complete", failure.NodeId);
         Assert.Equal(PackMLState.Aborted, State("Chamber.SetMode"));
         Assert.Equal("1", Read(SvidValue));
-    }
-
-    private sealed class NoSimulation : ISimulationSink
-    {
-        public void Invoke(string target, string action, object? value)
-        {
-        }
-    }
-
-    private sealed class RecordingMonitor : IFlowMonitor
-    {
-        private readonly ConcurrentQueue<FlowEvent> _events = new();
-
-        public void Publish(FlowEvent flowEvent) => _events.Enqueue(flowEvent);
-
-        public async Task<FlowEvent> WaitForAsync(Func<FlowEvent, bool> match)
-        {
-            FlowEvent? found = null;
-            await WaitUntilAsync(() => (found = _events.FirstOrDefault(match)) is not null, "a flow event");
-            return found!;
-        }
     }
 }

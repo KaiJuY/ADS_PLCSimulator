@@ -6,6 +6,7 @@ using AdsPlcSimulator.Core.Plc;
 using AdsPlcSimulator.Host.Live;
 using AdsPlcSimulator.Tests.PackML;
 using Microsoft.Extensions.Logging;
+using static AdsPlcSimulator.Tests.TestWait;
 
 namespace AdsPlcSimulator.Tests.Flow;
 
@@ -88,17 +89,6 @@ public sealed class ServiceNodeTests : IAsyncLifetime
         Nodes = [Node("start", "trigger.onStart"), Node("write", "action.writeSymbol", [("symbol", symbol), .. extra])],
         Links = [Link("start", "then", "write", "exec")],
     };
-
-    private static async Task WaitUntilAsync(Func<bool> condition, string what, int timeoutMs = 5000)
-    {
-        DateTime deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
-        while (!condition())
-        {
-            if (DateTime.UtcNow > deadline)
-                throw new TimeoutException($"Timed out waiting for {what}.");
-            await Task.Delay(5);
-        }
-    }
 
     private object Read(string path) => _image.ReadValue(_program.Symbols.Resolve(path));
 
@@ -270,6 +260,23 @@ public sealed class ServiceNodeTests : IAsyncLifetime
         Write($"{ctrl}.PackMLIn.bCommandChangeRequest", true);
         await Task.Delay(100);
         Assert.Equal(PackMLState.Idle, State(1, "A"));
+    }
+
+    [Fact]
+    [Trait("AC", "13")]
+    public async Task Hosted_task_that_is_already_cancelled_does_not_register_its_host()
+    {
+        CompiledWorkflow? compiled = WorkflowCompiler.Compile("host", HostDocument(), NodeCatalog.Default, _program.Symbols, out List<WorkflowDiagnostic> diagnostics, _projectDirectory);
+        Assert.True(compiled is not null, string.Join("; ", diagnostics.Select(diagnostic => diagnostic.Message)));
+        var node = (HostedNode)compiled!.Nodes.Single().Node;
+        var registry = new ServiceHostRegistry();
+        using var cancelled = new CancellationTokenSource();
+        await cancelled.CancelAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => node.RunAsync(new HostedNodeContext(_image, registry, "host"), cancelled.Token));
+
+        Assert.Null(registry.FindByService(HostFixture.CtrlPath(1, "A")));
+        Assert.Equal((long)PackMLState.Undefined, Convert.ToInt64(_image.ReadValue(_program.Symbols.Resolve("GVL_Test.Modules[1].ServiceStatus.A.PackMLOut.eStateCurrent"))));
     }
 
     [Fact]
@@ -803,28 +810,5 @@ public sealed class ServiceNodeTests : IAsyncLifetime
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
             Entries.Add((logLevel, formatter(state, exception)));
-    }
-
-    private sealed class NoSimulation : ISimulationSink
-    {
-        public void Invoke(string target, string action, object? value)
-        {
-        }
-    }
-
-    private sealed class RecordingMonitor : IFlowMonitor
-    {
-        private readonly ConcurrentQueue<FlowEvent> _events = new();
-
-        public IEnumerable<FlowEvent> Events => _events.ToArray();
-
-        public void Publish(FlowEvent flowEvent) => _events.Enqueue(flowEvent);
-
-        public async Task<FlowEvent> WaitForAsync(Func<FlowEvent, bool> match)
-        {
-            FlowEvent? found = null;
-            await WaitUntilAsync(() => (found = _events.FirstOrDefault(match)) is not null, "a flow event");
-            return found!;
-        }
     }
 }

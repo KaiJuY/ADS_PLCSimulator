@@ -41,7 +41,14 @@ dotnet run --project src/AdsPlcSimulator.Host -- --Simulator:ProjectPath=../../p
 - Editor 的符號路徑選單不會列出含 `[#]` 的路徑，要在 Editor 手動輸入。
 - 重新載入 `Polar2_ServiceHost` workflow 會把所有 service 重設為 Idle，所有 module 重設為 Execute。
 - 重新載入 `Polar2_ModuleModeInit` workflow 會把 SVID 1 寫回 `'1'`。
-- 上面兩個 workflow 由後續的 unit U4 建立；U1 只提供 PLC 宣告檔與版面測試。
+- 重新載入有 `trigger.onServiceExecute` 的 workflow 時，若它的 service 正在 Execute，這次 Execute 會退回預設行為：NaturalCompletion 在 `defaultDelayMs` 後完成，ExecuteUntilExternalStop 等到 Stop 或 Abort。
+
+## Workflow
+
+- `Polar2_ServiceHost`：執行 `GVL_Module.Chamber_Control` 底下所有 module 的 PackML 交握，ServiceId 與 CompletionBehavior 來自 `plc/ServiceIdentity/` 的 identity 檔。
+- `Polar2_ModuleModeInit`：啟動時把 6 個 module 的 SVID 1 寫回 `'1'`。
+- `Polar2_Chamber_SetMode`：Chamber.SetMode 進入 Execute 時，依 `TargetMode`（0 到 3）寫入 SVID 1，超出範圍則保持原值，然後完成 service。
+- `Polar2_Chamber_Initial`：Chamber.Initial 進入 Execute 後等待 5000 ms 再完成；依 `SwitchModeAfterFinish` 把 SVID 1 寫成 `'2'`（1）或 `'3'`（2），其他值保持原值。
 
 `plc/` 資料夾以 `.gitattributes` 的 `-text` 規則逐位元組保存，不做換行轉換；複製後的檔案與來源的 SHA-256 相同。
 

@@ -193,13 +193,17 @@ public class ServiceHostRegistryTests
         Assert.Equal(PackMLState.Execute, fixture.ServiceState(1, "A"));
     }
 
-    [Fact]
-    [Trait("AC", "13")]
-    public async Task Replacement_is_refused_when_another_workflow_takes_the_root_while_the_old_host_retires()
+    private sealed record RaceResult(ServiceHostRegistry Registry, Exception? Refusal, ServiceHost Replacement, ServiceHost Taker);
+
+    /// <summary>
+    /// Registers a replacement of "first" while the old host is held busy by a scan, so the registering thread can only wait for the
+    /// host lock. While it waits, the old host is unregistered and a taker registers the same root.
+    /// </summary>
+    private static async Task<RaceResult> RegisterReplacementWhileOldHostRetiresAsync(string takerWorkflow)
     {
         var fixture = new HostFixture(initialize: false);
-        var scanning = new ManualResetEventSlim();
-        var release = new ManualResetEventSlim();
+        using var scanning = new ManualResetEventSlim();
+        using var release = new ManualResetEventSlim();
         ServiceHost old = HostFixture.CreateHost(fixture.Program, fixture.Image, HostFixture.DefaultDelay, _ =>
         {
             scanning.Set();
@@ -212,13 +216,15 @@ public class ServiceHostRegistryTests
         fixture.SendToService(1, "A", PackMLCommand.Start, 1);
         var scan = Task.Run(() => old.Scan(fixture.Image, TimeSpan.Zero));
         Assert.True(scanning.Wait(TimeSpan.FromSeconds(10)), "the scan did not reach the override callback");
+        ServiceHost replacement = NewHost(fixture);
+        ServiceHost taker = NewHost(fixture);
 
         Exception? refusal = null;
         var replacing = new Thread(() =>
         {
             try
             {
-                registry.Register("first", NewHost(fixture));
+                registry.Register("first", replacement);
             }
             catch (InvalidOperationException exception)
             {
@@ -226,16 +232,52 @@ public class ServiceHostRegistryTests
             }
         });
         replacing.Start();
-        SpinWait.SpinUntil(() => replacing.ThreadState.HasFlag(System.Threading.ThreadState.WaitSleepJoin), TimeSpan.FromSeconds(10));
+        Assert.True(
+            SpinWait.SpinUntil(() => replacing.ThreadState.HasFlag(System.Threading.ThreadState.WaitSleepJoin), TimeSpan.FromSeconds(10)),
+            "the registering thread did not wait for the host lock");
         registry.Unregister(old);
-        ServiceHost taker = NewHost(fixture);
-        registry.Register("second", taker);
+        registry.Register(takerWorkflow, taker);
         release.Set();
-        replacing.Join(TimeSpan.FromSeconds(10));
+        Assert.True(replacing.Join(TimeSpan.FromSeconds(10)), "the registering thread did not finish");
         await scan.WaitAsync(TimeSpan.FromSeconds(10));
+        return new RaceResult(registry, refusal, replacement, taker);
+    }
 
-        Assert.NotNull(refusal);
-        Assert.Contains("second", refusal.Message);
-        Assert.Same(taker, registry.FindByService(PathA));
+    [Fact]
+    [Trait("AC", "13")]
+    public async Task Replacement_is_refused_when_another_workflow_takes_the_root_while_the_old_host_retires()
+    {
+        RaceResult result = await RegisterReplacementWhileOldHostRetiresAsync("second");
+
+        Assert.NotNull(result.Refusal);
+        Assert.Contains("second", result.Refusal.Message);
+        Assert.Same(result.Taker, result.Registry.FindByService(PathA));
+    }
+
+    [Fact]
+    [Trait("AC", "13")]
+    public async Task Replacement_does_not_overwrite_a_host_that_the_same_workflow_registered_while_the_old_host_retires()
+    {
+        RaceResult result = await RegisterReplacementWhileOldHostRetiresAsync("first");
+
+        Assert.NotNull(result.Refusal);
+        Assert.Contains("replaced", result.Refusal.Message);
+        Assert.Same(result.Taker, result.Registry.FindByService(PathA));
+    }
+
+    [Fact]
+    [Trait("AC", "13")]
+    public void Replacement_registers_when_the_old_host_was_unregistered_meanwhile_and_nobody_took_the_root()
+    {
+        var fixture = new HostFixture();
+        var registry = new ServiceHostRegistry();
+        ServiceHost old = fixture.Host;
+        registry.Register("host", old);
+        registry.Unregister(old);
+        ServiceHost replacement = NewHost(fixture);
+
+        registry.Register("host", replacement);
+
+        Assert.Same(replacement, registry.FindByService(PathA));
     }
 }

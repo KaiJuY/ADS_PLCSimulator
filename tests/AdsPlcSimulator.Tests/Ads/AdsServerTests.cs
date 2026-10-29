@@ -141,11 +141,4 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
                 Completed.TrySetException(new InvalidOperationException(flowEvent.Error));
         }
     }
-
-    private sealed class NoSimulation : ISimulationSink
-    {
-        public void Invoke(string target, string action, object? value)
-        {
-        }
-    }
 }

@@ -4,6 +4,7 @@ using AdsPlcSimulator.Core.Plc;
 using AdsPlcSimulator.Host.Ads;
 using Microsoft.Extensions.Logging.Abstractions;
 using TwinCAT.Ads;
+using static AdsPlcSimulator.Tests.TestWait;
 
 namespace AdsPlcSimulator.Tests.Ads;
 
@@ -70,27 +71,9 @@ public sealed class Polar2AdsTests : IAsyncLifetime
     private PackMLState ReadState() =>
         (PackMLState)Convert.ToInt64(_client.ReadValue($"{Shutter}.ServiceStatus.Shutter.Open.PackMLOut.eStateCurrent", typeof(short)));
 
-    private static async Task WaitUntilAsync(Func<bool> condition, string what, int timeoutMs = 5000)
-    {
-        DateTime deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
-        while (!condition())
-        {
-            if (DateTime.UtcNow > deadline)
-                throw new TimeoutException($"Timed out waiting for {what}.");
-            await Task.Delay(20);
-        }
-    }
-
     private sealed class NullMonitor : IFlowMonitor
     {
         public void Publish(FlowEvent flowEvent)
-        {
-        }
-    }
-
-    private sealed class NoSimulation : ISimulationSink
-    {
-        public void Invoke(string target, string action, object? value)
         {
         }
     }

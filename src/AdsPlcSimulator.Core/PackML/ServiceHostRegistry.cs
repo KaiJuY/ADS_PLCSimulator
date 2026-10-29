@@ -12,7 +12,10 @@ public sealed class ServiceHostRegistry
     private readonly List<WorkflowOverrides> _overrides = [];
 
     /// <summary>A host of the same workflow on the same root replaces the old one, which is retired first.</summary>
-    /// <exception cref="InvalidOperationException">A host of another workflow already uses the same root.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// A host of another workflow already uses the same root, or the host being replaced was replaced by someone else
+    /// while it retired. The registered host is then left as it is.
+    /// </exception>
     public void Register(string workflow, ServiceHost host)
     {
         ServiceHost? replaced;
@@ -30,6 +33,9 @@ public sealed class ServiceHostRegistry
         lock (_lock)
         {
             ThrowIfOwnedByOtherWorkflow(workflow, host.RootPath);
+            if (_hostsByRoot.TryGetValue(host.RootPath, out Registration? current) && !ReferenceEquals(current.Host, replaced))
+                throw new InvalidOperationException($"Another host of workflow '{workflow}' replaced the host of {host.RootPath} while it was retired.");
+
             _hostsByRoot[host.RootPath] = new Registration(workflow, host);
         }
     }
