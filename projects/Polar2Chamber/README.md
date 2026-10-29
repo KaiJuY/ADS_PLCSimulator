@@ -42,3 +42,5 @@ dotnet run --project src/AdsPlcSimulator.Host -- --Simulator:ProjectPath=../../p
 - 重新載入 `Polar2_ServiceHost` workflow 會把所有 service 重設為 Idle，所有 module 重設為 Execute。
 - 重新載入 `Polar2_ModuleModeInit` workflow 會把 SVID 1 寫回 `'1'`。
 - 上面兩個 workflow 由後續的 unit U4 建立；U1 只提供 PLC 宣告檔與版面測試。
+
+`plc/` 資料夾以 `.gitattributes` 的 `-text` 規則逐位元組保存，不做換行轉換；複製後的檔案與來源的 SHA-256 相同。
