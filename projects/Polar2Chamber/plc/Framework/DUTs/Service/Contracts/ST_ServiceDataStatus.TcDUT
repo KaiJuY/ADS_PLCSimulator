@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ServiceDataStatus" Id="{5140e8ee-6b10-4ad4-907a-07a93ccebfcd}">
+    <Declaration><![CDATA[TYPE ST_ServiceDataStatus :
+STRUCT
+	Count : UINT;
+	Overflow : BOOL;
+	DataList : ARRAY[1..Param_Config.MaxServiceData] OF ST_ExtDescriptor;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

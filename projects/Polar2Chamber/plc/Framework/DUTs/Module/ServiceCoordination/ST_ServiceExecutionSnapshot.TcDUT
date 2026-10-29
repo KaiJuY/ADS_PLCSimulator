@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ServiceExecutionSnapshot" Id="{911dfa98-9995-4fc5-9896-9e719d59ee89}">
+    <Declaration><![CDATA[TYPE ST_ServiceExecutionSnapshot :
+STRUCT
+	Valid : BOOL;
+	ServiceId : UDINT;
+	ResponseId : UDINT;
+	PackMLOut : ST_PML_Base_Out;
+	CompletionBehavior : E_ServiceCompletionBehavior;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

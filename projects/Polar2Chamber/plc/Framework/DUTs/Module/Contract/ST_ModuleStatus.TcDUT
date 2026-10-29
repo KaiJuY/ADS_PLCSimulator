@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ModuleStatus" Id="{6c7acf88-b8e8-4b23-b4ca-30b3cf9d6905}">
+    <Declaration><![CDATA[TYPE ST_ModuleStatus :
+STRUCT
+	ModuleId : UDINT;
+	Enabled : BOOL;
+	IsControlSourceAlive : BOOL;
+	ModuleType : STRING(16);
+	
+	ResponseId : UDINT;
+	PackMLOut : ST_PML_Base_Out;
+	
+	Alarm : ST_ModuleAlarmStatus;
+	
+	Data : ST_ModuleDataStatus;
+	Variable : ST_ModuleVariableStatus;
+	
+	// Array index is storage only; EndpointId is the external identity.
+	WaferStatusList : ARRAY [1..Param_Config.MaxTransferEndpoint] OF ST_WaferStatus;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

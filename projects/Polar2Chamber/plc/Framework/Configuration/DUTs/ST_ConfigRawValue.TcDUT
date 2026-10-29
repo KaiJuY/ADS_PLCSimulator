@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ConfigRawValue" Id="{15e7ac1d-f21c-4f35-bce5-f8b06911e48d}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '1'}
+TYPE ST_ConfigRawValue :
+STRUCT
+	Data : ARRAY[0..Param_Config.MaxConfigValueSize - 1] OF BYTE;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

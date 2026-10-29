@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ReferenceBindingFileConfig" Id="{2ba99eb3-f07e-48cb-82b0-27bc4b65be4d}">
+    <Declaration><![CDATA[TYPE ST_ReferenceBindingFileConfig :
+STRUCT
+	Name : STRING(80);
+	Source : STRING(255);
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

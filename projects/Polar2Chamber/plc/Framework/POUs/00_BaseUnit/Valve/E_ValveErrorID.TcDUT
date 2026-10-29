@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+  <DUT Name="E_ValveErrorID" Id="{653c180f-997b-493b-b93c-e9b42b6861cf}">
+    <Declaration><![CDATA[TYPE E_ValveErrorID :
+(
+	NoError := 0,
+	OnOffFeedbackConflict := 7101,
+	OnOffOpenTimeout := 7102,
+	OnOffCloseTimeout := 7103,
+	DirectionalFeedbackConflict := 7201,
+	DirectionalATimeout := 7202,
+	DirectionalBTimeout := 7203,
+	ProportionalSetpointOutOfRange := 7301,
+	ProportionalActualOutOfRange := 7302,
+	ProportionalPositionTimeout := 7303
+) UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

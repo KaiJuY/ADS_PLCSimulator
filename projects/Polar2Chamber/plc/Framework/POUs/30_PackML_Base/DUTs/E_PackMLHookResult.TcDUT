@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_PackMLHookResult" Id="{7b514b4b-b389-4313-b0cf-748f91a35395}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+TYPE E_PackMLHookResult :
+(
+	Busy := 0,
+	Done := 1
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

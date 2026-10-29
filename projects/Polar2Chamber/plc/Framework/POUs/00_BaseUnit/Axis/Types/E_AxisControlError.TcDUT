@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+<DUT Name="E_AxisControlError" Id="{45553f6a-aa5b-5e54-b328-b0e2303b2d4a}">
+<Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_AxisControlError : (
+    None := 0,
+    EmergencyStop := 1,
+    InvalidFeedback := 2,
+    BothLimits := 3,
+    BackendError := 4,
+    DriveError := 5,
+    CommandTimeout := 6,
+    StopTimeout := 7,
+    EnableTimeout := 8,
+    UnexpectedState := 9,
+    CommandAborted := 10,
+    CalibrationLoad := 11,
+    CalibrationCommit := 12,
+    CalibrationApply := 13,
+    InvalidConfiguration := 14,
+    JogConflict := 15
+);
+END_TYPE
+]]></Declaration>
+
+</DUT>
+</TcPlcObject>

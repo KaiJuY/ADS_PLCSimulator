@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="T_ModuleTypeName" Id="{d2279f39-81c6-4afd-a03d-ad34944ac1e7}">
+    <Declaration><![CDATA[TYPE T_ModuleTypeName : STRING(16);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

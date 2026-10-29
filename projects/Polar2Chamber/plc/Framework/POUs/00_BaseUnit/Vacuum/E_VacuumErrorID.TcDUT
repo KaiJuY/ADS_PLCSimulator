@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+  <DUT Name="E_VacuumErrorID" Id="{a41b3efd-d1c5-489a-a8fe-005d14be283e}">
+    <Declaration><![CDATA[(*!
+<summary>FB_VacuumControl 的穩定錯誤識別碼。</summary>
+<description>錯誤碼會寫入 FB_BaseUnit_PackML 的 udiErrorID 與 ErrorList。</description>
+*)
+//!<param name="NoError">沒有錯誤。</param>
+//!<param name="VacuumBuildTimeout">2001：Vacuum On 未在 tVacuumBuildTimeout 內建立真空。</param>
+//!<param name="VacuumLost">2002：真空建立後，Vacuum Reached 連續中斷達 tVacuumLostDelay。</param>
+{attribute 'qualified_only'}
+TYPE E_VacuumErrorID :
+(
+	NoError := 0,
+	VacuumBuildTimeout := 2001,
+	VacuumLost := 2002
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

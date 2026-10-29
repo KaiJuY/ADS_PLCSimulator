@@ -9,6 +9,8 @@ internal static class TestPaths
 
     public static string SampleProject => Path.Combine(SolutionRoot, "projects", "RobustSolutionDemo");
 
+    public static string Polar2Project => Path.Combine(SolutionRoot, "projects", "Polar2Chamber");
+
     public static PlcProgram BuildFromText(string text, string globalScope = "GVL_Test") =>
         PlcProgramBuilder.Build(DeclarationParser.Parse(text, "test.st", globalScope));
 

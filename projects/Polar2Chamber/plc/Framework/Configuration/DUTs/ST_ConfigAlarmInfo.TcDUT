@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ConfigAlarmInfo" Id="{9f56050b-dd82-4d43-b0a2-d85404473602}">
+    <Declaration><![CDATA[TYPE ST_ConfigAlarmInfo :
+STRUCT
+	Source : STRING(255);
+	DataType : E_ConfigDataType;
+	Operator : E_AlarmOperator;
+	Threshold : LREAL;
+	Tolerance : LREAL;
+	MainErrorId : UDINT;
+	SourceErrorId : UDINT;
+	Message : STRING(80);
+	Severity : E_Severity;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

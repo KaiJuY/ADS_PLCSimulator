@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_CompositeDependencyWaitCondition" Id="{26dc4967-3868-4750-ac18-fe85e84bde1e}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_CompositeDependencyWaitCondition :
+(
+	Unknown := 0,
+	CommandAccepted := 1,
+	ServiceIdle := 2,
+	ServiceExecute := 3,
+	ServiceComplete := 4,
+	ServiceStopped := 5
+) UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

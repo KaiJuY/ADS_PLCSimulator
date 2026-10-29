@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_PolarIIChamber_ProcessStep" Id="{14000000-0000-0000-0000-000000000007}">
+    <Declaration><![CDATA[TYPE ST_PolarIIChamber_ProcessStep :
+STRUCT
+	ArmIndex : UINT; // 1..4
+	RecipeIndex : UINT; // 1..50
+	ArmNozzleIndex : UINT; // 1..3
+	ArmNozzleSetpoint : DINT; // 1:1, ml/sec for liquid or Pa for gas
+	ProcessTime : TIME; // Must be greater than T#0S
+	RotateDirection : E_PolarIIChamberRotateDirection;
+	RotateSpeed : LREAL; // RPM; must be greater than 0
+	FixedNozzleSetpoint : ARRAY[1..4] OF DINT; // 1:1, ml/sec or Pa
+	CupDrainIndex : UINT; // 1..3
+	CycleControl : E_PolarIIChamberCycleControl;
+	CycleCount : UINT; // Used only by Start; must be greater than 0
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

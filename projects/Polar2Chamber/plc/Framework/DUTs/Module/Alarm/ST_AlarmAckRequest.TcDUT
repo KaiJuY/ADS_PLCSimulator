@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_AlarmAckRequest" Id="{c0ebcb80-f572-4f41-ae53-f78df2d74995}">
+    <Declaration><![CDATA[TYPE ST_AlarmAckRequest :
+STRUCT
+	RequestId : UDINT;
+	Command : E_AlarmAckCommand;
+	MainErrorId : UDINT;
+	ServiceId : UDINT;
+	bChangeRequest : BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+  <DUT Name="E_MotorErrorID" Id="{1e411906-641e-4b80-8789-2d1c18a2d533}">
+    <Declaration><![CDATA[(*!
+<summary>FB_Motor_BaseUnit 使用的 framework error ID。</summary>
+<description>Vendor fault code 另存於 ErrorList.SourceErrorId 與 FaultCode property。</description>
+*)
+{attribute 'qualified_only'}
+TYPE E_MotorErrorID :
+(
+	NoError := 0,
+	DriveFault := 1101
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

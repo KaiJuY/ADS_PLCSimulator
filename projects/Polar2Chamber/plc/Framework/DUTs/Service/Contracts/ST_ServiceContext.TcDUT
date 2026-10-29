@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ServiceContext" Id="{7c263b5a-29c8-4184-bcd5-4c7b4e803e1e}">
+    <Declaration><![CDATA[TYPE ST_ServiceContext :
+STRUCT
+	ModuleId : UDINT;
+	// UTC timestamp formatted as YYYYMMDDHHMMSSUUU.
+	UtcDateTime : STRING(20);
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

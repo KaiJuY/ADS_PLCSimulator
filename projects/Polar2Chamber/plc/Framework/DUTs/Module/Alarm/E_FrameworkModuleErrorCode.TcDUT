@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_FrameworkModuleErrorCode" Id="{2969af6f-3b4d-43f0-b2e2-d657359e43bd}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_FrameworkModuleErrorCode :
+(
+	None := 0,
+	ConfigParamInitializationFailed := 16#FFFF0001
+) UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

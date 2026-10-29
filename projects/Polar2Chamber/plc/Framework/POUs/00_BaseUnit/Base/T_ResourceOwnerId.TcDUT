@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="T_ResourceOwnerId" Id="{b531e09c-9066-42de-ad93-afe05214f513}">
+    <Declaration><![CDATA[// Zero is reserved to represent an unowned resource.
+TYPE T_ResourceOwnerId : UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

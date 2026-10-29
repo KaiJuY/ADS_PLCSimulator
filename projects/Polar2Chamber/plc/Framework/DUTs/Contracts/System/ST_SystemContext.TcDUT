@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_SystemContext" Id="{9aa113f1-c274-42e4-a7e6-0385ff9d6c16}">
+    <Declaration><![CDATA[TYPE ST_SystemContext :
+STRUCT
+	// UTC timestamp formatted as YYYYMMDDHHMMSSUUU.
+	UtcDateTime : STRING(20);
+	// Maximum time that a Module may observe an unchanged HeartbeatIndex.
+	ModuleHeartbeatTimeout : TIME;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
