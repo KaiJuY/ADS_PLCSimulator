@@ -37,8 +37,8 @@ public sealed class LiveHub : IFlowMonitor, ISimulationSink
 
     public void Publish(FlowEvent flowEvent)
     {
+        // Stryker disable once Statement, String: a log line has no test value
         if (flowEvent.Kind == FlowEventKind.RunFailed)
-            // Stryker disable once Statement, String: a log line has no test value
             _logger.LogWarning("Workflow {Workflow} run {RunId} failed at node {NodeId}: {Error}", flowEvent.Workflow, flowEvent.RunId, flowEvent.NodeId, flowEvent.Error);
         Broadcast(new { type = "flow", @event = flowEvent });
     }

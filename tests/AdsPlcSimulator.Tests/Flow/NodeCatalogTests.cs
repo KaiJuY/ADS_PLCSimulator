@@ -20,6 +20,9 @@ public class NodeCatalogTests
         "action.writeSymbol",
         "action.writeSymbol|Action|Write Symbol|in:exec:Exec:exec,value:Data:value,index:Data:index?|out:then:Exec:then|params:symbol:Symbol:Symbol:,value:Text:Value:")]
     [InlineData(
+        "trigger.onStart",
+        "trigger.onStart|Trigger|On Start|in:|out:then:Exec:then|params:")]
+    [InlineData(
         "data.readSymbol",
         "data.readSymbol|Data|Read Symbol|in:index:Data:index?|out:value:Data:value|params:symbol:Symbol:Symbol:")]
     [InlineData(
