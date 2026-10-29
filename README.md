@@ -85,3 +85,19 @@ dotnet test
 ```
 
 `Ads` 類測試需要本機 TwinCAT router；記憶體佈局測試的期望值取自 TwinCAT 4026 編譯出的 `RobustSolutionDemoProject.tmc`。
+
+## 整合測試（stage I）
+
+`tests/AdsPlcSimulator.Integration` 是 ADS client 主控台程式（不是 xUnit，`dotnet test` 不會執行它）。它連到執行中的 Host，跑 Polar2Chamber 的情境 S1–S12 與 S15，每個情境印一行 PASS／FAIL 與預期值、實際值。S13、S14 是 HTTP／瀏覽器步驟，不在 driver 內。
+
+```powershell
+# 終端機 1：啟動 Host（載入 Polar2Chamber）
+dotnet run --project src/AdsPlcSimulator.Host -- --Simulator:ProjectPath=../../projects/Polar2Chamber
+
+# 終端機 2：執行 driver
+dotnet run --project tests/AdsPlcSimulator.Integration -- [--port 851] [--only S10,S11]
+```
+
+- 全部通過時 exit code 為 0，否則為 1；連不上 Host 時印出連線錯誤並回傳 1。
+- S4 的預期值（SVID Value 為 `1`）只在剛啟動的 Host 成立；跑過 S10、S12 後要重啟 Host 才能再跑 S4。
+- S15 會把 M1 停到 Stopped，要重跑其他情境請重啟 Host。
