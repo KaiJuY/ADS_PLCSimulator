@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_Chamber1_CtrlStatus" Id="{5bc49452-96f1-4f35-9aa8-ce0a3acfe375}">
+    <Declaration><![CDATA[TYPE ST_Chamber1_CtrlStatus EXTENDS ST_Module_CtrlStatus_Base :
+STRUCT
+	ServiceCtrl : ST_Chamber1_ServiceCtrl;
+	ServiceParam : ST_Chamber1_ServiceParam;
+	ServiceStatus : ST_Chamber1_ServiceStatus;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

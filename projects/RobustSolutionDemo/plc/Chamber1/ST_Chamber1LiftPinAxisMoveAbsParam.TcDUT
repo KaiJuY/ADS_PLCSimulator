@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_Chamber1LiftPinAxisMoveAbsParam" Id="{4eb5033d-e25a-4e2f-a0c6-a2c41779a1a2}">
+    <Declaration><![CDATA[TYPE ST_Chamber1LiftPinAxisMoveAbsParam :
+STRUCT
+	Position : LREAL;
+	Velocity : LREAL;
+	Acceleration : LREAL;
+	Deceleration : LREAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

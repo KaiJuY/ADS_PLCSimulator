@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_Ch1Ep1PrepareWaferTransferStep" Id="{400985e7-af9b-4425-8e96-b1581429b60e}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_Ch1Ep1PrepareWaferTransferStep :
+(
+	None := 0,
+	MoveLiftPinAxis := 1,
+	VacuumOff := 2,
+	Finish := 3
+) UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

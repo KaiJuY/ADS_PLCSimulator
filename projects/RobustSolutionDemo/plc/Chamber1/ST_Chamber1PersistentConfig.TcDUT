@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_Chamber1PersistentConfig" Id="{c4037b32-c3a1-4c8e-8715-eae739365eef}">
+    <Declaration><![CDATA[TYPE ST_Chamber1PersistentConfig :
+STRUCT
+	TestConfigParam1 : REAL;
+	TestConfigParam2 : INT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

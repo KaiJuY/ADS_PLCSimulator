@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <GVL Name="GVL_Module" Id="{24c37d4f-aefc-4c20-b948-6ed70901060c}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	Chamber1 : ARRAY[1..Param_Config.MaxModulePerType] OF FB_Chamber1_Module;
+	Chamber1_Runtime : ARRAY[1..Param_Config.MaxModulePerType] OF ST_ModuleRuntimeConfig;
+	Chamber1_Control : ARRAY[1..Param_Config.MaxModulePerType] OF ST_Chamber1_CtrlStatus;
+	Chamber1_SpinAxis : ARRAY[1..Param_Config.MaxModulePerType] OF I_Axis_BaseUnit;
+	Chamber1_LiftPinAxis : ARRAY[1..Param_Config.MaxModulePerType] OF I_Axis_BaseUnit;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

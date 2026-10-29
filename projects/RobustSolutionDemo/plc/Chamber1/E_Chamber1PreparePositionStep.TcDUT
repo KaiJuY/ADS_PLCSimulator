@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_Chamber1PreparePositionStep" Id="{a9c6b47f-0d84-4748-aeac-cc8474aa1ca6}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_Chamber1PreparePositionStep :
+(
+	None := 0,
+	LiftReady := 1,
+	SpinAlign := 2,
+	ResetLift := 3,
+	LiftWork := 4,
+	Finish := 5
+) UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

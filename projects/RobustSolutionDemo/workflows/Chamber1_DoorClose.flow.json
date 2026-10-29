@@ -1,0 +1,166 @@
+{
+  "nodes": [
+    {
+      "id": "request",
+      "type": "trigger.onClientWrite",
+      "x": 40,
+      "y": 60,
+      "params": {
+        "symbol": "GVL_Module.Chamber1_Control[1].ServiceCtrl.DoorClose.RequestId"
+      }
+    },
+    {
+      "id": "robotInside",
+      "type": "data.readSymbol",
+      "x": 40,
+      "y": 300,
+      "params": {
+        "symbol": "GVL_Module.Chamber1[1].HwInput.bRobotInChamber"
+      }
+    },
+    {
+      "id": "interlock",
+      "type": "flow.branch",
+      "x": 440,
+      "y": 60,
+      "params": {}
+    },
+    {
+      "id": "reject",
+      "type": "action.writeSymbol",
+      "x": 700,
+      "y": -180,
+      "params": {
+        "symbol": "GVL_Module.Chamber1_Control[1].ServiceStatus.DoorClose.PackMLOut.eStateCurrent",
+        "value": "Aborted"
+      }
+    },
+    {
+      "id": "execute",
+      "type": "action.writeSymbol",
+      "x": 700,
+      "y": 60,
+      "params": {
+        "symbol": "GVL_Module.Chamber1_Control[1].ServiceStatus.DoorClose.PackMLOut.eStateCurrent",
+        "value": "Execute"
+      }
+    },
+    {
+      "id": "animate",
+      "type": "sim.invoke",
+      "x": 1100,
+      "y": 60,
+      "params": {
+        "target": "Chamber1.Door",
+        "action": "Close"
+      }
+    },
+    {
+      "id": "travel",
+      "type": "flow.delay",
+      "x": 1400,
+      "y": 60,
+      "params": {
+        "ms": "1500"
+      }
+    },
+    {
+      "id": "signal",
+      "type": "action.writeSymbol",
+      "x": 700,
+      "y": 320,
+      "params": {
+        "symbol": "GVL_Module.Chamber1[1].HwInput.bDoorClosed",
+        "value": "TRUE"
+      }
+    },
+    {
+      "id": "complete",
+      "type": "action.writeSymbol",
+      "x": 1100,
+      "y": 320,
+      "params": {
+        "symbol": "GVL_Module.Chamber1_Control[1].ServiceStatus.DoorClose.PackMLOut.eStateCurrent",
+        "value": "Complete"
+      }
+    },
+    {
+      "id": "respond",
+      "type": "action.writeSymbol",
+      "x": 1500,
+      "y": 320,
+      "params": {
+        "symbol": "GVL_Module.Chamber1_Control[1].ServiceStatus.DoorClose.ResponseId"
+      }
+    }
+  ],
+  "links": [
+    {
+      "fromNode": "request",
+      "fromPort": "then",
+      "toNode": "interlock",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "robotInside",
+      "fromPort": "value",
+      "toNode": "interlock",
+      "toPort": "condition"
+    },
+    {
+      "fromNode": "interlock",
+      "fromPort": "true",
+      "toNode": "reject",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "reject",
+      "fromPort": "then",
+      "toNode": "respond",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "interlock",
+      "fromPort": "false",
+      "toNode": "execute",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "execute",
+      "fromPort": "then",
+      "toNode": "animate",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "animate",
+      "fromPort": "then",
+      "toNode": "travel",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "travel",
+      "fromPort": "then",
+      "toNode": "signal",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "signal",
+      "fromPort": "then",
+      "toNode": "complete",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "complete",
+      "fromPort": "then",
+      "toNode": "respond",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "request",
+      "fromPort": "value",
+      "toNode": "respond",
+      "toPort": "value"
+    }
+  ],
+  "groups": []
+}

@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_Chamber1SpinAxisJogParam" Id="{127cad1c-9c96-47b9-9612-350980ee0e8a}">
+    <Declaration><![CDATA[TYPE ST_Chamber1SpinAxisJogParam :
+STRUCT
+	Position : LREAL;
+	Velocity : LREAL;
+	Acceleration : LREAL;
+	Deceleration : LREAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

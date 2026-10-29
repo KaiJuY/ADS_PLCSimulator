@@ -1,0 +1,3 @@
+VAR_GLOBAL CONSTANT
+    MaxModulePerType : UDINT := 6;
+END_VAR

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_Chamber1LiftPinUpSpinDownCycleStep" Id="{7a8ea4a5-adbb-460f-bf59-b5d9e0e3ffb3}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'to_string'}
+TYPE E_Chamber1LiftPinUpSpinDownCycleStep :
+(
+	None := 0,
+	MoveLiftUp := 1,
+	ResetLiftAfterUp := 2,
+	StartSpin := 3,
+	SpinTimedRun := 4,
+	StopSpin := 5,
+	MoveLiftDown := 6,
+	EndIteration := 7,
+	WaitInterval := 8,
+	BeginIteration := 9
+) UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

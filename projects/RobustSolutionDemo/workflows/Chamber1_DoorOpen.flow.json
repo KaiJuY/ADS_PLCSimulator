@@ -1,0 +1,150 @@
+{
+  "nodes": [
+    {
+      "id": "request",
+      "type": "trigger.onClientWrite",
+      "x": 40,
+      "y": 60,
+      "params": {
+        "symbol": "GVL_Module.Chamber1_Control[1].ServiceCtrl.DoorOpen.RequestId"
+      }
+    },
+    {
+      "id": "isNew",
+      "type": "logic.compare",
+      "x": 40,
+      "y": 300,
+      "params": {
+        "operator": ">",
+        "b": "0"
+      }
+    },
+    {
+      "id": "branch",
+      "type": "flow.branch",
+      "x": 420,
+      "y": 60,
+      "params": {}
+    },
+    {
+      "id": "execute",
+      "type": "action.writeSymbol",
+      "x": 640,
+      "y": 40,
+      "params": {
+        "symbol": "GVL_Module.Chamber1_Control[1].ServiceStatus.DoorOpen.PackMLOut.eStateCurrent",
+        "value": "Execute"
+      }
+    },
+    {
+      "id": "animate",
+      "type": "sim.invoke",
+      "x": 1040,
+      "y": 40,
+      "params": {
+        "target": "Chamber1.Door",
+        "action": "Open"
+      }
+    },
+    {
+      "id": "travel",
+      "type": "flow.delay",
+      "x": 1340,
+      "y": 40,
+      "params": {
+        "ms": "1500"
+      }
+    },
+    {
+      "id": "signal",
+      "type": "action.writeSymbol",
+      "x": 640,
+      "y": 300,
+      "params": {
+        "symbol": "GVL_Module.Chamber1[1].HwInput.bDoorClosed",
+        "value": "FALSE"
+      }
+    },
+    {
+      "id": "complete",
+      "type": "action.writeSymbol",
+      "x": 1040,
+      "y": 300,
+      "params": {
+        "symbol": "GVL_Module.Chamber1_Control[1].ServiceStatus.DoorOpen.PackMLOut.eStateCurrent",
+        "value": "Complete"
+      }
+    },
+    {
+      "id": "respond",
+      "type": "action.writeSymbol",
+      "x": 1440,
+      "y": 300,
+      "params": {
+        "symbol": "GVL_Module.Chamber1_Control[1].ServiceStatus.DoorOpen.ResponseId"
+      }
+    }
+  ],
+  "links": [
+    {
+      "fromNode": "request",
+      "fromPort": "then",
+      "toNode": "branch",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "request",
+      "fromPort": "value",
+      "toNode": "isNew",
+      "toPort": "a"
+    },
+    {
+      "fromNode": "isNew",
+      "fromPort": "result",
+      "toNode": "branch",
+      "toPort": "condition"
+    },
+    {
+      "fromNode": "branch",
+      "fromPort": "true",
+      "toNode": "execute",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "execute",
+      "fromPort": "then",
+      "toNode": "animate",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "animate",
+      "fromPort": "then",
+      "toNode": "travel",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "travel",
+      "fromPort": "then",
+      "toNode": "signal",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "signal",
+      "fromPort": "then",
+      "toNode": "complete",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "complete",
+      "fromPort": "then",
+      "toNode": "respond",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "request",
+      "fromPort": "value",
+      "toNode": "respond",
+      "toPort": "value"
+    }
+  ]
+}

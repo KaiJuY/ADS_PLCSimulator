@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_Chamber1ErrorCode" Id="{1d2a58d6-c250-44b9-a473-331b556cf166}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'to_string'}
+TYPE E_Chamber1ErrorCode :
+(
+	None := 0,
+	Axis_Not_Servo_On_During_Starting := 1,
+	Axis_Is_Busy_During_Starting := 2,
+	Invalid_Param := 3,
+	Axis_Command_Error_During_Execute := 4,
+	Error_While_Stop_Axis := 5,
+	// The BaseUnit was already owned by another Service.
+	Resource_Acquire_Failed_During_Starting := 6,
+	// The asynchronous Reset used while aborting failed.
+	Error_While_Reset_Axis := 7,
+	Close_Door_While_Robot_In_Chamber := 8
+)UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

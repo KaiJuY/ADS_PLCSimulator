@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_Chamber1PreparePositionParam" Id="{c2f5cf23-dcac-4e62-b667-372e33e8180b}">
+    <Declaration><![CDATA[TYPE ST_Chamber1PreparePositionParam :
+STRUCT
+	LiftReadyPosition : LREAL;
+	LiftReadyVelocity : LREAL;
+	LiftReadyAcceleration : LREAL;
+	LiftReadyDeceleration : LREAL;
+	SpinAlignPosition : LREAL;
+	SpinAlignVelocity : LREAL;
+	SpinAlignAcceleration : LREAL;
+	SpinAlignDeceleration : LREAL;
+	LiftWorkPosition : LREAL;
+	LiftWorkVelocity : LREAL;
+	LiftWorkAcceleration : LREAL;
+	LiftWorkDeceleration : LREAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

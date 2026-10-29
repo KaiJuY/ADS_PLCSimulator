@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Workflow Editor</title>
+  <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">ADS PLC Simulator <span>Workflow Editor</span></div>
+    <div class="toolbar">
+      <select id="workflowSelect" title="Workflow"></select>
+      <button id="newButton" type="button">New</button>
+      <button id="saveButton" type="button" class="primary" title="Ctrl+S">Save</button>
+      <span id="saveState" class="pill"></span>
+    </div>
+    <div class="toolbar right">
+      <span id="liveState" class="pill">offline</span>
+      <a href="/simulation/" target="_blank" rel="noopener">Simulation ↗</a>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="palette">
+      <input id="paletteSearch" type="search" placeholder="Search nodes…">
+      <div id="paletteList"></div>
+      <p class="hint">Click or drag a node onto the canvas. Right-click or double-click the canvas, or drop a wire on empty space, for quick add.</p>
+    </aside>
+
+    <section id="canvas" class="canvas" tabindex="0">
+      <div id="layer" class="layer">
+        <svg id="wires" class="wires" width="1" height="1"></svg>
+      </div>
+      <div class="canvas-help">Drag background to pan · wheel to zoom · Del removes selection · Ctrl+C / Ctrl+V copies a node · Ctrl+S saves</div>
+    </section>
+
+    <aside class="sidebar">
+      <section>
+        <h2>Problems <span id="problemCount" class="count">0</span></h2>
+        <ul id="problemList" class="problems"></ul>
+      </section>
+      <section>
+        <h2>PLC Variable</h2>
+        <form id="variableForm" class="variable" autocomplete="off">
+          <input id="variablePath" class="symbol" list="symbolOptions" placeholder="GVL.Variable.Member" required>
+          <div class="variable-current"><span id="variableType"></span> <span id="variableValue"></span></div>
+          <div class="variable-write">
+            <input id="variableInput" placeholder="TRUE, 5, 12.5, enum value…" required>
+            <button type="submit" class="primary">Write</button>
+          </div>
+          <div id="variableError" class="variable-error"></div>
+        </form>
+      </section>
+      <section class="grow">
+        <h2>Runtime <button id="clearLog" type="button" class="link">clear</button></h2>
+        <ul id="runLog" class="runlog"></ul>
+      </section>
+    </aside>
+  </main>
+
+  <div id="quickAdd" class="quick-add" hidden>
+    <div id="quickAddActions" class="quick-add-actions">
+      <button id="newGroupAction" type="button">New group</button>
+      <button id="pasteAction" type="button">Paste <kbd>Ctrl+V</kbd></button>
+    </div>
+    <input id="quickAddSearch" type="search" placeholder="Add node…">
+    <ul id="quickAddList"></ul>
+  </div>
+
+  <datalist id="symbolOptions"></datalist>
+  <script type="module" src="editor.js"></script>
+</body>
+</html>

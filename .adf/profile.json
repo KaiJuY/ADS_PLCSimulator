@@ -1,0 +1,27 @@
+{
+  "baseBranch": "main",
+  "solution": "AdsPlcSimulator.sln",
+  "mainFramework": "net9.0",
+  "releaseFrameworks": ["net9.0"],
+  "testProjects": [
+    "tests/AdsPlcSimulator.Tests/AdsPlcSimulator.Tests.csproj"
+  ],
+  "sourceProjects": [
+    "src/AdsPlcSimulator.Core/AdsPlcSimulator.Core.csproj",
+    "src/AdsPlcSimulator.Host/AdsPlcSimulator.Host.csproj"
+  ],
+  "exclude": [
+    "**/obj/**",
+    "**/bin/**",
+    "**/*.g.cs",
+    "**/*.g.i.cs",
+    "**/*.Designer.cs",
+    "**/wwwroot/**",
+    "projects/**"
+  ],
+  "limits": {
+    "crap": 12,
+    "complexity": 12,
+    "changedLineCoverage": 0.9
+  }
+}

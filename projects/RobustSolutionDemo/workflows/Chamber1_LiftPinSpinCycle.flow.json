@@ -1,0 +1,208 @@
+{
+  "nodes": [
+    {
+      "id": "request",
+      "type": "trigger.onClientWrite",
+      "x": 40,
+      "y": 60,
+      "params": {
+        "symbol": "GVL_Module.Chamber1_Control[1].ServiceCtrl.LiftPinUpSpinDownCycle.RequestId"
+      }
+    },
+    {
+      "id": "execute",
+      "type": "action.writeSymbol",
+      "x": 380,
+      "y": 60,
+      "params": {
+        "symbol": "GVL_Module.Chamber1_Control[1].ServiceStatus.LiftPinUpSpinDownCycle.PackMLOut.eStateCurrent",
+        "value": "Execute"
+      }
+    },
+    {
+      "id": "cycle",
+      "type": "flow.forLoop",
+      "x": 780,
+      "y": 60,
+      "params": {
+        "from": "1",
+        "to": "3"
+      }
+    },
+    {
+      "id": "liftUp",
+      "type": "sim.invoke",
+      "x": 1080,
+      "y": -200,
+      "params": {
+        "target": "Chamber1.LiftPin",
+        "action": "Up"
+      }
+    },
+    {
+      "id": "liftTime",
+      "type": "flow.delay",
+      "x": 1380,
+      "y": -200,
+      "params": {
+        "ms": "800"
+      }
+    },
+    {
+      "id": "spinVelocity",
+      "type": "data.readSymbol",
+      "x": 1380,
+      "y": -420,
+      "params": {
+        "symbol": "GVL_Module.Chamber1_Control[1].ServiceParam.LiftPinUpSpinDownCycle.SpinVelocity"
+      }
+    },
+    {
+      "id": "spinStart",
+      "type": "sim.invoke",
+      "x": 1680,
+      "y": -200,
+      "params": {
+        "target": "Chamber1.Spin",
+        "action": "Start"
+      }
+    },
+    {
+      "id": "spinTime",
+      "type": "flow.delay",
+      "x": 1980,
+      "y": -200,
+      "params": {
+        "ms": "1500"
+      }
+    },
+    {
+      "id": "spinStop",
+      "type": "sim.invoke",
+      "x": 2280,
+      "y": -200,
+      "params": {
+        "target": "Chamber1.Spin",
+        "action": "Stop"
+      }
+    },
+    {
+      "id": "liftDown",
+      "type": "sim.invoke",
+      "x": 2580,
+      "y": -200,
+      "params": {
+        "target": "Chamber1.LiftPin",
+        "action": "Down"
+      }
+    },
+    {
+      "id": "complete",
+      "type": "action.writeSymbol",
+      "x": 1080,
+      "y": 240,
+      "params": {
+        "symbol": "GVL_Module.Chamber1_Control[1].ServiceStatus.LiftPinUpSpinDownCycle.PackMLOut.eStateCurrent",
+        "value": "Complete"
+      }
+    },
+    {
+      "id": "respond",
+      "type": "action.writeSymbol",
+      "x": 1480,
+      "y": 240,
+      "params": {
+        "symbol": "GVL_Module.Chamber1_Control[1].ServiceStatus.LiftPinUpSpinDownCycle.ResponseId"
+      }
+    },
+    {
+      "id": "downTime",
+      "type": "flow.delay",
+      "x": 2880,
+      "y": -200,
+      "params": {
+        "ms": "800"
+      }
+    }
+  ],
+  "links": [
+    {
+      "fromNode": "request",
+      "fromPort": "then",
+      "toNode": "execute",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "execute",
+      "fromPort": "then",
+      "toNode": "cycle",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "cycle",
+      "fromPort": "body",
+      "toNode": "liftUp",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "liftUp",
+      "fromPort": "then",
+      "toNode": "liftTime",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "liftTime",
+      "fromPort": "then",
+      "toNode": "spinStart",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "spinVelocity",
+      "fromPort": "value",
+      "toNode": "spinStart",
+      "toPort": "value"
+    },
+    {
+      "fromNode": "spinStart",
+      "fromPort": "then",
+      "toNode": "spinTime",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "spinTime",
+      "fromPort": "then",
+      "toNode": "spinStop",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "spinStop",
+      "fromPort": "then",
+      "toNode": "liftDown",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "cycle",
+      "fromPort": "completed",
+      "toNode": "complete",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "complete",
+      "fromPort": "then",
+      "toNode": "respond",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "request",
+      "fromPort": "value",
+      "toNode": "respond",
+      "toPort": "value"
+    },
+    {
+      "fromNode": "liftDown",
+      "fromPort": "then",
+      "toNode": "downTime",
+      "toPort": "exec"
+    }
+  ]
+}

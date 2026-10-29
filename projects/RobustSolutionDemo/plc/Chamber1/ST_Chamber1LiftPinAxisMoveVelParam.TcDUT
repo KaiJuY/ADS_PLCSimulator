@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_Chamber1LiftPinAxisMoveVelParam" Id="{9ef943aa-12dc-4bd8-9dd4-637a97dbe2e1}">
+    <Declaration><![CDATA[TYPE ST_Chamber1LiftPinAxisMoveVelParam :
+STRUCT
+	Velocity : LREAL;
+	Acceleration : LREAL;
+	Deceleration : LREAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

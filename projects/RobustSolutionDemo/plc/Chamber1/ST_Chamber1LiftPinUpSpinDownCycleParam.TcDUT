@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_Chamber1LiftPinUpSpinDownCycleParam" Id="{4a81bbe0-5f5e-47f1-b9b8-676e2fb0f8dc}">
+    <Declaration><![CDATA[TYPE ST_Chamber1LiftPinUpSpinDownCycleParam :
+STRUCT
+	LiftUpPosition : LREAL;
+	LiftDownPosition : LREAL;
+	LiftVelocity : LREAL;
+	LiftAcceleration : LREAL;
+	LiftDeceleration : LREAL;
+
+	SpinVelocity : LREAL;
+	SpinAcceleration : LREAL;
+	SpinDeceleration : LREAL;
+	SpinDuration : TIME;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

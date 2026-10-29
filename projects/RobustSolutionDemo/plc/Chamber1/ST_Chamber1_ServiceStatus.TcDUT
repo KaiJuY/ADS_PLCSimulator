@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_Chamber1_ServiceStatus" Id="{f27be8ff-16cd-4df7-a4df-6e0527b043a3}">
+    <Declaration><![CDATA[TYPE ST_Chamber1_ServiceStatus :
+STRUCT
+	SpinAxisJogCW : ST_ServiceStatus;
+	SpinAxisMoveAbs : ST_ServiceStatus;
+	SpinAxisMoveVelCW : ST_ServiceStatus;
+	LiftPinAxisMoveVelCW : ST_ServiceStatus;
+	LiftPinAxisMoveVelCCW : ST_ServiceStatus;
+	LiftPinAxisMoveAbs : ST_ServiceStatus;
+	DoorClose : ST_ServiceStatus;
+	DoorOpen : ST_ServiceStatus;
+	VacuumOn : ST_ServiceStatus;
+	VacuumOff : ST_ServiceStatus;
+	PreparePosition : ST_ServiceStatus;
+	Ep1PrepareWaferTransfer : ST_ServiceStatus;
+	LiftPinUpSpinDownCycle : ST_ServiceStatus;
+	SetMaterial : ST_ServiceStatus;
+	SetConfigParam : ST_ServiceStatus;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

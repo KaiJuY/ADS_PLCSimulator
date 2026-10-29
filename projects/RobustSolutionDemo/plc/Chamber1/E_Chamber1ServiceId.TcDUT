@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_Chamber1ServiceId" Id="{c093ca56-3521-4ff1-9f31-1d625a170479}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'to_string'}
+TYPE E_Chamber1ServiceId :
+(
+	// Each value identifies one Service instance within the Chamber1 Module.
+	None := 0,
+	SpinAxisJogCW := 1,
+	SpinAxisMoveAbs := 2,
+	SpinAxisMoveVelCW := 3,
+	LiftPinAxisMoveVelCW := 4,
+	LiftPinAxisMoveVelCCW := 5,
+	LiftPinAxisMoveAbs := 6,
+	Endpoint1PrepareSendWafer := 8,
+	DoorOpen := 9,
+	DoorClose := 10,
+	VacuumOn := 11,
+	VacuumOff := 12,
+	PreparePosition := 13,
+	SetMaterial := 14,
+	LiftPinUpSpinDownCycle := 15,
+	SetConfigParam := 16
+) UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

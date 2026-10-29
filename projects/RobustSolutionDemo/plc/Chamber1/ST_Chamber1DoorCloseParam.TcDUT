@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_Chamber1DoorCloseParam" Id="{0455fd78-da1b-4c12-a318-4e3b767c2051}">
+    <Declaration><![CDATA[TYPE ST_Chamber1DoorCloseParam :
+STRUCT
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
