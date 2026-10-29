@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_PackMLErrorID" Id="{87e85598-2824-42c0-9e21-dbfd4316d605}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+TYPE E_PackMLErrorID :
+(
+	NoError									:= 0,
+
+	CommandNotAllowedInActiveMode			:= 1001,
+	ClearNotAllowedFromCurrentState			:= 1002,
+	ResetNotAllowedFromCurrentState			:= 1003,
+	StartNotAllowedFromCurrentState			:= 1004,
+	StopNotAllowedFromCurrentState			:= 1005,
+	HoldNotAllowedFromCurrentState			:= 1006,
+	UnholdNotAllowedFromCurrentState		:= 1007,
+	SuspendNotAllowedFromCurrentState		:= 1008,
+	UnsuspendNotAllowedFromCurrentState		:= 1009,
+	AbortNotAllowedFromCurrentState			:= 1010,
+
+	ModeNotSupported						:= 2001,
+	ModeAlreadyActive						:= 2002,
+	ModeChangeNotAllowedFromCurrentState	:= 2003,
+	ModeDoesNotSupportCurrentState			:= 2004
+) UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

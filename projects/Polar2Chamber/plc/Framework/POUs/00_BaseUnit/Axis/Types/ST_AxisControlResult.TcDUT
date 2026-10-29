@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+<DUT Name="ST_AxisControlResult" Id="{6d61964b-e74e-5623-b41d-d027fabd9008}">
+<Declaration><![CDATA[TYPE ST_AxisControlResult :
+STRUCT
+Busy : BOOL;
+Done : BOOL;
+CommandAborted : BOOL;
+Error : BOOL;
+ErrorId : UDINT;
+SourceErrorId : UDINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+
+</DUT>
+</TcPlcObject>

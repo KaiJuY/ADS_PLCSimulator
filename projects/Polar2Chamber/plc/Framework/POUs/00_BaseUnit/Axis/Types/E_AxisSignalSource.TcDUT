@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+<DUT Name="E_AxisSignalSource" Id="{235ff103-4ad8-56f4-9aff-2f3472546da8}">
+<Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_AxisSignalSource : (
+    Unknown := 0,
+    Input := 1,
+    External := 2
+);
+END_TYPE
+]]></Declaration>
+
+</DUT>
+</TcPlcObject>

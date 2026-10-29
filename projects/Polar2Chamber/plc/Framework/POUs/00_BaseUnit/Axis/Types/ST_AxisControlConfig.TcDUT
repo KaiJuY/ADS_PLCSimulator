@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+<DUT Name="ST_AxisControlConfig" Id="{ad31f1ce-04d6-52de-8d03-3f8cf0ac4c2a}">
+<Declaration><![CDATA[TYPE ST_AxisControlConfig :
+STRUCT
+Geometry : E_AxisGeometry;
+ReferenceMode : E_AxisReferenceMode;
+HomeSource : E_AxisHomeSource;
+HomeSignalSource : E_AxisSignalSource;
+HomeSignalActiveHigh : BOOL := TRUE;
+PositiveLimitSource : E_AxisSignalSource;
+PositiveLimitActiveHigh : BOOL := TRUE;
+NegativeLimitSource : E_AxisSignalSource;
+NegativeLimitActiveHigh : BOOL := TRUE;
+StopDynamics : ST_AxisDynamics;
+MaxDynamics : ST_AxisDynamics;
+MaxPositionMagnitude : LREAL;
+PositionTolerance : LREAL;
+VelocityTolerance : LREAL;
+CycleTime : TIME; // configured task period, deterministic test time source
+CommandTimeout : TIME;
+AcceptTimeout : TIME;
+StopTimeout : TIME;
+EnableTimeout : TIME;
+HomeTimeout : TIME;
+StoreTimeout : TIME;
+AxisKey : STRING(63);
+BaselineVersion : UDINT;
+ScaleFingerprint : STRING(63);
+HomeDirectionGuardVerified : BOOL; // NC/drive profile enforces direction limits throughout homing
+END_STRUCT
+END_TYPE
+]]></Declaration>
+
+</DUT>
+</TcPlcObject>

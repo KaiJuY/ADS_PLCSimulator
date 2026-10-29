@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ExtDescriptor" Id="{f94b404a-da27-44e4-a9fe-f2ad3aa5f9db}">
+    <Declaration><![CDATA[TYPE ST_ExtDescriptor :
+STRUCT
+	Id : UDINT;
+	Name : STRING(30);
+	DataType : E_DescriptorType;
+	Unit : STRING(10);
+	Value : STRING(80);
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

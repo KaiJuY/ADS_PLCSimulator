@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ConfigVariableInfo" Id="{38db5ddd-a29f-4aac-af71-d0e98856df7e}">
+    <Declaration><![CDATA[TYPE ST_ConfigVariableInfo :
+STRUCT
+	Source : STRING(255);
+	Id : UDINT;
+	Name : STRING(30);
+	Unit : STRING(10);
+	DataType : E_ConfigDataType;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

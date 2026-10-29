@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_ServiceCompletionBehavior" Id="{c7b771f6-a892-4d21-b1f8-3ea15c10871b}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_ServiceCompletionBehavior :
+(
+	Unknown := 0,
+	NaturalCompletion := 1,
+	ExecuteUntilExternalStop := 2
+) UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

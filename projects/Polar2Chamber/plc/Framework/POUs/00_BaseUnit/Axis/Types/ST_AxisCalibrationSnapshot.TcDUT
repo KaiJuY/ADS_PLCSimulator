@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+<DUT Name="ST_AxisCalibrationSnapshot" Id="{aab29a26-7baa-5615-b9c3-d485d96f4dd7}">
+<Declaration><![CDATA[TYPE ST_AxisCalibrationSnapshot :
+STRUCT
+Busy : BOOL;
+Done : BOOL;
+Error : BOOL;
+ErrorId : UDINT;
+Found : BOOL;
+Durable : BOOL;
+BootDataValid : BOOL;
+Record : ST_AxisCalibrationRecord;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+
+</DUT>
+</TcPlcObject>

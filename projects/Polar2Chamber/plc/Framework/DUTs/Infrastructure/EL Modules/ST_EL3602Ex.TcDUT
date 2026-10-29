@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_EL3602Ex" Id="{e64e3125-08f7-4dff-ae5e-24c3274861f9}">
+    <Declaration><![CDATA[TYPE ST_EL3602Ex EXTENDS ST_ReserveForGetSymbolNameByAddrress :
+STRUCT
+	Chl AT%I* : ARRAY[1..2] OF DINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

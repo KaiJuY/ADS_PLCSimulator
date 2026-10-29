@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+  <DUT Name="E_CylinderErrorReaction" Id="{a0aff86a-74db-4be1-a3ae-a91f3b90ed63}">
+    <Declaration><![CDATA[(*!
+<summary>FB_Cylinder_2P2S 在 PackML Aborting 狀態採用的錯誤反應。</summary>
+<description>錯誤反應只決定異常時的實體處置；錯誤清除、Reset 與 Start 仍由完整 PackML 復歸流程管理。</description>
+*)
+//!<param name="KeepLastPosition">關閉兩個線圈且不主動切換閥位，等待人工排除。</param>
+//!<param name="ForceRetract">在 Aborting 中命令汽缸縮回，直到後極限成立或動作逾時。</param>
+{attribute 'qualified_only'}
+TYPE E_CylinderErrorReaction :
+(
+	KeepLastPosition := 0,
+	ForceRetract := 1
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

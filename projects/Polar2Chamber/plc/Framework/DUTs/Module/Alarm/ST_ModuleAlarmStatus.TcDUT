@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ModuleAlarmStatus" Id="{d0ba66d1-a701-4517-824b-724227eb31da}">
+    <Declaration><![CDATA[TYPE ST_ModuleAlarmStatus :
+STRUCT
+	AckResponseId : UDINT;
+	AckAccepted : BOOL;
+	AckError : E_AlarmAckError;
+	ConfiguredLatchedCount : UINT;
+	ServiceLatchedCount : UINT;
+	Overflow : BOOL;
+	HookLatchedCount : UINT;
+	DuplicateId : UDINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

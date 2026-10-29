@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ConfigParamBinding" Id="{9edbddb1-ff93-4263-8c6b-ac8e34fe85df}">
+    <Declaration><![CDATA[TYPE ST_ConfigParamBinding :
+STRUCT
+	Id : UDINT;
+	DataType : E_ConfigDataType;
+	Address : PVOID;
+	Size : UDINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_PolarIIChamber_ArmAlignTestParam" Id="{14000000-0000-0000-0000-000000000016}">
+    <Declaration><![CDATA[TYPE ST_PolarIIChamber_ArmAlignTestParam :
+STRUCT
+	ArmIndex : UINT; // 1..4
+	NozzleIndex : UINT; // 1..3
+	Recipe : ST_PolarIIChamber_Recipe;
+	TestTime : TIME;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_PolarIIChamber_CupLiftServiceParam" Id="{14000000-0000-0000-0000-000000000038}">
+    <Declaration><![CDATA[TYPE ST_PolarIIChamber_CupLiftServiceParam :
+STRUCT
+	JogPositive : ST_EmptyServiceParam;
+	JogNegative : ST_EmptyServiceParam;
+	IncrementalJog : ST_PolarIIChamber_LinearPositionParam;
+	DecoupleStop : ST_EmptyServiceParam; // Speed, acceleration and deceleration are ECIDs.
+	TopPos : ST_EmptyServiceParam;
+	MiddlePos : ST_EmptyServiceParam;
+	DownPos : ST_EmptyServiceParam;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

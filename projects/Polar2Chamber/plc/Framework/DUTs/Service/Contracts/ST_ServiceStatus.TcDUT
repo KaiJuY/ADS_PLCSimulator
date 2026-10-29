@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ServiceStatus" Id="{696bda33-0a33-48b0-8ccd-362e4a358520}">
+    <Declaration><![CDATA[TYPE ST_ServiceStatus :
+STRUCT
+	ResponseId : UDINT;
+	PackMLOut : ST_PML_Base_Out;
+	TimeCollection : ST_ServiceTimeCollectionStatus;
+	CompletionBehavior : E_ServiceCompletionBehavior;
+	ServiceId : UDINT;
+	ErrorList : ARRAY[1..Param_Config.MaxServiceError] OF ST_ExtAlarm;
+	Data : ST_ServiceDataStatus;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

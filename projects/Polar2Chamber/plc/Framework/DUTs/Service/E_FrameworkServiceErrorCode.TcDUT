@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_FrameworkServiceErrorCode" Id="{6c8fb4a8-f244-4036-9d41-088e65757441}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_FrameworkServiceErrorCode :
+(
+	// MainErrorId contract:
+	//   1..899  : Application-defined Service errors.
+	//   900 and above : Framework-reserved Service errors.
+	None := 0,
+
+	// Set material service (900..909)
+	SetMaterial_InvalidCmd := 900,
+	SetMaterial_TaEpIdRequired := 901,
+	SetMaterial_TaEpNotFound := 902,
+	SetMaterial_DuplicateTaEpId := 903,
+
+	// Composite service (910..919)
+	Composite_NotConfigured := 910,
+	Composite_OwnershipConflict := 911,
+	Composite_DependencyNotIdle := 912,
+	Composite_UnsupportedCompletionBehavior := 913,
+	Composite_InternalCallSubmitFailed := 914,
+	Composite_InternalCommandRejected := 915,
+	Composite_ChildStoppedUnexpectedly := 916,
+	Composite_ChildAbortedUnexpectedly := 917,
+	Composite_SequenceFailed := 918,
+	Composite_InvalidSequenceState := 919,
+
+	// Set Config Param service (920..939)
+	ConfigParam_EmptyBatch := 920,
+	ConfigParam_DuplicateId := 921,
+	ConfigParam_MetadataNotFound := 922,
+	ConfigParam_NotBound := 923,
+	ConfigParam_DataTypeMismatch := 924,
+	ConfigParam_InvalidValueFormat := 925,
+	ConfigParam_OutOfRange := 926,
+	ConfigParam_RegistryNotReady := 927,
+	ConfigParam_PersistenceQueueFailed := 928,
+	ConfigParam_PersistenceWriteFailed := 929,
+	ConfigParam_ApplyFailed := 930,
+
+	// Common Service safeguards (940..949)
+	Service_AliveTimeout := 940
+) UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

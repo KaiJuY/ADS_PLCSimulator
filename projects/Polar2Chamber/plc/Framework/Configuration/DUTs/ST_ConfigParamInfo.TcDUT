@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ConfigParamInfo" Id="{9be83c2f-35ee-43a0-8e50-d73781a8a711}">
+    <Declaration><![CDATA[TYPE ST_ConfigParamInfo :
+STRUCT
+	Id : UDINT;
+	Name : STRING(30);
+	Unit : STRING(10);
+	DataType : E_ConfigDataType;
+	HasLimits : BOOL;
+	LowerLimit : LREAL;
+	UpperLimit : LREAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

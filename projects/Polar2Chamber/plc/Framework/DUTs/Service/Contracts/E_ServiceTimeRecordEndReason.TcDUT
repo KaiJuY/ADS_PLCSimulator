@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_ServiceTimeRecordEndReason" Id="{0a6216a6-c031-4397-973f-19093fd9c325}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_ServiceTimeRecordEndReason :
+(
+	Active := 0,
+	ExplicitlyCompleted := 1,
+	TerminatedByServiceComplete := 2,
+	TerminatedByServiceStop := 3,
+	TerminatedByServiceAbort := 4
+) UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

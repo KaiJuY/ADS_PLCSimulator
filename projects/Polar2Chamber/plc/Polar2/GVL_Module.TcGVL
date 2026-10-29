@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <GVL Name="GVL_Module" Id="{e390d188-2233-489a-8e47-28f4e3cc8257}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	Chamber_Control : ARRAY[1..Param_Config.MaxModulePerType] OF ST_PolarIIChamber_CtrlStatus;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

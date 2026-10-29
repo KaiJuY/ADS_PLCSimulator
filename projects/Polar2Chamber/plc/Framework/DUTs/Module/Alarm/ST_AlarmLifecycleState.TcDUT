@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_AlarmLifecycleState" Id="{711ede85-7607-43f2-a233-271f83f2a8dc}">
+    <Declaration><![CDATA[TYPE ST_AlarmLifecycleState :
+STRUCT
+	Latched : BOOL;
+	PreviousActive : BOOL;
+	SeenThisCycle : BOOL;
+	Alarm : ST_ExtAlarm;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

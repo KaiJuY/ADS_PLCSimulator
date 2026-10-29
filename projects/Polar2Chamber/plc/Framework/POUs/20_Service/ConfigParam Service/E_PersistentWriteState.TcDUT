@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_PersistentWriteState" Id="{e4bfaf8f-f169-46c2-9775-2fcbce876711}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_PersistentWriteState :
+(
+	None := 0,
+	Waiting := 1,
+	Owned := 2,
+	Writing := 3,
+	Succeeded := 4,
+	Failed := 5,
+	QueueFull := 6
+) USINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_PolarIIChamber_ExhaustServiceCtrl" Id="{14000000-0000-0000-0000-000000000070}">
+    <Declaration><![CDATA[TYPE ST_PolarIIChamber_ExhaustServiceCtrl :
+STRUCT
+	Fan : ARRAY[1..4] OF ST_PolarIIChamber_ExhaustFanServiceCtrl;
+	Damper : ST_PolarIIChamber_ExhaustDamperServiceCtrl;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

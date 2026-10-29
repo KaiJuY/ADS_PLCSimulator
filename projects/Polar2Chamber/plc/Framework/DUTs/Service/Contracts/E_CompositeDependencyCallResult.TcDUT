@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_CompositeDependencyCallResult" Id="{5dc4f4a7-3963-4094-b7d6-47dae3195dd5}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_CompositeDependencyCallResult :
+(
+	Busy := 0,
+	Done := 1,
+	Failed := 2
+) UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

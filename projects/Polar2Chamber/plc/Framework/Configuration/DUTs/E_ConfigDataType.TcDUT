@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_ConfigDataType" Id="{b87c2f1b-e8f5-4827-95df-f8facb9b0396}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_ConfigDataType :
+(
+	Unknown := 0,
+	Boolean,
+	Integer32,
+	UnsignedInteger32,
+	Float32,
+	Float64,
+	String80,
+	Integer8,
+	UnsignedInteger8,
+	Integer16,
+	UnsignedInteger16
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

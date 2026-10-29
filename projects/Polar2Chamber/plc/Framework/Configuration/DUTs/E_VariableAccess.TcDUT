@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_VariableAccess" Id="{8950dd42-e812-4790-b8f2-d1508f44ea59}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_VariableAccess :
+(
+	ReadOnly := 1,
+	WriteOnly,
+	ReadWrite
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+  <DUT Name="E_MotorDirection" Id="{933fdc84-80c4-4bab-8efd-6f1ed007251a}">
+    <Declaration><![CDATA[(*!
+<summary>通用 Motor 的方向命令與方向回授。</summary>
+<description>此型別只描述方向，不包含 Axis positioning 或 vendor drive mode。</description>
+*)
+{attribute 'qualified_only'}
+TYPE E_MotorDirection :
+(
+	None := 0,
+	Forward := 1,
+	Reverse := 2
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

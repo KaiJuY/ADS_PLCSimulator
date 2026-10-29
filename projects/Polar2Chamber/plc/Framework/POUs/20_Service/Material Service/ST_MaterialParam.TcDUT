@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_MaterialParam" Id="{11cdc8d6-6601-4eca-8aa9-69121d718b6c}">
+    <Declaration><![CDATA[TYPE ST_MaterialParam :
+STRUCT
+	CmdType : E_SetMaterialCmdType;
+	TargetEndpointId : UDINT;
+	
+	// Material context
+	MaterialId : STRING(80);
+	MaterialOperateState : E_MaterialOperateState;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

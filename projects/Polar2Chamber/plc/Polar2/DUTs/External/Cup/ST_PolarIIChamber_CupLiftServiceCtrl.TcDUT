@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_PolarIIChamber_CupLiftServiceCtrl" Id="{14000000-0000-0000-0000-000000000037}">
+    <Declaration><![CDATA[TYPE ST_PolarIIChamber_CupLiftServiceCtrl :
+STRUCT
+	JogPositive : ST_ServiceCtrl;
+	JogNegative : ST_ServiceCtrl;
+	IncrementalJog : ST_ServiceCtrl;
+	DecoupleStop : ST_ServiceCtrl; // Decouple, move each Cup to Down Pos, then recouple.
+	TopPos : ST_ServiceCtrl;
+	MiddlePos : ST_ServiceCtrl;
+	DownPos : ST_ServiceCtrl;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

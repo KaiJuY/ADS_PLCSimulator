@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+<DUT Name="ST_AxisBackendSnapshot" Id="{052c1633-d04d-55eb-8ec7-2ee440433c04}">
+<Declaration><![CDATA[TYPE ST_AxisBackendSnapshot :
+STRUCT
+Valid : BOOL;
+NcStatus : ST_AxisStatus;
+NcData : NCTOPLC_AXIS_REF;
+Powered : BOOL;
+AbsoluteReferenceValid : BOOL; // deployment evidence: same stable multi-turn baseline
+RawPositionValid : BOOL;
+RawPosition : LREAL; // excludes all MC_SetPosition offset
+ScaleValid : BOOL;
+Scale : LREAL;
+EncoderOffset : LREAL;
+EncoderInverse : BOOL;
+ModuloValid : BOOL;
+Modulo : LREAL;
+ParameterErrorId : UDINT;
+RawPositionErrorId : UDINT;
+Result : ST_AxisControlResult;
+HaltResult : ST_AxisControlResult;
+StopResult : ST_AxisControlResult;
+ResetResult : ST_AxisControlResult;
+SetPositionResult : ST_AxisControlResult;
+HomeSignal : BOOL;
+HomeSignalValid : BOOL;
+PositiveLimit : BOOL;
+PositiveLimitValid : BOOL;
+NegativeLimit : BOOL;
+NegativeLimitValid : BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+
+</DUT>
+</TcPlcObject>

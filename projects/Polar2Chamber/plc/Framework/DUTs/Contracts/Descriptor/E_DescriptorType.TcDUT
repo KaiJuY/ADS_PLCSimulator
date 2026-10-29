@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_DescriptorType" Id="{f880e51e-7ed9-414b-8790-f6de03f707ad}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_DescriptorType :
+(
+	Integer_32bit := 1,	// TwinCAT DINT, CSharp int
+	Float_32bit,		// TwinCAT REAL, CSharp float
+	String_80byte,
+	DateTime,	// ex: YYYYMMDDHHMMSSUU
+	Boolean,
+	Unsigned_32bit,
+	Float_64bit,
+	Integer_8bit,
+	Unsigned_8bit,
+	Integer_16bit,
+	Unsigned_16bit
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

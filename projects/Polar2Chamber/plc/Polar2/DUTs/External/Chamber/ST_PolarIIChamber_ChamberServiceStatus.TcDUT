@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_PolarIIChamber_ChamberServiceStatus" Id="{14000000-0000-0000-0000-000000000021}">
+    <Declaration><![CDATA[TYPE ST_PolarIIChamber_ChamberServiceStatus :
+STRUCT
+	SetMode : ST_ServiceStatus;
+	Initial : ST_ServiceStatus;
+	SingleProcess : ST_ServiceStatus;
+	EMGS : ST_ServiceStatus;
+	SetConfig : ST_ServiceStatus;
+	ArmAlignTest : ST_ServiceStatus;
+	ArmTest : ST_ServiceStatus;
+	FlowCalibration : ST_ServiceStatus;
+	CupChamberClean : ST_ServiceStatus;
+	DoNozzleClean : ST_ServiceStatus;
+	DoNozzlePreflush : ST_ServiceStatus;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

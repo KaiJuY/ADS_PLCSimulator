@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_MaterialOperateState" Id="{63d676ed-4eb2-4d32-b33b-6dfc8185b576}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_MaterialOperateState :
+(
+	NotApplicable := 0,
+	Pending,
+	Processing,
+	Completed,
+	Failed
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

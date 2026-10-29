@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.26">
+  <POU Name="F_InitializePolarIIChamberServiceStatus" Id="{a9ad0d91-5e87-4198-bb35-bce6689b1002}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION F_InitializePolarIIChamberServiceStatus : BOOL
+VAR_IN_OUT
+	ServiceStatus : ST_PolarIIChamber_ServiceStatus;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[MEMSET(ADR(ServiceStatus), 0, SIZEOF(ServiceStatus));
+
+// Chamber
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Chamber.SetMode, ServiceId := E_PolarIIChamberServiceId.ChamberSetMode, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Chamber.Initial, ServiceId := E_PolarIIChamberServiceId.ChamberInitial, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Chamber.SingleProcess, ServiceId := E_PolarIIChamberServiceId.ChamberSingleProcess, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Chamber.EMGS, ServiceId := E_PolarIIChamberServiceId.ChamberEMGS, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Chamber.SetConfig, ServiceId := E_PolarIIChamberServiceId.ChamberSetConfig, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Chamber.ArmAlignTest, ServiceId := E_PolarIIChamberServiceId.ChamberArmAlignTest, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Chamber.ArmTest, ServiceId := E_PolarIIChamberServiceId.ChamberArmTest, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Chamber.FlowCalibration, ServiceId := E_PolarIIChamberServiceId.ChamberFlowCalibration, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Chamber.CupChamberClean, ServiceId := E_PolarIIChamberServiceId.ChamberCupChamberClean, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Chamber.DoNozzleClean, ServiceId := E_PolarIIChamberServiceId.ChamberDoNozzleClean, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Chamber.DoNozzlePreflush, ServiceId := E_PolarIIChamberServiceId.ChamberDoNozzlePreflush, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+
+// Arm
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].Lift.TopPos, ServiceId := E_PolarIIChamberServiceId.Arm1LiftTopPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].Lift.DownPos, ServiceId := E_PolarIIChamberServiceId.Arm1LiftDownPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].Rotate.JogPositive, ServiceId := E_PolarIIChamberServiceId.Arm1RotateJogPositive, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].Rotate.JogNegative, ServiceId := E_PolarIIChamberServiceId.Arm1RotateJogNegative, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].Rotate.IncrementalJog, ServiceId := E_PolarIIChamberServiceId.Arm1RotateIncrementalJog, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].Rotate.MoveRecipe, ServiceId := E_PolarIIChamberServiceId.Arm1RotateMoveRecipe, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].Rotate.NegLimitPos, ServiceId := E_PolarIIChamberServiceId.Arm1RotateNegLimitPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].Rotate.PosLimitPos, ServiceId := E_PolarIIChamberServiceId.Arm1RotatePosLimitPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].Rotate.NozzlePortPos, ServiceId := E_PolarIIChamberServiceId.Arm1RotateNozzlePortPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].Rotate.Noz1CenterPos, ServiceId := E_PolarIIChamberServiceId.Arm1RotateNoz1CenterPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].Rotate.Noz2CenterPos, ServiceId := E_PolarIIChamberServiceId.Arm1RotateNoz2CenterPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].Rotate.Noz3CenterPos, ServiceId := E_PolarIIChamberServiceId.Arm1RotateNoz3CenterPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].Nozzle[1].ChemicalSupply, ServiceId := E_PolarIIChamberServiceId.Arm1Nozzle1ChemicalSupply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].Nozzle[2].ChemicalSupply, ServiceId := E_PolarIIChamberServiceId.Arm1Nozzle2ChemicalSupply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].Nozzle[3].ChemicalSupply, ServiceId := E_PolarIIChamberServiceId.Arm1Nozzle3ChemicalSupply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].NozzlePort.Nozzle[1].Supply, ServiceId := E_PolarIIChamberServiceId.Arm1NozzlePortNozzle1Supply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].NozzlePort.Nozzle[2].Supply, ServiceId := E_PolarIIChamberServiceId.Arm1NozzlePortNozzle2Supply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].NozzlePort.Nozzle[3].Supply, ServiceId := E_PolarIIChamberServiceId.Arm1NozzlePortNozzle3Supply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].NozzlePort.DrainSelect1, ServiceId := E_PolarIIChamberServiceId.Arm1NozzlePortDrainSelect1, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].NozzlePort.DrainSelect2, ServiceId := E_PolarIIChamberServiceId.Arm1NozzlePortDrainSelect2, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[1].NozzlePort.DrainSelect3, ServiceId := E_PolarIIChamberServiceId.Arm1NozzlePortDrainSelect3, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].Lift.TopPos, ServiceId := E_PolarIIChamberServiceId.Arm2LiftTopPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].Lift.DownPos, ServiceId := E_PolarIIChamberServiceId.Arm2LiftDownPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].Rotate.JogPositive, ServiceId := E_PolarIIChamberServiceId.Arm2RotateJogPositive, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].Rotate.JogNegative, ServiceId := E_PolarIIChamberServiceId.Arm2RotateJogNegative, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].Rotate.IncrementalJog, ServiceId := E_PolarIIChamberServiceId.Arm2RotateIncrementalJog, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].Rotate.MoveRecipe, ServiceId := E_PolarIIChamberServiceId.Arm2RotateMoveRecipe, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].Rotate.NegLimitPos, ServiceId := E_PolarIIChamberServiceId.Arm2RotateNegLimitPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].Rotate.PosLimitPos, ServiceId := E_PolarIIChamberServiceId.Arm2RotatePosLimitPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].Rotate.NozzlePortPos, ServiceId := E_PolarIIChamberServiceId.Arm2RotateNozzlePortPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].Rotate.Noz1CenterPos, ServiceId := E_PolarIIChamberServiceId.Arm2RotateNoz1CenterPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].Rotate.Noz2CenterPos, ServiceId := E_PolarIIChamberServiceId.Arm2RotateNoz2CenterPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].Rotate.Noz3CenterPos, ServiceId := E_PolarIIChamberServiceId.Arm2RotateNoz3CenterPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].Nozzle[1].ChemicalSupply, ServiceId := E_PolarIIChamberServiceId.Arm2Nozzle1ChemicalSupply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].Nozzle[2].ChemicalSupply, ServiceId := E_PolarIIChamberServiceId.Arm2Nozzle2ChemicalSupply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].Nozzle[3].ChemicalSupply, ServiceId := E_PolarIIChamberServiceId.Arm2Nozzle3ChemicalSupply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].NozzlePort.Nozzle[1].Supply, ServiceId := E_PolarIIChamberServiceId.Arm2NozzlePortNozzle1Supply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].NozzlePort.Nozzle[2].Supply, ServiceId := E_PolarIIChamberServiceId.Arm2NozzlePortNozzle2Supply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].NozzlePort.Nozzle[3].Supply, ServiceId := E_PolarIIChamberServiceId.Arm2NozzlePortNozzle3Supply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].NozzlePort.DrainSelect1, ServiceId := E_PolarIIChamberServiceId.Arm2NozzlePortDrainSelect1, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].NozzlePort.DrainSelect2, ServiceId := E_PolarIIChamberServiceId.Arm2NozzlePortDrainSelect2, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[2].NozzlePort.DrainSelect3, ServiceId := E_PolarIIChamberServiceId.Arm2NozzlePortDrainSelect3, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[3].Lift.TopPos, ServiceId := E_PolarIIChamberServiceId.Arm3LiftTopPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[3].Lift.DownPos, ServiceId := E_PolarIIChamberServiceId.Arm3LiftDownPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[3].Rotate.JogPositive, ServiceId := E_PolarIIChamberServiceId.Arm3RotateJogPositive, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[3].Rotate.JogNegative, ServiceId := E_PolarIIChamberServiceId.Arm3RotateJogNegative, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[3].Rotate.IncrementalJog, ServiceId := E_PolarIIChamberServiceId.Arm3RotateIncrementalJog, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[3].Rotate.MoveRecipe, ServiceId := E_PolarIIChamberServiceId.Arm3RotateMoveRecipe, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[3].Rotate.NegLimitPos, ServiceId := E_PolarIIChamberServiceId.Arm3RotateNegLimitPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[3].Rotate.PosLimitPos, ServiceId := E_PolarIIChamberServiceId.Arm3RotatePosLimitPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[3].Rotate.Noz1CenterPos, ServiceId := E_PolarIIChamberServiceId.Arm3RotateNoz1CenterPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[3].Rotate.Noz2CenterPos, ServiceId := E_PolarIIChamberServiceId.Arm3RotateNoz2CenterPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[3].Nozzle[1].ChemicalSupply, ServiceId := E_PolarIIChamberServiceId.Arm3Nozzle1ChemicalSupply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[3].Nozzle[2].ChemicalSupply, ServiceId := E_PolarIIChamberServiceId.Arm3Nozzle2ChemicalSupply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+// Arm[3] has no third nozzle or nozzle port. Keep ServiceId = 0, but provide
+// CompletionBehavior so the current SDK STRUCT scanner can complete validation.
+ServiceStatus.Arm[3].Rotate.NozzlePortPos.CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion;
+ServiceStatus.Arm[3].Rotate.Noz3CenterPos.CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion;
+ServiceStatus.Arm[3].Nozzle[3].ChemicalSupply.CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop;
+ServiceStatus.Arm[3].NozzlePort.Nozzle[1].Supply.CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop;
+ServiceStatus.Arm[3].NozzlePort.Nozzle[2].Supply.CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop;
+ServiceStatus.Arm[3].NozzlePort.Nozzle[3].Supply.CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop;
+ServiceStatus.Arm[3].NozzlePort.DrainSelect1.CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion;
+ServiceStatus.Arm[3].NozzlePort.DrainSelect2.CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion;
+ServiceStatus.Arm[3].NozzlePort.DrainSelect3.CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion;
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[4].Lift.TopPos, ServiceId := E_PolarIIChamberServiceId.Arm4LiftTopPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[4].Lift.DownPos, ServiceId := E_PolarIIChamberServiceId.Arm4LiftDownPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[4].Rotate.JogPositive, ServiceId := E_PolarIIChamberServiceId.Arm4RotateJogPositive, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[4].Rotate.JogNegative, ServiceId := E_PolarIIChamberServiceId.Arm4RotateJogNegative, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[4].Rotate.IncrementalJog, ServiceId := E_PolarIIChamberServiceId.Arm4RotateIncrementalJog, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[4].Rotate.MoveRecipe, ServiceId := E_PolarIIChamberServiceId.Arm4RotateMoveRecipe, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[4].Rotate.NegLimitPos, ServiceId := E_PolarIIChamberServiceId.Arm4RotateNegLimitPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[4].Rotate.PosLimitPos, ServiceId := E_PolarIIChamberServiceId.Arm4RotatePosLimitPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[4].Rotate.Noz1CenterPos, ServiceId := E_PolarIIChamberServiceId.Arm4RotateNoz1CenterPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Arm[4].Nozzle[1].ChemicalSupply, ServiceId := E_PolarIIChamberServiceId.Arm4Nozzle1ChemicalSupply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+// Arm[4] has no second/third nozzle or nozzle port. Keep ServiceId = 0, but
+// provide CompletionBehavior for compatibility with the current SDK scanner.
+ServiceStatus.Arm[4].Rotate.NozzlePortPos.CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion;
+ServiceStatus.Arm[4].Rotate.Noz2CenterPos.CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion;
+ServiceStatus.Arm[4].Rotate.Noz3CenterPos.CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion;
+ServiceStatus.Arm[4].Nozzle[2].ChemicalSupply.CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop;
+ServiceStatus.Arm[4].Nozzle[3].ChemicalSupply.CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop;
+ServiceStatus.Arm[4].NozzlePort.Nozzle[1].Supply.CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop;
+ServiceStatus.Arm[4].NozzlePort.Nozzle[2].Supply.CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop;
+ServiceStatus.Arm[4].NozzlePort.Nozzle[3].Supply.CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop;
+ServiceStatus.Arm[4].NozzlePort.DrainSelect1.CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion;
+ServiceStatus.Arm[4].NozzlePort.DrainSelect2.CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion;
+ServiceStatus.Arm[4].NozzlePort.DrainSelect3.CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion;
+
+// Cup
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[1].Lift.JogPositive, ServiceId := E_PolarIIChamberServiceId.Cup1LiftJogPositive, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[1].Lift.JogNegative, ServiceId := E_PolarIIChamberServiceId.Cup1LiftJogNegative, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[1].Lift.IncrementalJog, ServiceId := E_PolarIIChamberServiceId.Cup1LiftIncrementalJog, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[1].Lift.DecoupleStop, ServiceId := E_PolarIIChamberServiceId.Cup1LiftDecoupleStop, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[1].Lift.TopPos, ServiceId := E_PolarIIChamberServiceId.Cup1LiftTopPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[1].Lift.MiddlePos, ServiceId := E_PolarIIChamberServiceId.Cup1LiftMiddlePos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[1].Lift.DownPos, ServiceId := E_PolarIIChamberServiceId.Cup1LiftDownPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[1].Drainer.Select1, ServiceId := E_PolarIIChamberServiceId.Cup1DrainerSelect1, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[1].Drainer.Select2, ServiceId := E_PolarIIChamberServiceId.Cup1DrainerSelect2, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[1].Drainer.Select3, ServiceId := E_PolarIIChamberServiceId.Cup1DrainerSelect3, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[2].Lift.JogPositive, ServiceId := E_PolarIIChamberServiceId.Cup2LiftJogPositive, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[2].Lift.JogNegative, ServiceId := E_PolarIIChamberServiceId.Cup2LiftJogNegative, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[2].Lift.IncrementalJog, ServiceId := E_PolarIIChamberServiceId.Cup2LiftIncrementalJog, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[2].Lift.DecoupleStop, ServiceId := E_PolarIIChamberServiceId.Cup2LiftDecoupleStop, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[2].Lift.TopPos, ServiceId := E_PolarIIChamberServiceId.Cup2LiftTopPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[2].Lift.MiddlePos, ServiceId := E_PolarIIChamberServiceId.Cup2LiftMiddlePos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[2].Lift.DownPos, ServiceId := E_PolarIIChamberServiceId.Cup2LiftDownPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[2].Drainer.Select1, ServiceId := E_PolarIIChamberServiceId.Cup2DrainerSelect1, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[2].Drainer.Select2, ServiceId := E_PolarIIChamberServiceId.Cup2DrainerSelect2, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[2].Drainer.Select3, ServiceId := E_PolarIIChamberServiceId.Cup2DrainerSelect3, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[3].Lift.JogPositive, ServiceId := E_PolarIIChamberServiceId.Cup3LiftJogPositive, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[3].Lift.JogNegative, ServiceId := E_PolarIIChamberServiceId.Cup3LiftJogNegative, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[3].Lift.IncrementalJog, ServiceId := E_PolarIIChamberServiceId.Cup3LiftIncrementalJog, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[3].Lift.DecoupleStop, ServiceId := E_PolarIIChamberServiceId.Cup3LiftDecoupleStop, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[3].Lift.TopPos, ServiceId := E_PolarIIChamberServiceId.Cup3LiftTopPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[3].Lift.MiddlePos, ServiceId := E_PolarIIChamberServiceId.Cup3LiftMiddlePos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[3].Lift.DownPos, ServiceId := E_PolarIIChamberServiceId.Cup3LiftDownPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[3].Drainer.Select1, ServiceId := E_PolarIIChamberServiceId.Cup3DrainerSelect1, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[3].Drainer.Select2, ServiceId := E_PolarIIChamberServiceId.Cup3DrainerSelect2, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[3].Drainer.Select3, ServiceId := E_PolarIIChamberServiceId.Cup3DrainerSelect3, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[4].Lift.JogPositive, ServiceId := E_PolarIIChamberServiceId.Cup4LiftJogPositive, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[4].Lift.JogNegative, ServiceId := E_PolarIIChamberServiceId.Cup4LiftJogNegative, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[4].Lift.IncrementalJog, ServiceId := E_PolarIIChamberServiceId.Cup4LiftIncrementalJog, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[4].Lift.DecoupleStop, ServiceId := E_PolarIIChamberServiceId.Cup4LiftDecoupleStop, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[4].Lift.TopPos, ServiceId := E_PolarIIChamberServiceId.Cup4LiftTopPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[4].Lift.MiddlePos, ServiceId := E_PolarIIChamberServiceId.Cup4LiftMiddlePos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[4].Lift.DownPos, ServiceId := E_PolarIIChamberServiceId.Cup4LiftDownPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[4].Drainer.Select1, ServiceId := E_PolarIIChamberServiceId.Cup4DrainerSelect1, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[4].Drainer.Select2, ServiceId := E_PolarIIChamberServiceId.Cup4DrainerSelect2, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Cup[4].Drainer.Select3, ServiceId := E_PolarIIChamberServiceId.Cup4DrainerSelect3, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+
+// Holder
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Holder.Gripper.Open, ServiceId := E_PolarIIChamberServiceId.HolderGripperOpen, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Holder.Gripper.Close, ServiceId := E_PolarIIChamberServiceId.HolderGripperClose, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Holder.Rotate.OPR, ServiceId := E_PolarIIChamberServiceId.HolderRotateOPR, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Holder.Rotate.MoveVelocityCW, ServiceId := E_PolarIIChamberServiceId.HolderRotateMoveVelocityCW, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Holder.Rotate.MoveVelocityCCW, ServiceId := E_PolarIIChamberServiceId.HolderRotateMoveVelocityCCW, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Holder.Rotate.MoveModulo, ServiceId := E_PolarIIChamberServiceId.HolderRotateMoveModulo, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+
+// FixedNozzle
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.FixedNozzle[1].ChemicalSupply, ServiceId := E_PolarIIChamberServiceId.FixedNozzle1ChemicalSupply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.FixedNozzle[2].ChemicalSupply, ServiceId := E_PolarIIChamberServiceId.FixedNozzle2ChemicalSupply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.FixedNozzle[3].ChemicalSupply, ServiceId := E_PolarIIChamberServiceId.FixedNozzle3ChemicalSupply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.FixedNozzle[4].ChemicalSupply, ServiceId := E_PolarIIChamberServiceId.FixedNozzle4ChemicalSupply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+
+// OutsideRing
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.OutsideRing.Lift.TopPos, ServiceId := E_PolarIIChamberServiceId.OutsideRingLiftTopPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.OutsideRing.Lift.DownPos, ServiceId := E_PolarIIChamberServiceId.OutsideRingLiftDownPos, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.OutsideRing.Rotate.MoveVelocityCW, ServiceId := E_PolarIIChamberServiceId.OutsideRingRotateMoveVelocityCW, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.OutsideRing.Rotate.MoveVelocityCCW, ServiceId := E_PolarIIChamberServiceId.OutsideRingRotateMoveVelocityCCW, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+
+// Shutter
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Shutter.Open, ServiceId := E_PolarIIChamberServiceId.ShutterOpen, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Shutter.Close, ServiceId := E_PolarIIChamberServiceId.ShutterClose, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+
+// Exhaust
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Exhaust.Fan[1].SupplyFlowPID, ServiceId := E_PolarIIChamberServiceId.ExhaustFan1SupplyFlowPID, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Exhaust.Fan[2].SupplyFlowPID, ServiceId := E_PolarIIChamberServiceId.ExhaustFan2SupplyFlowPID, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Exhaust.Fan[3].SupplyFlowPID, ServiceId := E_PolarIIChamberServiceId.ExhaustFan3SupplyFlowPID, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Exhaust.Fan[4].SupplyFlowPID, ServiceId := E_PolarIIChamberServiceId.ExhaustFan4SupplyFlowPID, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Exhaust.Damper.AEX, ServiceId := E_PolarIIChamberServiceId.ExhaustDamperAEX, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Exhaust.Damper.SEX, ServiceId := E_PolarIIChamberServiceId.ExhaustDamperSEX, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+
+// SideVent
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.SideVent[1].Open, ServiceId := E_PolarIIChamberServiceId.SideVent1Open, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.SideVent[1].Close, ServiceId := E_PolarIIChamberServiceId.SideVent1Close, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.SideVent[2].Open, ServiceId := E_PolarIIChamberServiceId.SideVent2Open, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.SideVent[2].Close, ServiceId := E_PolarIIChamberServiceId.SideVent2Close, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.SideVent[3].Open, ServiceId := E_PolarIIChamberServiceId.SideVent3Open, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.SideVent[3].Close, ServiceId := E_PolarIIChamberServiceId.SideVent3Close, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.SideVent[4].Open, ServiceId := E_PolarIIChamberServiceId.SideVent4Open, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.SideVent[4].Close, ServiceId := E_PolarIIChamberServiceId.SideVent4Close, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+
+F_InitializePolarIIChamberServiceStatus := TRUE;
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

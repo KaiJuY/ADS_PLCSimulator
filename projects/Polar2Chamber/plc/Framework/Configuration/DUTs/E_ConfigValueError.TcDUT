@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_ConfigValueError" Id="{f69fdb3e-80be-4d76-b417-b6c943342575}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_ConfigValueError :
+(
+	None := 0,
+	// FB_ConfigValueSnapshotReader cannot access the injected node reader.
+	ReaderUnavailable := 16#7100,
+	// The configured VariableList and AlarmList exceed the snapshot capacity.
+	SourceCapacityExceeded := 16#7101,
+	// FB_LinkVariableManager received an unknown or expired opaque handle.
+	InvalidNodeHandle := 16#7201,
+	// The registered node cannot be used as a configured value source.
+	NodeReadNotAllowed := 16#7202,
+	// The registered node no longer has a valid data address.
+	InvalidNodeAddress := 16#7203,
+	// Config metadata and registered node metadata do not describe the same type.
+	NodeDataTypeMismatch := 16#7204,
+	// The registered size is zero or exceeds ST_ConfigRawValue.Data.
+	InvalidNodeSize := 16#7205
+)UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

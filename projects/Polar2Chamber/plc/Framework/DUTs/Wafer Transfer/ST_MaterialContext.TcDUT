@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_MaterialContext" Id="{4b60fcdc-f719-468b-a244-a14310a360da}">
+    <Declaration><![CDATA[TYPE ST_MaterialContext :
+STRUCT
+	Id : STRING(80);
+	OperationState : E_MaterialOperateState;
+	// Add other information of wafer...
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_ModuleType" Id="{e8f32db0-540e-4d6c-a089-fcde2ae1e371}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_ModuleType :
+(
+	Unknown := 0,
+	// Chamber1 Module. The member name is the public config value.
+	Chamber1 := 1
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

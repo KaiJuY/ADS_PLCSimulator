@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ServiceRegistrationEntry" Id="{77e6d734-5908-45a5-ad5f-d5db1cdf75b0}">
+    <Declaration><![CDATA[TYPE ST_ServiceRegistrationEntry :
+STRUCT
+	InUse : BOOL;
+	ServiceId : UDINT;
+
+	UpperCtrlAddress : PVOID;
+	EffectiveCtrlAddress : PVOID;
+
+	UpperParamAddress : PVOID;
+	EffectiveParamAddress : PVOID;
+	ParameterSize : UDINT;
+	ParameterTypeName : STRING(255);
+
+	StatusAddress : PVOID;
+	AllowCompositeCall : BOOL;
+	IsComposite : BOOL;
+	CompositeOwnerServiceId : UDINT;
+
+	CompositeDependenciesAddress : PVOID;
+	CompositeDependencyCount : UINT;
+	OwnershipState : E_CompositeOwnershipState;
+
+	InternalRequestId : UDINT;
+	InternalCommand : E_PackMLCommand;
+	InternalCommandState : E_ServiceInternalCommandState;
+	InternalRequestMustGoLow : BOOL;
+
+	ObservedSnapshot : ST_ServiceExecutionSnapshot;
+
+	UpperModeWasHigh : BOOL;
+	UpperCommandBlockedUntilFalse : BOOL;
+	UpperModeBlockedUntilFalse : BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

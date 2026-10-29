@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ConfigParamDescriptor" Id="{353ed680-fe02-488b-98c9-6541d4148bd6}">
+    <Declaration><![CDATA[TYPE ST_ConfigParamDescriptor EXTENDS ST_ExtDescriptor :
+STRUCT
+	IsBound : BOOL;
+	HasLimits : BOOL;
+	LowerLimit : LREAL;
+	UpperLimit : LREAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

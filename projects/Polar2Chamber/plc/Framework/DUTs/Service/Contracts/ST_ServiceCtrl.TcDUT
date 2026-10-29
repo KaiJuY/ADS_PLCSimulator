@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ServiceCtrl" Id="{e3e054b0-1445-4490-9ce3-3d180aa7d013}">
+    <Declaration><![CDATA[TYPE ST_ServiceCtrl :
+STRUCT
+	RequestId : UDINT;
+	PackMLIn : ST_PML_Base_In;
+	// Upper controllers change AliveIndex periodically while an externally-stopped
+	// Service is executing. AliveTimeout = T#0S disables the watchdog.
+	AliveIndex : UDINT;
+	AliveTimeout : TIME;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

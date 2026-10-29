@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_PolarIIChamber_ServiceParam" Id="{14000000-0000-0000-0000-000000000074}">
+    <Declaration><![CDATA[TYPE ST_PolarIIChamber_ServiceParam :
+STRUCT
+	Chamber : ST_PolarIIChamber_ChamberServiceParam;
+	Arm : ARRAY[1..4] OF ST_PolarIIChamber_ArmServiceParam;
+	Cup : ARRAY[1..4] OF ST_PolarIIChamber_CupServiceParam;
+	Holder : ST_PolarIIChamber_HolderServiceParam;
+	FixedNozzle : ARRAY[1..4] OF ST_PolarIIChamber_NozzleSupplyServiceParam;
+	OutsideRing : ST_PolarIIChamber_OutsideRingServiceParam;
+	Shutter : ST_PolarIIChamber_OpenCloseServiceParam;
+	Exhaust : ST_PolarIIChamber_ExhaustServiceParam;
+	SideVent : ARRAY[1..4] OF ST_PolarIIChamber_OpenCloseServiceParam;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

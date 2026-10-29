@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_PolarIIChamber_LiftTopDownServiceStatus" Id="{14000000-0000-0000-0000-000000000024}">
+    <Declaration><![CDATA[TYPE ST_PolarIIChamber_LiftTopDownServiceStatus :
+STRUCT
+	TopPos : ST_ServiceStatus;
+	DownPos : ST_ServiceStatus;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

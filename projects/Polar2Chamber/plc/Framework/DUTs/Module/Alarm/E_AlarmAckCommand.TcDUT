@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_AlarmAckCommand" Id="{08276620-378c-4ace-913f-3fc164feb02c}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_AlarmAckCommand :
+(
+	None := 0,
+	AcknowledgeOne := 1,
+	AcknowledgeAll := 2
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

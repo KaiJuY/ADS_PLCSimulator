@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_LinkPhase" Id="{395d8f48-ad96-4643-ac80-8824300d4903}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_LinkPhase :
+(
+	InputToModule := 1,
+	ModuleToOutput
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

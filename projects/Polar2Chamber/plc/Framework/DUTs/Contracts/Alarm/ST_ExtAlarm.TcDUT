@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ExtAlarm" Id="{a176a5ca-a180-4d80-bea0-fd686a1fb7fd}">
+    <Declaration><![CDATA[TYPE ST_ExtAlarm :
+STRUCT
+	ModuleId : UDINT;
+	ServiceId : UDINT;
+	MainErrorId : UDINT;
+	SourceErrorId : UDINT;
+	Message : STRING;
+	Path : STRING(255);
+	Severity : E_Severity;
+	DateTime : STRING(20);	// First occurrence of the current alarm lifecycle. ex: YYYYMMDDHHMMSSUUU
+	Active : BOOL;
+	Acknowledged : BOOL;
+	OccurrenceCount : UDINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

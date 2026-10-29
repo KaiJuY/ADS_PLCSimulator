@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_PolarIIChamber_CupChamberCleanParam" Id="{14000000-0000-0000-0000-000000000015}">
+    <Declaration><![CDATA[TYPE ST_PolarIIChamber_CupChamberCleanParam :
+STRUCT
+	ProcessStepCount : UINT; // 0..50; entries are contiguous from index 1
+	ProcessSteps : ARRAY[1..50] OF ST_PolarIIChamber_ProcessStep;
+	RecipeCount : UINT; // 0..50; entries are contiguous from index 1
+	Recipes : ARRAY[1..50] OF ST_PolarIIChamber_Recipe;
+	CleanSettings : ARRAY[1..50] OF ST_PolarIIChamber_CleanSetting; // Active range is 1..ProcessStepCount
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

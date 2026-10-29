@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+  <DUT Name="E_VacuumCommand" Id="{c9e55f99-615a-495b-8534-537a860b6c68}">
+    <Declaration><![CDATA[(*!
+<summary>FB_VacuumControl 目前保持的輸出命令。</summary>
+*)
+//!<param name="None">沒有動作；Vacuum 與 Blow 輸出皆關閉。</param>
+//!<param name="VacuumOn">開啟 Vacuum 並監看建立逾時與 Vacuum Lost。</param>
+//!<param name="VacuumOff">關閉 Vacuum 與 Blow，等待 Vacuum Reached 回授解除。</param>
+//!<param name="BlowOff">關閉 Vacuum 並開啟 Blow／Vent。</param>
+{attribute 'qualified_only'}
+TYPE E_VacuumCommand :
+(
+	None := 0,
+	VacuumOn := 1,
+	VacuumOff := 2,
+	BlowOff := 3
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
