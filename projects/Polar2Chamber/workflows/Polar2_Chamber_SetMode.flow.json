@@ -1,0 +1,119 @@
+{
+  "nodes": [
+    {
+      "id": "trigger",
+      "type": "trigger.onServiceExecute",
+      "x": 40,
+      "y": 60,
+      "params": {
+        "service": "GVL_Module.Chamber_Control[#].ServiceCtrl.Chamber.SetMode"
+      }
+    },
+    {
+      "id": "complete",
+      "type": "action.completeService",
+      "x": 360,
+      "y": 60,
+      "params": {
+        "service": "GVL_Module.Chamber_Control[#].ServiceCtrl.Chamber.SetMode"
+      }
+    },
+    {
+      "id": "read",
+      "type": "data.readSymbol",
+      "x": 40,
+      "y": 300,
+      "params": {
+        "symbol": "GVL_Module.Chamber_Control[#].ServiceParam.Chamber.SetMode.TargetMode"
+      }
+    },
+    {
+      "id": "inRange",
+      "type": "logic.compare",
+      "x": 360,
+      "y": 300,
+      "params": {
+        "operator": "<=",
+        "b": "3"
+      }
+    },
+    {
+      "id": "branch",
+      "type": "flow.branch",
+      "x": 680,
+      "y": 60,
+      "params": {}
+    },
+    {
+      "id": "write",
+      "type": "action.writeSymbol",
+      "x": 960,
+      "y": 60,
+      "params": {
+        "symbol": "GVL_Module.Chamber_Control[#].ModuleVariableList[1].Value"
+      }
+    }
+  ],
+  "links": [
+    {
+      "fromNode": "trigger",
+      "fromPort": "then",
+      "toNode": "complete",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "trigger",
+      "fromPort": "index",
+      "toNode": "complete",
+      "toPort": "index"
+    },
+    {
+      "fromNode": "trigger",
+      "fromPort": "generation",
+      "toNode": "complete",
+      "toPort": "generation"
+    },
+    {
+      "fromNode": "complete",
+      "fromPort": "then",
+      "toNode": "branch",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "branch",
+      "fromPort": "true",
+      "toNode": "write",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "trigger",
+      "fromPort": "index",
+      "toNode": "read",
+      "toPort": "index"
+    },
+    {
+      "fromNode": "trigger",
+      "fromPort": "index",
+      "toNode": "write",
+      "toPort": "index"
+    },
+    {
+      "fromNode": "read",
+      "fromPort": "value",
+      "toNode": "inRange",
+      "toPort": "a"
+    },
+    {
+      "fromNode": "read",
+      "fromPort": "value",
+      "toNode": "write",
+      "toPort": "value"
+    },
+    {
+      "fromNode": "inRange",
+      "fromPort": "result",
+      "toNode": "branch",
+      "toPort": "condition"
+    }
+  ]
+}
