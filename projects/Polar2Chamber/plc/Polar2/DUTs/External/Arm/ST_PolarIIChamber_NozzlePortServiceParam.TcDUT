@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_PolarIIChamber_NozzlePortServiceParam" Id="{14000000-0000-0000-0000-000000000056}">
+    <Declaration><![CDATA[TYPE ST_PolarIIChamber_NozzlePortServiceParam :
+STRUCT
+	Nozzle : ARRAY[1..3] OF ST_PolarIIChamber_PortNozzleSupplyServiceParam;
+	DrainSelect1 : ST_EmptyServiceParam;
+	DrainSelect2 : ST_EmptyServiceParam;
+	DrainSelect3 : ST_EmptyServiceParam;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
