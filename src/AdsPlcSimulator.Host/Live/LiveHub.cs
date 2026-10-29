@@ -22,14 +22,25 @@ public sealed class LiveHub : IFlowMonitor, ISimulationSink
         Converters = { new JsonStringEnumConverter() },
     };
 
+    private readonly ILogger<LiveHub> _logger;
     private readonly ConcurrentDictionary<Guid, Channel<string>> _clients = new();
 
     /// <summary>Last action per simulation target, replayed to pages that connect later.</summary>
     private readonly ConcurrentDictionary<string, SimulationCommand> _simulationState = new(StringComparer.OrdinalIgnoreCase);
 
+    public LiveHub(ILogger<LiveHub> logger)
+    {
+        _logger = logger;
+    }
+
     public sealed record SimulationCommand(string Target, string Action, object? Value);
 
-    public void Publish(FlowEvent flowEvent) => Broadcast(new { type = "flow", @event = flowEvent });
+    public void Publish(FlowEvent flowEvent)
+    {
+        if (flowEvent.Kind == FlowEventKind.RunFailed)
+            _logger.LogWarning("Workflow {Workflow} run {RunId} failed at node {NodeId}: {Error}", flowEvent.Workflow, flowEvent.RunId, flowEvent.NodeId, flowEvent.Error);
+        Broadcast(new { type = "flow", @event = flowEvent });
+    }
 
     public void Invoke(string target, string action, object? value)
     {

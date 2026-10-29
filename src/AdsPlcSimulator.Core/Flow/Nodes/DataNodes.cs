@@ -3,19 +3,20 @@ using AdsPlcSimulator.Core.Plc;
 
 namespace AdsPlcSimulator.Core.Flow.Nodes;
 
-public sealed class ReadSymbolNode(SymbolRef symbol) : PureNode
+public sealed class ReadSymbolNode(IndexedSymbol symbol) : PureNode
 {
     public static readonly NodeDefinition Definition = new(
         "data.readSymbol",
         "Data",
         "Read Symbol",
-        "Current value of a PLC variable.",
-        [],
+        "Current value of a PLC variable. A [#] in the symbol is replaced by the 'index' input.",
+        [new("index", PortKind.Data, "index", Optional: true)],
         [new("value", PortKind.Data, "value")],
         [new("symbol", ParamKind.Symbol, "Symbol")],
-        settings => new ReadSymbolNode(settings.ScalarSymbol("symbol")));
+        settings => new ReadSymbolNode(settings.IndexedSymbol("symbol", scalar: true)));
 
-    public override void Evaluate(NodeExecution execution) => execution.Output("value", execution.Image.ReadValue(symbol));
+    public override void Evaluate(NodeExecution execution) =>
+        execution.Output("value", execution.Image.ReadValue(symbol.Resolve(execution.Symbols, execution.Input("index"))));
 }
 
 public sealed class ConstantNode(object value) : PureNode

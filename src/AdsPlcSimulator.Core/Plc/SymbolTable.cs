@@ -22,17 +22,22 @@ public sealed class SymbolResolutionException(string message) : Exception(messag
 public sealed class SymbolTable
 {
     private readonly Dictionary<string, RootSymbol> _rootsByPath;
+    private readonly Dictionary<string, long> _enumValues;
 
-    public SymbolTable(IReadOnlyList<RootSymbol> roots, int imageSize)
+    public SymbolTable(IReadOnlyList<RootSymbol> roots, int imageSize, IReadOnlyDictionary<string, long>? enumValues = null)
     {
         Roots = roots;
         ImageSize = imageSize;
         _rootsByPath = roots.ToDictionary(root => root.Path, StringComparer.OrdinalIgnoreCase);
+        _enumValues = new Dictionary<string, long>(enumValues ?? new Dictionary<string, long>(), StringComparer.OrdinalIgnoreCase);
     }
 
     public IReadOnlyList<RootSymbol> Roots { get; }
 
     public int ImageSize { get; }
+
+    /// <summary>Value of a declared enum member, e.g. "E_PolarIIChamberServiceId.ShutterOpen"; case-insensitive.</summary>
+    public bool TryGetEnumValue(string qualifiedName, out long value) => _enumValues.TryGetValue(qualifiedName, out value);
 
     public SymbolRef Resolve(string path) =>
         TryResolve(path, out SymbolRef symbol, out string? error) ? symbol : throw new SymbolResolutionException(error!);
