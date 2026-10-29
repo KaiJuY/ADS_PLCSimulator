@@ -65,6 +65,7 @@ public sealed partial class ServiceIdentityTable
         if (call.Success)
         {
             ApplyIdentityCall(call.Groups["arguments"].Value, enumValue);
+            // Stryker disable once Statement: a statement that starts with F_ cannot also match the ServiceStatus. assignment pattern
             return;
         }
 
@@ -125,6 +126,7 @@ public sealed partial class ServiceIdentityTable
     private static void AddNamedArgument(Dictionary<string, string> named, string argument)
     {
         int separator = argument.IndexOf(":=", StringComparison.Ordinal);
+        // Stryker disable once Equality: an argument that starts with ":=" would only store an empty name, which no lookup reads
         if (separator < 0)
             return;
 

@@ -340,6 +340,66 @@ public sealed class ServiceNodeTests : IAsyncLifetime
         Assert.Contains(".ServiceCtrl.", Assert.Single(diagnostics).Message);
     }
 
+    private static string TriggerDiagnostic(string declarations, string service)
+    {
+        PlcProgram program = TestPaths.BuildFromText(declarations);
+        var document = new WorkflowDocument { Nodes = [Node("trigger", "trigger.onServiceExecute", ("service", service))] };
+
+        CompiledWorkflow? compiled = WorkflowCompiler.Compile("t", document, NodeCatalog.Default, program.Symbols, out List<WorkflowDiagnostic> diagnostics);
+
+        Assert.Null(compiled);
+        return Assert.Single(diagnostics).Message;
+    }
+
+    [Fact]
+    [Trait("AC", "12")]
+    public void Trigger_with_ctrl_and_status_arrays_of_different_length_reports_diagnostic()
+    {
+        string declarations = HostFixture.Declarations
+            .Replace("Unbound : ST_ServiceCtrl; END_STRUCT", "Unbound : ST_ServiceCtrl; Arr : ARRAY[1..2] OF ST_ServiceCtrl; END_STRUCT")
+            .Replace("Unbound : ST_ServiceStatus; END_STRUCT", "Unbound : ST_ServiceStatus; Arr : ARRAY[1..3] OF ST_ServiceStatus; END_STRUCT");
+
+        string message = TriggerDiagnostic(declarations, "GVL_Test.Modules[1].ServiceCtrl.Arr[#]");
+
+        Assert.Equal(
+            "'GVL_Test.Modules[1].ServiceCtrl.Arr[#]' and 'GVL_Test.Modules[1].ServiceStatus.Arr[#].PackMLOut.eStateCurrent' do not index the same range.",
+            message);
+    }
+
+    [Fact]
+    [Trait("AC", "12")]
+    public void Trigger_whose_state_member_is_not_a_scalar_reports_diagnostic()
+    {
+        string declarations = "TYPE ST_StateBox : STRUCT n : INT; END_STRUCT END_TYPE\n"
+            + HostFixture.Declarations.Replace("eStateCurrent : E_PackMLState;", "eStateCurrent : ST_StateBox;");
+
+        string message = TriggerDiagnostic(declarations, ServiceA);
+
+        Assert.Contains("pick one of its scalar members", message);
+    }
+
+    [Fact]
+    [Trait("AC", "13")]
+    public async Task Host_in_a_runtime_without_a_project_folder_reports_diagnostic()
+    {
+        await using var runtime = new FlowRuntime(_image, _program.Symbols, NodeCatalog.Default, _monitor, new NoSimulation());
+
+        WorkflowDiagnostic diagnostic = Assert.Single(runtime.Load("host", HostDocument()));
+
+        Assert.Equal("Parameter 'identityFile' needs a project folder, and this runtime has none.", diagnostic.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "13")]
+    public void Host_with_an_identity_file_that_cannot_be_read_reports_diagnostic()
+    {
+        using var locked = new FileStream(Path.Combine(_projectDirectory, "plc", "identity.st"), FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+        WorkflowDiagnostic diagnostic = Assert.Single(_runtime.Load("host", HostDocument()));
+
+        Assert.StartsWith("Identity file could not be read: ", diagnostic.Message);
+    }
+
     [Fact]
     [Trait("AC", "12")]
     public void Trigger_fires_with_index_when_a_service_enters_execute()

@@ -71,6 +71,7 @@ public sealed class IndexedSymbol
         if (!IsIndexed)
             return [(null, _fixed)];
 
+        // Stryker disable once Checked: an array whose length overflows int cannot be declared in a process image
         return Enumerable.Range(0, checked((int)(UpperBound - LowerBound + 1)))
             .Select(offset => LowerBound + offset)
             .Select(index => ((long?)index, symbols.Resolve($"{_prefix}[{index}]{_suffix}")))

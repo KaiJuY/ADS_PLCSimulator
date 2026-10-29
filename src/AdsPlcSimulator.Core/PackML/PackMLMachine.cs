@@ -191,6 +191,7 @@ public sealed class PackMLMachine(PackMLState initialState, PackMLState initialP
 
     private void ChangeState(PackMLState next)
     {
+        // Stryker disable once Statement: no command rule and no acting-state target equals its source state, so this guard never fires
         if (next == State)
             return;
 

@@ -177,4 +177,65 @@ public class ServiceHostRegistryTests
         Assert.Same(firstToken, registry.OverrideToken(PathA));
         Assert.NotNull(registry.OverrideToken("GVL_Test.Modules[2].ServiceCtrl.A"));
     }
+
+    [Fact]
+    [Trait("AC", "13")]
+    public void Refused_registration_does_not_retire_the_host_of_the_other_workflow()
+    {
+        var fixture = new HostFixture();
+        var registry = new ServiceHostRegistry();
+        registry.Register("first", fixture.Host);
+
+        Assert.Throws<InvalidOperationException>(() => registry.Register("second", NewHost(fixture)));
+
+        fixture.SendToService(1, "A", PackMLCommand.Start, 1);
+        fixture.Scan();
+        Assert.Equal(PackMLState.Execute, fixture.ServiceState(1, "A"));
+    }
+
+    [Fact]
+    [Trait("AC", "13")]
+    public async Task Replacement_is_refused_when_another_workflow_takes_the_root_while_the_old_host_retires()
+    {
+        var fixture = new HostFixture(initialize: false);
+        var scanning = new ManualResetEventSlim();
+        var release = new ManualResetEventSlim();
+        ServiceHost old = HostFixture.CreateHost(fixture.Program, fixture.Image, HostFixture.DefaultDelay, _ =>
+        {
+            scanning.Set();
+            release.Wait(TimeSpan.FromSeconds(10));
+            return null;
+        });
+        old.Initialize(fixture.Image);
+        var registry = new ServiceHostRegistry();
+        registry.Register("first", old);
+        fixture.SendToService(1, "A", PackMLCommand.Start, 1);
+        var scan = Task.Run(() => old.Scan(fixture.Image, TimeSpan.Zero));
+        Assert.True(scanning.Wait(TimeSpan.FromSeconds(10)), "the scan did not reach the override callback");
+
+        Exception? refusal = null;
+        var replacing = new Thread(() =>
+        {
+            try
+            {
+                registry.Register("first", NewHost(fixture));
+            }
+            catch (InvalidOperationException exception)
+            {
+                refusal = exception;
+            }
+        });
+        replacing.Start();
+        SpinWait.SpinUntil(() => replacing.ThreadState.HasFlag(System.Threading.ThreadState.WaitSleepJoin), TimeSpan.FromSeconds(10));
+        registry.Unregister(old);
+        ServiceHost taker = NewHost(fixture);
+        registry.Register("second", taker);
+        release.Set();
+        replacing.Join(TimeSpan.FromSeconds(10));
+        await scan.WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.NotNull(refusal);
+        Assert.Contains("second", refusal.Message);
+        Assert.Same(taker, registry.FindByService(PathA));
+    }
 }

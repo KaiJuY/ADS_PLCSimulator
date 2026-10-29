@@ -152,6 +152,7 @@ public sealed class ServiceExecuteTriggerNode : MemoryTriggerNode, IRegistryAwar
             throw new NodeConfigurationException($"'{service.Template}' is {service.Type.Name}, not ST_ServiceCtrl.");
 
         int marker = service.Template.IndexOf(CtrlSegment, StringComparison.OrdinalIgnoreCase);
+        // Stryker disable once Equality: a template that starts with the segment is no symbol path, so Parse has already refused it
         if (marker < 0)
             throw new NodeConfigurationException($"'{service.Template}' must contain '{CtrlSegment}' to find the matching ServiceStatus.");
 

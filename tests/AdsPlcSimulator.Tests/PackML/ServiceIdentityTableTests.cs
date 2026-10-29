@@ -46,6 +46,34 @@ public class ServiceIdentityTableTests
 
     [Fact]
     [Trait("AC", "2")]
+    public void Commas_inside_brackets_stay_in_the_path()
+    {
+        ServiceIdentityTable table = Parse("F_Set(Status := ServiceStatus.Grid[1,2].Lift, ServiceId := E_Id.Open, CompletionBehavior := E_Behavior.Natural);");
+
+        Assert.Equal(1, table.Count);
+        Assert.Equal(new ServiceIdentity(11, CompletionBehavior.NaturalCompletion), table.Find("Grid[1,2].Lift"));
+    }
+
+    [Fact]
+    [Trait("AC", "2")]
+    public void Argument_without_a_name_is_skipped()
+    {
+        ServiceIdentityTable table = Parse("F_Set(Status := ServiceStatus.Door, Spare, ServiceId := E_Id.Open, CompletionBehavior := E_Behavior.Natural);");
+
+        Assert.Equal(new ServiceIdentity(11, CompletionBehavior.NaturalCompletion), table.Find("Door"));
+    }
+
+    [Fact]
+    [Trait("AC", "2")]
+    public void Comment_separates_tokens_like_white_space()
+    {
+        ServiceIdentityTable table = Parse("ServiceStatus.Door.CompletionBehavior := E_Behavior.(* split *)Natural;");
+
+        Assert.Equal(0, table.Count);
+    }
+
+    [Fact]
+    [Trait("AC", "2")]
     public void Find_ignores_case_and_returns_null_for_unknown_path()
     {
         ServiceIdentityTable table = Parse("F_Set(Status := ServiceStatus.Shutter.Open, ServiceId := E_Id.Open, CompletionBehavior := E_Behavior.Natural);");
@@ -160,14 +188,18 @@ public class ServiceIdentityTableTests
     [Trait("AC", "2")]
     public void Xml_without_st_element_fails()
     {
-        Assert.Throws<ServiceIdentityException>(() => Parse("<TcPlcObject><POU /></TcPlcObject>"));
+        var exception = Assert.Throws<ServiceIdentityException>(() => Parse("<TcPlcObject><POU /></TcPlcObject>"));
+
+        Assert.Equal("The XML has no <ST> element.", exception.Message);
     }
 
     [Fact]
     [Trait("AC", "2")]
     public void Malformed_xml_fails()
     {
-        Assert.Throws<ServiceIdentityException>(() => Parse("<TcPlcObject><POU>"));
+        var exception = Assert.Throws<ServiceIdentityException>(() => Parse("<TcPlcObject><POU>"));
+
+        Assert.StartsWith("The identity file is not valid XML: ", exception.Message);
     }
 
     [Theory]

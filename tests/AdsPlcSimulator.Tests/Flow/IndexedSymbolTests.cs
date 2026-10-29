@@ -138,6 +138,15 @@ public class IndexedSymbolTests
 
     [Fact]
     [Trait("AC", "3")]
+    public void Empty_path_is_rejected_with_a_message()
+    {
+        var exception = Assert.Throws<NodeConfigurationException>(() => IndexedSymbol.Parse(string.Empty, Symbols, scalar: false));
+
+        Assert.Equal("A PLC symbol path is needed.", exception.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "3")]
     public void Struct_element_is_rejected_when_a_scalar_is_required_and_accepted_otherwise()
     {
         Assert.Throws<NodeConfigurationException>(() => IndexedSymbol.Parse("GVL_Test.aItems[#]", Symbols, scalar: true));

@@ -497,6 +497,7 @@ public sealed class ServiceHost
             ModeBlocked = false;
             Generation = 0;
             EntryToken = null;
+            // Stryker disable once Boolean: EntryToken is null here, so Complete and TakeCompletion cannot read the flag before EnterExecute resets it
             CompletePending = false;
         }
 
@@ -558,6 +559,7 @@ public sealed class ServiceHost
             StructMember serviceStatus = RequireMember(module, "ServiceStatus", null);
 
             var serviceCtrlRoot = new SymbolRef($"{module.Path}.ServiceCtrl", serviceCtrl.Type, module.Offset + serviceCtrl.Offset);
+            // Stryker disable once Arithmetic: ServiceUnit.Create reads only the Path of this root; the status offset comes from the symbol table
             var serviceStatusRoot = new SymbolRef($"{module.Path}.ServiceStatus", serviceStatus.Type, module.Offset + serviceStatus.Offset);
             var services = FindServiceCtrls(serviceCtrlRoot)
                 .Select(ctrlNode => ServiceUnit.Create(symbols, ctrlNode, serviceCtrlRoot, serviceStatusRoot, identities))

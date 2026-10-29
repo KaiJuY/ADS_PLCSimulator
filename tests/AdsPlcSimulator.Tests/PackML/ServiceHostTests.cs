@@ -839,4 +839,80 @@ public class ServiceHostTests
 
         Assert.Equal("No service under GVL_Test.Modules has a ServiceId.", exception.Message);
     }
+
+    [Fact]
+    [Trait("AC", "13")]
+    public void Host_with_status_lacking_a_packml_out_member_names_the_owner_and_member()
+    {
+        ServiceHostException exception = BuildFails(WithDeclarations(text => text.Replace("eStateErrorID : E_PackMLErrorID;", string.Empty)));
+
+        Assert.Equal("GVL_Test.Modules[1].ServiceStatus.A.PackMLOut has no member 'eStateErrorID'.", exception.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "13")]
+    public void Host_with_module_ctrl_lacking_a_member_names_the_ctrl()
+    {
+        ServiceHostException exception = BuildFails(WithDeclarations(text =>
+            Regex.Replace(text, @"(TYPE ST_ModuleCtrl : STRUCT\s+)RequestId : UDINT;", "$1")));
+
+        Assert.Equal("GVL_Test.Modules[1].ModuleCtrl has no member 'RequestId'.", exception.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "13")]
+    public void Host_with_a_packml_out_of_another_type_reports_diagnostic()
+    {
+        const string alternativeOut = """
+            TYPE ST_Alternative_Out : STRUCT
+                eStateCurrent : E_PackMLState;
+                eStatePrevious : E_PackMLState;
+                eModeCurrent : T_PackMLMode;
+                eModePrevious : T_PackMLMode;
+                bCommandAccepted : BOOL;
+                bCommandRejected : BOOL;
+                eStateErrorID : E_PackMLErrorID;
+                bModeChanged : BOOL;
+                bModeChangeRejected : BOOL;
+                eModeErrorID : E_PackMLErrorID;
+            END_STRUCT END_TYPE
+            """;
+        string declarations = WithDeclarations(text => alternativeOut + " " + Regex.Replace(
+            text,
+            @"(TYPE ST_ServiceStatus : STRUCT\s+ResponseId : UDINT;\s+PackMLOut : )ST_PML_Base_Out;",
+            "$1ST_Alternative_Out;"));
+
+        ServiceHostException exception = BuildFails(declarations);
+
+        Assert.Equal("GVL_Test.Modules[1].ServiceStatus.A.PackMLOut is ST_Alternative_Out, not ST_PML_Base_Out.", exception.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "13")]
+    public void Service_ctrl_inside_a_multi_dimensional_array_is_not_a_service()
+    {
+        string declarations = WithDeclarations(text => text.Replace(
+            "Unbound : ST_ServiceCtrl; END_STRUCT",
+            "Unbound : ST_ServiceCtrl; Grid : ARRAY[1..2, 1..2] OF ST_ServiceCtrl; END_STRUCT"));
+        PlcProgram program = TestPaths.BuildFromText(declarations);
+
+        var host = new ServiceHost(program.Symbols, program.Symbols.Resolve("GVL_Test.Modules"), HostFixture.ParseIdentities(program.Symbols), HostFixture.DefaultDelay, _ => null);
+
+        Assert.Equal(4, host.BoundServices.Count);
+    }
+
+    [Fact]
+    [Trait("AC", "12")]
+    public void Failed_abort_and_unbound_service_messages_name_the_service()
+    {
+        var fixture = new HostFixture();
+        fixture.StartServiceA();
+        fixture.Host.Abort(PathA, null);
+
+        var queued = Assert.Throws<InvalidOperationException>(() => fixture.Host.Abort(PathA, null));
+        var unbound = Assert.Throws<InvalidOperationException>(() => fixture.Host.Complete("GVL_Test.Nothing", null));
+
+        Assert.Equal($"{PathA} cannot take an internal Abort now: a command is queued or a mode request is high.", queued.Message);
+        Assert.Equal("GVL_Test.Nothing is not a bound service of GVL_Test.Modules.", unbound.Message);
+    }
 }

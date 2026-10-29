@@ -55,6 +55,7 @@ public sealed class ServiceHostRegistry
         lock (_lock)
         {
             _overrides.RemoveAll(entry => entry.Workflow.Equals(workflow, StringComparison.OrdinalIgnoreCase));
+            // Stryker disable once Statement: an entry without tokens is never returned by OverrideToken, so adding it changes nothing
             if (ctrlPaths.Count == 0)
                 return;
 

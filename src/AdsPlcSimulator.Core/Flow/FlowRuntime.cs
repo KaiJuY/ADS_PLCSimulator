@@ -107,6 +107,7 @@ public sealed class FlowRuntime : IAsyncDisposable
                 _services.Monitor.Publish(new FlowEvent(FlowEventKind.RunFailed, name, taskId, node.Id, Error: exception.Message));
             }
             finally
+            // Stryker disable once Block: removing a finished task only frees memory; DisposeAsync awaits finished tasks the same way
             {
                 _hostedTasks.TryRemove(taskId, out _);
             }

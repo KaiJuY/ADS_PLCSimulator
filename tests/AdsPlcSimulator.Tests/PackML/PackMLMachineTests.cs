@@ -328,6 +328,22 @@ public class PackMLMachineTests
 
     [Fact]
     [Trait("AC", "8")]
+    public void Mode_changed_flag_stays_low_without_a_request_and_drops_when_the_request_goes_low()
+    {
+        PackMLMachine machine = MachineIn(PackMLState.Idle);
+
+        machine.Scan(Mode(1, request: false), NeverDone);
+        Assert.False(machine.ModeChanged);
+
+        machine.Scan(Mode(1), NeverDone);
+        Assert.True(machine.ModeChanged);
+
+        machine.Scan(Mode(1, request: false), NeverDone);
+        Assert.False(machine.ModeChanged);
+    }
+
+    [Fact]
+    [Trait("AC", "8")]
     public void Held_mode_request_is_handled_once()
     {
         PackMLMachine machine = MachineIn(PackMLState.Idle);

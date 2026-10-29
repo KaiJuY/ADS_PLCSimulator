@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using AdsPlcSimulator.Core.Flow;
 using AdsPlcSimulator.Core.Plc;
 
@@ -184,6 +185,41 @@ public class FlowRuntimeTests : IAsyncLifetime
 
         Assert.Equal(["compare", "mystery", "store", "trigger"], diagnostics.Select(diagnostic => diagnostic.NodeId).Order());
         Assert.Empty(_runtime.LoadedWorkflows);
+    }
+
+    [Fact]
+    [Trait("AC", "13")]
+    public async Task Dispose_waits_for_a_hosted_node_to_finish_stopping()
+    {
+        var started = new TaskCompletionSource();
+        var stopped = new StrongBox<bool>();
+        var definition = new NodeDefinition(
+            "test.hosted", "Test", "Hosted", "Stops slowly.", [], [], [], _ => new SlowStoppingNode(started, stopped));
+        var catalog = new NodeCatalog([.. NodeCatalog.Default.Definitions, definition]);
+        var runtime = new FlowRuntime(_image, _program.Symbols, catalog, _monitor, _simulation);
+        Assert.Empty(runtime.Load("hosted", new WorkflowDocument { Nodes = [Node("node", "test.hosted")] }));
+        await started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        await runtime.DisposeAsync();
+
+        Assert.True(stopped.Value);
+    }
+
+    private sealed class SlowStoppingNode(TaskCompletionSource started, StrongBox<bool> stopped) : HostedNode
+    {
+        public override async Task RunAsync(HostedNodeContext context, CancellationToken cancellation)
+        {
+            started.SetResult();
+            try
+            {
+                await Task.Delay(Timeout.Infinite, cancellation);
+            }
+            finally
+            {
+                await Task.Delay(300, CancellationToken.None);
+                stopped.Value = true;
+            }
+        }
     }
 
     private sealed class RecordingMonitor : IFlowMonitor
