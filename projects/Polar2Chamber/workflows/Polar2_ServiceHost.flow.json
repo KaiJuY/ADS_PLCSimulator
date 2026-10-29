@@ -1,0 +1,16 @@
+{
+  "nodes": [
+    {
+      "id": "host",
+      "type": "service.host",
+      "x": 40,
+      "y": 60,
+      "params": {
+        "root": "GVL_Module.Chamber_Control",
+        "identityFile": "plc/ServiceIdentity/F_InitializePolarIIChamberServiceStatus.TcPOU",
+        "defaultDelayMs": "5000"
+      }
+    }
+  ],
+  "links": []
+}

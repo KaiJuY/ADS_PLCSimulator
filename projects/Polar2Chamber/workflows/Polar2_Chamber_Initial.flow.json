@@ -1,0 +1,185 @@
+{
+  "nodes": [
+    {
+      "id": "trigger",
+      "type": "trigger.onServiceExecute",
+      "x": 40,
+      "y": 60,
+      "params": {
+        "service": "GVL_Module.Chamber_Control[#].ServiceCtrl.Chamber.Initial"
+      }
+    },
+    {
+      "id": "wait",
+      "type": "flow.delay",
+      "x": 320,
+      "y": 60,
+      "params": {
+        "ms": "5000"
+      }
+    },
+    {
+      "id": "complete",
+      "type": "action.completeService",
+      "x": 580,
+      "y": 60,
+      "params": {
+        "service": "GVL_Module.Chamber_Control[#].ServiceCtrl.Chamber.Initial"
+      }
+    },
+    {
+      "id": "branchMin",
+      "type": "flow.branch",
+      "x": 880,
+      "y": 60,
+      "params": {}
+    },
+    {
+      "id": "branchMax",
+      "type": "flow.branch",
+      "x": 1140,
+      "y": 60,
+      "params": {}
+    },
+    {
+      "id": "write",
+      "type": "action.writeSymbol",
+      "x": 1400,
+      "y": 60,
+      "params": {
+        "symbol": "GVL_Module.Chamber_Control[#].ModuleVariableList[1].Value"
+      }
+    },
+    {
+      "id": "read",
+      "type": "data.readSymbol",
+      "x": 40,
+      "y": 340,
+      "params": {
+        "symbol": "GVL_Module.Chamber_Control[#].ServiceParam.Chamber.Initial.SwitchModeAfterFinish"
+      }
+    },
+    {
+      "id": "atLeast1",
+      "type": "logic.compare",
+      "x": 580,
+      "y": 340,
+      "params": {
+        "operator": ">=",
+        "b": "1"
+      }
+    },
+    {
+      "id": "atMost2",
+      "type": "logic.compare",
+      "x": 880,
+      "y": 340,
+      "params": {
+        "operator": "<=",
+        "b": "2"
+      }
+    },
+    {
+      "id": "plus1",
+      "type": "math.arithmetic",
+      "x": 1140,
+      "y": 340,
+      "params": {
+        "operator": "+",
+        "b": "1"
+      }
+    }
+  ],
+  "links": [
+    {
+      "fromNode": "trigger",
+      "fromPort": "then",
+      "toNode": "wait",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "wait",
+      "fromPort": "then",
+      "toNode": "complete",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "trigger",
+      "fromPort": "index",
+      "toNode": "complete",
+      "toPort": "index"
+    },
+    {
+      "fromNode": "trigger",
+      "fromPort": "generation",
+      "toNode": "complete",
+      "toPort": "generation"
+    },
+    {
+      "fromNode": "complete",
+      "fromPort": "then",
+      "toNode": "branchMin",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "branchMin",
+      "fromPort": "true",
+      "toNode": "branchMax",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "branchMax",
+      "fromPort": "true",
+      "toNode": "write",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "trigger",
+      "fromPort": "index",
+      "toNode": "read",
+      "toPort": "index"
+    },
+    {
+      "fromNode": "trigger",
+      "fromPort": "index",
+      "toNode": "write",
+      "toPort": "index"
+    },
+    {
+      "fromNode": "read",
+      "fromPort": "value",
+      "toNode": "atLeast1",
+      "toPort": "a"
+    },
+    {
+      "fromNode": "read",
+      "fromPort": "value",
+      "toNode": "atMost2",
+      "toPort": "a"
+    },
+    {
+      "fromNode": "read",
+      "fromPort": "value",
+      "toNode": "plus1",
+      "toPort": "a"
+    },
+    {
+      "fromNode": "atLeast1",
+      "fromPort": "result",
+      "toNode": "branchMin",
+      "toPort": "condition"
+    },
+    {
+      "fromNode": "atMost2",
+      "fromPort": "result",
+      "toNode": "branchMax",
+      "toPort": "condition"
+    },
+    {
+      "fromNode": "plus1",
+      "fromPort": "result",
+      "toNode": "write",
+      "toPort": "value"
+    }
+  ]
+}
