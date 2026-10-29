@@ -1,8 +1,9 @@
+using AdsPlcSimulator.Core.PackML;
 using AdsPlcSimulator.Core.Plc;
 
 namespace AdsPlcSimulator.Core.Flow;
 
-public sealed record FlowServices(ProcessImage Image, ISimulationSink Simulation, IFlowMonitor Monitor);
+public sealed record FlowServices(ProcessImage Image, ISimulationSink Simulation, IFlowMonitor Monitor, SymbolTable Symbols, ServiceHostRegistry Registry);
 
 public sealed class FlowNodeException(string nodeId, string message, Exception innerException)
     : Exception(message, innerException)

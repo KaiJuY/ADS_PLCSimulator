@@ -32,7 +32,7 @@ public sealed partial class SimulatorSession : IAsyncDisposable
         ProjectDirectory = Path.GetFullPath(Path.Combine(environment.ContentRootPath, options.Value.ProjectPath));
         Program = PlcProgram.LoadDirectory(Path.Combine(ProjectDirectory, "plc"));
         Image = Program.CreateProcessImage();
-        Runtime = new FlowRuntime(Image, Program.Symbols, NodeCatalog.Default, liveHub, liveHub);
+        Runtime = new FlowRuntime(Image, Program.Symbols, NodeCatalog.Default, liveHub, liveHub, ProjectDirectory);
         _logger.LogInformation("Loaded {Count} PLC root symbols ({Bytes} bytes) from {Directory}.", Program.Symbols.Roots.Count, Image.Size, ProjectDirectory);
 
         Directory.CreateDirectory(WorkflowDirectory);

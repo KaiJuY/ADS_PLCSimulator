@@ -1,3 +1,4 @@
+using AdsPlcSimulator.Core.PackML;
 using AdsPlcSimulator.Core.Plc;
 
 namespace AdsPlcSimulator.Core.Flow;
@@ -21,6 +22,26 @@ public abstract class PureNode : RuntimeNode
 public abstract class MemoryTriggerNode : RuntimeNode
 {
     public abstract bool TryFire(MemoryWrite write, ProcessImage image, out Dictionary<string, object?> outputs);
+
+    /// <summary>Runs with different keys may overlap; the default key "" keeps one run per trigger.</summary>
+    public virtual string BusyKey(IReadOnlyDictionary<string, object?> outputs) => "";
+}
+
+/// <summary>Starts one run right after its workflow is loaded.</summary>
+public sealed class StartTriggerNode : RuntimeNode;
+
+/// <summary>Runs for as long as its workflow is loaded, e.g. a background PLC scan.</summary>
+public abstract class HostedNode : RuntimeNode
+{
+    public abstract Task RunAsync(HostedNodeContext context, CancellationToken cancellation);
+}
+
+public sealed record HostedNodeContext(ProcessImage Image, ServiceHostRegistry Registry, string Workflow);
+
+/// <summary>A node that needs the runtime's registry; FlowRuntime.Load calls Attach before the workflow starts.</summary>
+public interface IRegistryAware
+{
+    void Attach(ServiceHostRegistry registry);
 }
 
 /// <summary>Starts a run at a fixed interval, like a PLC task cycle.</summary>
@@ -42,6 +63,10 @@ public sealed class NodeExecution
     }
 
     public ProcessImage Image => _run.Services.Image;
+
+    public SymbolTable Symbols => _run.Services.Symbols;
+
+    public ServiceHostRegistry Registry => _run.Services.Registry;
 
     public ISimulationSink Simulation => _run.Services.Simulation;
 

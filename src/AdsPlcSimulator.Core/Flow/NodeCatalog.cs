@@ -27,6 +27,11 @@ public sealed class NodeCatalog
         ArithmeticNode.Definition,
         WriteSymbolNode.Definition,
         SimulationInvokeNode.Definition,
+        StartTrigger.Definition,
+        ServiceHostNode.Definition,
+        ServiceExecuteTriggerNode.Definition,
+        CompleteServiceNode.Definition,
+        AbortServiceNode.Definition,
     ]);
 
     public IReadOnlyList<NodeDefinition> Definitions { get; }

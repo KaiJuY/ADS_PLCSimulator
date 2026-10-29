@@ -49,13 +49,14 @@ public static class WorkflowCompiler
         WorkflowDocument document,
         NodeCatalog catalog,
         SymbolTable symbols,
-        out List<WorkflowDiagnostic> diagnostics)
+        out List<WorkflowDiagnostic> diagnostics,
+        string? projectDirectory = null)
     {
         diagnostics = [];
         var nodes = new Dictionary<string, CompiledNode>();
         foreach (WorkflowNode node in document.Nodes)
         {
-            CompiledNode? compiled = CompileNode(node, catalog, symbols, diagnostics);
+            CompiledNode? compiled = CompileNode(node, catalog, symbols, projectDirectory, diagnostics);
             if (compiled is null)
                 continue;
             if (!nodes.TryAdd(node.Id, compiled))
@@ -76,7 +77,7 @@ public static class WorkflowCompiler
         return new CompiledWorkflow(name, nodes.Values.ToList(), execTargets, dataSources);
     }
 
-    private static CompiledNode? CompileNode(WorkflowNode node, NodeCatalog catalog, SymbolTable symbols, List<WorkflowDiagnostic> diagnostics)
+    private static CompiledNode? CompileNode(WorkflowNode node, NodeCatalog catalog, SymbolTable symbols, string? projectDirectory, List<WorkflowDiagnostic> diagnostics)
     {
         NodeDefinition? definition = catalog.Find(node.Type);
         if (definition is null)
@@ -87,7 +88,7 @@ public static class WorkflowCompiler
 
         try
         {
-            RuntimeNode runtimeNode = definition.Create(new NodeSettings(definition, node.Params, symbols));
+            RuntimeNode runtimeNode = definition.Create(new NodeSettings(definition, node.Params, symbols, projectDirectory));
             return new CompiledNode(node.Id, definition, runtimeNode, node.Params);
         }
         catch (NodeConfigurationException exception)

@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
+using AdsPlcSimulator.Core.Flow.Nodes;
+using AdsPlcSimulator.Core.PackML;
 using AdsPlcSimulator.Core.Plc;
 
 namespace AdsPlcSimulator.Core.Flow;
@@ -16,35 +18,45 @@ public sealed class FlowRuntime : IAsyncDisposable
     private readonly FlowServices _services;
     private readonly Channel<MemoryWrite> _writes = Channel.CreateUnbounded<MemoryWrite>(new UnboundedChannelOptions { SingleReader = true });
     private readonly ConcurrentDictionary<string, LoadedWorkflow> _workflows = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<long, Task> _hostedTasks = new();
+    private readonly string? _projectDirectory;
     private readonly CancellationTokenSource _shutdown = new();
     private readonly Task _dispatchLoop;
     private long _nextRunId;
 
-    public FlowRuntime(ProcessImage image, SymbolTable symbols, NodeCatalog catalog, IFlowMonitor monitor, ISimulationSink simulation)
+    public FlowRuntime(ProcessImage image, SymbolTable symbols, NodeCatalog catalog, IFlowMonitor monitor, ISimulationSink simulation, string? projectDirectory = null)
     {
         _symbols = symbols;
         _catalog = catalog;
-        _services = new FlowServices(image, simulation, monitor);
+        _projectDirectory = projectDirectory;
+        _services = new FlowServices(image, simulation, monitor, symbols, Registry);
         image.Written += write => _writes.Writer.TryWrite(write);
         _dispatchLoop = Task.Run(DispatchWritesAsync);
     }
+
+    public ServiceHostRegistry Registry { get; } = new();
 
     public IReadOnlyCollection<string> LoadedWorkflows => _workflows.Keys.ToList();
 
     /// <summary>Compiles and (re)starts a workflow. On errors the previously loaded version keeps running.</summary>
     public IReadOnlyList<WorkflowDiagnostic> Load(string name, WorkflowDocument document)
     {
-        CompiledWorkflow? compiled = WorkflowCompiler.Compile(name, document, _catalog, _symbols, out List<WorkflowDiagnostic> diagnostics);
+        CompiledWorkflow? compiled = WorkflowCompiler.Compile(name, document, _catalog, _symbols, out List<WorkflowDiagnostic> diagnostics, _projectDirectory);
         if (compiled is null)
             return diagnostics;
 
         var loaded = new LoadedWorkflow(compiled, CancellationTokenSource.CreateLinkedTokenSource(_shutdown.Token));
         if (_workflows.TryRemove(name, out LoadedWorkflow? previous))
             previous.Stop();
+        AttachRegistry(compiled);
         _workflows[name] = loaded;
 
         foreach (CompiledNode trigger in compiled.Nodes.Where(node => node.Node is CyclicTriggerNode))
             _ = RunCyclicTriggerAsync(loaded, trigger, ((CyclicTriggerNode)trigger.Node).Interval);
+        foreach (CompiledNode hosted in compiled.Nodes.Where(node => node.Node is HostedNode))
+            StartHostedNode(loaded, hosted);
+        foreach (CompiledNode trigger in compiled.Nodes.Where(node => node.Node is StartTriggerNode))
+            StartRun(loaded, trigger, new Dictionary<string, object?>());
         return diagnostics;
     }
 
@@ -52,6 +64,7 @@ public sealed class FlowRuntime : IAsyncDisposable
     {
         if (_workflows.TryRemove(name, out LoadedWorkflow? workflow))
             workflow.Stop();
+        Registry.SetOverrides(name, []);
     }
 
     public async ValueTask DisposeAsync()
@@ -61,7 +74,43 @@ public sealed class FlowRuntime : IAsyncDisposable
         foreach (LoadedWorkflow workflow in _workflows.Values)
             workflow.Stop();
         await _dispatchLoop;
+        await Task.WhenAll(_hostedTasks.Values);
         _shutdown.Dispose();
+    }
+
+    private void AttachRegistry(CompiledWorkflow compiled)
+    {
+        foreach (IRegistryAware aware in compiled.Nodes.Select(node => node.Node).OfType<IRegistryAware>())
+            aware.Attach(Registry);
+
+        Registry.SetOverrides(
+            compiled.Name,
+            compiled.Nodes.Select(node => node.Node).OfType<ServiceExecuteTriggerNode>().SelectMany(trigger => trigger.CtrlPaths).ToList());
+    }
+
+    private void StartHostedNode(LoadedWorkflow workflow, CompiledNode node)
+    {
+        long taskId = Interlocked.Increment(ref _nextRunId);
+        _hostedTasks[taskId] = Task.Run(async () =>
+        {
+            string name = workflow.Compiled.Name;
+            var context = new HostedNodeContext(_services.Image, Registry, name);
+            try
+            {
+                await ((HostedNode)node.Node).RunAsync(context, workflow.Cancellation);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception exception)
+            {
+                _services.Monitor.Publish(new FlowEvent(FlowEventKind.RunFailed, name, taskId, node.Id, Error: exception.Message));
+            }
+            finally
+            {
+                _hostedTasks.TryRemove(taskId, out _);
+            }
+        });
     }
 
     private async Task DispatchWritesAsync()
@@ -103,7 +152,8 @@ public sealed class FlowRuntime : IAsyncDisposable
     {
         long runId = Interlocked.Increment(ref _nextRunId);
         string name = workflow.Compiled.Name;
-        if (!workflow.BusyTriggers.TryAdd(trigger.Id, 0))
+        string busyKey = $"{trigger.Id}#{(trigger.Node as MemoryTriggerNode)?.BusyKey(outputs)}";
+        if (!workflow.BusyTriggers.TryAdd(busyKey, 0))
         {
             _services.Monitor.Publish(new FlowEvent(FlowEventKind.RunSkipped, name, runId, trigger.Id));
             return;
@@ -129,7 +179,7 @@ public sealed class FlowRuntime : IAsyncDisposable
             }
             finally
             {
-                workflow.BusyTriggers.TryRemove(trigger.Id, out _);
+                workflow.BusyTriggers.TryRemove(busyKey, out _);
             }
         });
     }
