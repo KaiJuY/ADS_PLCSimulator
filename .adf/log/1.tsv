@@ -24,3 +24,4 @@ time	stage	decision	why	evidence	result
 2026-10-29T15:16:29+0800	G	cleanup nit 3（CtrlPaths 配置）：駁回	只在 Load 時呼叫一次，非 scan 路徑	reviewer 報告；FlowRuntime.AttachRegistry	保留
 2026-10-29T15:16:29+0800	G	comment：刪 NodeDefinition.IndexedSymbol 與 ServiceActionNode 的 doc；ExecuteGeneration doc 補「Initialize 後為 0」；駁回刪 Polar2LayoutTests 檔頭	前兩者重述名稱且周圍同類方法無 doc；Reset 也歸 0；測試檔頭沿用 MemoryLayoutTests.cs:6-8 慣例	comment-reviewer 報告；ServiceHost.cs:498	已改
 2026-10-29T15:16:29+0800	G	改動由 owner 直接套用，未派 implementer	共 4 處、10 行內的機械修改	build 0 警告；dotnet test 271/271	stage G 完成，下一步 U4 build 後進 gate
+2026-10-29T15:25:17+0800	G	.gitignore 加例外 !projects/**/plc/**/Arm/；README 改寫 Arm 說明	Allen 選 a：重新複製時新的 Arm DUT 不應被靜默忽略	新建 Arm/_probe.TcDUT 後 git status 顯示 ??（已刪除）	已改

@@ -45,4 +45,4 @@ dotnet run --project src/AdsPlcSimulator.Host -- --Simulator:ProjectPath=../../p
 
 `plc/` 資料夾以 `.gitattributes` 的 `-text` 規則逐位元組保存，不做換行轉換；複製後的檔案與來源的 SHA-256 相同。
 
-`.gitignore` 的 `[Aa][Rr][Mm]/` 規則會忽略 `plc/Polar2/DUTs/External/Arm/`，所以該資料夾的檔案要用 `git add -f` 加入。
+`.gitignore` 的 `[Aa][Rr][Mm]/` 規則會忽略名為 Arm 的資料夾；緊接其後的例外 `!projects/**/plc/**/Arm/` 讓 `plc/` 底下的 Arm 資料夾照常被追蹤，重新複製後用一般的 `git add` 即可。
