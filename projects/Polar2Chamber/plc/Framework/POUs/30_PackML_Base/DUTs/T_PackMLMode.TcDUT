@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="T_PackMLMode" Id="{5fd115b1-902a-420b-bf04-3e5e78af9a90}">
+    <Declaration><![CDATA[TYPE T_PackMLMode : UINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

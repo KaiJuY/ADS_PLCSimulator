@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_PolarIIChamber_ArmRotateServiceParam" Id="{14000000-0000-0000-0000-000000000026}">
+    <Declaration><![CDATA[TYPE ST_PolarIIChamber_ArmRotateServiceParam :
+STRUCT
+	JogPositive : ST_EmptyServiceParam;
+	JogNegative : ST_EmptyServiceParam;
+	IncrementalJog : ST_PolarIIChamber_AngularPositionParam;
+	MoveRecipe : ST_PolarIIChamber_Recipe;
+	NegLimitPos : ST_EmptyServiceParam;
+	PosLimitPos : ST_EmptyServiceParam;
+	NozzlePortPos : ST_EmptyServiceParam;
+	Noz1CenterPos : ST_EmptyServiceParam;
+	Noz2CenterPos : ST_EmptyServiceParam;
+	Noz3CenterPos : ST_EmptyServiceParam;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

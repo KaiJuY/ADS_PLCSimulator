@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+<DUT Name="ST_AxisControlStatus" Id="{4bdfefbe-7723-59bf-95de-203fc7919e5f}">
+<Declaration><![CDATA[TYPE ST_AxisControlStatus :
+STRUCT
+Configured : BOOL;
+FeedbackValid : BOOL;
+NcStatus : ST_AxisStatus;
+NcData : NCTOPLC_AXIS_REF;
+PreviousState : MC_AxisStates;
+ActiveCommand : E_AxisControlCommand;
+ReferenceValid : BOOL;
+EmergencyLatched : BOOL;
+PositiveBlocked : BOOL;
+NegativeBlocked : BOOL;
+SignalsValid : BOOL;
+LastReject : E_AxisControlReject;
+LastFault : E_AxisControlError;
+Elapsed : TIME;
+CalibrationRevision : UDINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+
+</DUT>
+</TcPlcObject>

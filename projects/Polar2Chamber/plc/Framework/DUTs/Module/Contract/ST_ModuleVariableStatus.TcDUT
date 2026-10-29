@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ModuleVariableStatus" Id="{de74b471-2702-41c6-905f-937c0d522e21}">
+    <Declaration><![CDATA[TYPE ST_ModuleVariableStatus :
+STRUCT
+	PublishedCount : UINT;
+	Overflow : BOOL;
+	DuplicateId : UDINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

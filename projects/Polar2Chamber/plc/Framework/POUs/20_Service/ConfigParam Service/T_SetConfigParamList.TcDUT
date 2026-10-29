@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="T_SetConfigParamList" Id="{ee14efc3-2972-48df-98dd-a170adca18c3}">
+    <Declaration><![CDATA[TYPE T_SetConfigParamList : ARRAY[1..Param_Config.MaxConfigParamPerModule] OF ST_SetConfigParamParam;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

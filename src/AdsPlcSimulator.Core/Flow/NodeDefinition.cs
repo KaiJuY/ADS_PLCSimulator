@@ -59,8 +59,10 @@ public sealed record NodeDefinition(
 public sealed class NodeConfigurationException(string message) : Exception(message);
 
 /// <summary>Typed, validated access to a node's parameter values while the node is being created.</summary>
-public sealed class NodeSettings(NodeDefinition definition, IReadOnlyDictionary<string, string> values, SymbolTable symbols)
+public sealed class NodeSettings(NodeDefinition definition, IReadOnlyDictionary<string, string> values, SymbolTable symbols, string? projectDirectory = null)
 {
+    public SymbolTable Symbols { get; } = symbols;
+
     public string Text(string name)
     {
         ParamDefinition param = definition.FindParam(name)
@@ -92,7 +94,7 @@ public sealed class NodeSettings(NodeDefinition definition, IReadOnlyDictionary<
         string path = Text(name);
         if (string.IsNullOrEmpty(path))
             throw new NodeConfigurationException($"Parameter '{name}' needs a PLC symbol path.");
-        if (!symbols.TryResolve(path, out SymbolRef symbol, out string? error))
+        if (!Symbols.TryResolve(path, out SymbolRef symbol, out string? error))
             throw new NodeConfigurationException(error!);
         return symbol;
     }
@@ -103,5 +105,29 @@ public sealed class NodeSettings(NodeDefinition definition, IReadOnlyDictionary<
         return symbol.Type.IsScalar
             ? symbol
             : throw new NodeConfigurationException($"'{symbol.Path}' is {symbol.Type.Name}; pick one of its scalar members.");
+    }
+
+    public IndexedSymbol IndexedSymbol(string name, bool scalar)
+    {
+        string path = Text(name);
+        if (string.IsNullOrEmpty(path))
+            throw new NodeConfigurationException($"Parameter '{name}' needs a PLC symbol path.");
+        return Flow.IndexedSymbol.Parse(path, Symbols, scalar);
+    }
+
+    /// <summary>Full path of an existing file below the project folder.</summary>
+    public string ProjectFile(string name)
+    {
+        string relative = Text(name);
+        if (string.IsNullOrEmpty(relative))
+            throw new NodeConfigurationException($"Parameter '{name}' needs a file path.");
+        if (projectDirectory is null)
+            throw new NodeConfigurationException($"Parameter '{name}' needs a project folder, and this runtime has none.");
+
+        string root = Path.GetFullPath(projectDirectory);
+        string full = Path.GetFullPath(Path.Combine(root, relative));
+        if (!full.StartsWith(root.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            throw new NodeConfigurationException($"File '{relative}' is outside the project folder.");
+        return File.Exists(full) ? full : throw new NodeConfigurationException($"File '{relative}' was not found in the project folder.");
     }
 }

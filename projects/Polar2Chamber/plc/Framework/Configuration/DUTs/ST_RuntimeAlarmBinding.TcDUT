@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_RuntimeAlarmBinding" Id="{386d8d9e-a337-44fd-8bcb-96665c76d1e5}">
+    <Declaration><![CDATA[TYPE ST_RuntimeAlarmBinding :
+STRUCT
+	Definition : ST_ConfigAlarmInfo;
+	NodeHandle : UINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

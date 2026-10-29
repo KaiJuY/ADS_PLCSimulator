@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_CompositeOwnershipState" Id="{9c1cae90-2909-4c6a-bb19-e9161c27e249}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_CompositeOwnershipState :
+(
+	None := 0,
+	Pending := 1,
+	Owned := 2,
+	RejectedConflict := 3,
+	RejectedDependencyNotIdle := 4,
+	RejectedUnsupportedCompletionBehavior := 5,
+	Cancelled := 6
+) UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

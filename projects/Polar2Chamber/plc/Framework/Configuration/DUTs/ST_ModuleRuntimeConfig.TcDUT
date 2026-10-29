@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ModuleRuntimeConfig" Id="{a3b51235-1e4c-4a0d-841f-c1f732d4a3b5}">
+    <Declaration><![CDATA[TYPE ST_ModuleRuntimeConfig :
+STRUCT
+	Enabled : BOOL;
+	Valid : BOOL;
+	ModuleId : UDINT;
+	ModuleType : T_ModuleTypeName;
+	Revision : UDINT;
+	VariableCount : UINT;
+	VariableBindings : ARRAY[1..Param_Config.MaxModuleVariable] OF ST_RuntimeVariableBinding;
+	ConfigParamCount : UINT;
+	ConfigParamList : ARRAY[1..Param_Config.MaxConfigParamPerModule] OF ST_ConfigParamInfo;
+	AlarmCount : UINT;
+	AlarmBindings : ARRAY[1..Param_Config.MaxConfiguredAlarmsPerModule] OF ST_RuntimeAlarmBinding;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_ConfigParamAccessError" Id="{e48a4b8a-e8b3-447d-9226-0d6c4694ecbe}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_ConfigParamAccessError :
+(
+	None := 0,
+	RegistryNotReady := 1,
+	EmptyBatch := 2,
+	DuplicateId := 3,
+	MetadataNotFound := 4,
+	NotBound := 5,
+	DataTypeMismatch := 6,
+	InvalidValueFormat := 7,
+	OutOfRange := 8
+) USINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

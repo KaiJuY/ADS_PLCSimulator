@@ -67,6 +67,19 @@ public sealed class SymbolTriggerNode : MemoryTriggerNode
     }
 }
 
+public static class StartTrigger
+{
+    public static readonly NodeDefinition Definition = new(
+        "trigger.onStart",
+        "Trigger",
+        "On Start",
+        "Runs once right after the workflow is loaded.",
+        [],
+        [new("then", PortKind.Exec, "then")],
+        [],
+        _ => new StartTriggerNode());
+}
+
 public static class CyclicTrigger
 {
     public static readonly NodeDefinition Definition = new(

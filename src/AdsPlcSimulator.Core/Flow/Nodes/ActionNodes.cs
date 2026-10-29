@@ -2,21 +2,22 @@ using AdsPlcSimulator.Core.Plc;
 
 namespace AdsPlcSimulator.Core.Flow.Nodes;
 
-public sealed class WriteSymbolNode(SymbolRef symbol) : ExecNode
+public sealed class WriteSymbolNode(IndexedSymbol symbol) : ExecNode
 {
     public static readonly NodeDefinition Definition = new(
         "action.writeSymbol",
         "Action",
         "Write Symbol",
-        "Writes a value into a PLC variable. ADS clients see it immediately.",
-        [new("exec", PortKind.Exec, "exec"), new("value", PortKind.Data, "value")],
+        "Writes a value into a PLC variable. ADS clients see it immediately. A [#] in the symbol is replaced by the 'index' input.",
+        [new("exec", PortKind.Exec, "exec"), new("value", PortKind.Data, "value"), new("index", PortKind.Data, "index", Optional: true)],
         [new("then", PortKind.Exec, "then")],
         [new("symbol", ParamKind.Symbol, "Symbol"), new("value", ParamKind.Text, "Value")],
-        settings => new WriteSymbolNode(settings.ScalarSymbol("symbol")));
+        settings => new WriteSymbolNode(settings.IndexedSymbol("symbol", scalar: true)));
 
     public override Task<string?> ExecuteAsync(NodeExecution execution)
     {
-        execution.Image.WriteValue(symbol, execution.Input("value"), WriteSource.Workflow);
+        SymbolRef target = symbol.Resolve(execution.Symbols, execution.Input("index"));
+        execution.Image.WriteValue(target, execution.Input("value"), WriteSource.Workflow);
         return Task.FromResult<string?>("then");
     }
 }

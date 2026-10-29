@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+  <DUT Name="E_FlowControllerErrorID" Id="{a1f2038a-7859-4f8a-adc4-67a0ed256160}">
+    <Declaration><![CDATA[(*!<summary>FlowController 的 framework error ID。</summary>*)
+{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_FlowControllerErrorID :
+(
+	None := 0,
+	InvalidConfiguration := 8001,
+	CommunicationLost := 8002,
+	DeviceAlarm := 8003
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_AlarmAckError" Id="{32e53ef3-a74a-45b7-8371-cc1d16ad9298}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_AlarmAckError :
+(
+	None := 0,
+	InvalidRequestId := 1,
+	DuplicateRequest := 2,
+	InvalidCommand := 3,
+	AlarmNotFound := 4
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

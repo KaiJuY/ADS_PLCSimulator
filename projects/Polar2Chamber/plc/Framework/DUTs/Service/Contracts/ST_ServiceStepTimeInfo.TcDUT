@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ServiceStepTimeInfo" Id="{d65d3e7e-def2-4b88-835b-efab03647523}">
+    <Declaration><![CDATA[TYPE ST_ServiceStepTimeInfo :
+STRUCT
+	Name : STRING(80);
+
+	// UTC timestamp formatted as YYYYMMDDHHMMSSUUU.
+	StartTimestamp : STRING(20);
+	// Empty while this record is active.
+	EndTimestamp : STRING(20);
+	EndReason : E_ServiceTimeRecordEndReason;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

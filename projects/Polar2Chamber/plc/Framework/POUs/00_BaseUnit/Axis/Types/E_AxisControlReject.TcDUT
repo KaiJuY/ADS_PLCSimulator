@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+<DUT Name="E_AxisControlReject" Id="{06b0ea12-be47-5dcd-bf52-b6e50da7f02c}">
+<Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_AxisControlReject : (
+    None := 0,
+    NotOwner := 1,
+    NotEnabled := 2,
+    Unavailable := 3,
+    Busy := 4,
+    RearmRequired := 5,
+    InvalidParameter := 6,
+    ReferenceInvalid := 7,
+    DirectionBlocked := 8,
+    MissingCapability := 9,
+    NotStationary := 10
+);
+END_TYPE
+]]></Declaration>
+
+</DUT>
+</TcPlcObject>

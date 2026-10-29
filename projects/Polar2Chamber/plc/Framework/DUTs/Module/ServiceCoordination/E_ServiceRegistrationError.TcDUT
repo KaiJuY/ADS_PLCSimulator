@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="E_ServiceRegistrationError" Id="{6cbe5fc5-a603-4dbb-8086-1d9e4584cd75}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_ServiceRegistrationError :
+(
+	None := 0,
+	RegistrationAlreadyStarted := 1,
+	RegistryAlreadySealed := 2,
+	EmptyRegistry := 3,
+	CapacityExceeded := 4,
+	InvalidServiceId := 5,
+	DuplicateServiceId := 6,
+	InvalidStorage := 7,
+	ParameterSizeMismatch := 8,
+	ParameterTypeMismatch := 9,
+	ParameterTypeResolutionFailed := 10,
+	InvalidCompositeService := 11,
+	DuplicateCompositeDefinition := 12,
+	EmptyCompositeDependencyList := 13,
+	CompositeDependencyCapacityExceeded := 14,
+	InvalidCompositeDependencyId := 15,
+	UnknownCompositeDependency := 16,
+	SelfDependency := 17,
+	DuplicateCompositeDependency := 18,
+	CompositeDependencyNotAllowed := 19,
+	NestedCompositeNotSupported := 20
+) UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

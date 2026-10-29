@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_EL1889Ex" Id="{e69c71b6-9143-44b3-a514-1dc5feb351bc}">
+    <Declaration><![CDATA[TYPE ST_EL1889Ex EXTENDS ST_ReserveForGetSymbolNameByAddrress :
+STRUCT
+	Chl AT%I* : ARRAY[1..16] OF BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

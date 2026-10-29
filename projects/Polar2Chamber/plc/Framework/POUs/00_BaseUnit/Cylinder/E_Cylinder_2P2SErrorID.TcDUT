@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+  <DUT Name="E_Cylinder_2P2SErrorID" Id="{6cf101e9-4dcf-468b-8559-be492092d4a6}">
+    <Declaration><![CDATA[(*!
+<summary>FB_Cylinder_2P2S 使用的錯誤識別碼。</summary>
+<description>錯誤碼會寫入繼承自 FB_BaseUnit_PackML 的 udiErrorID 與 ErrorList。</description>
+*)
+//!<param name="NoError">沒有錯誤。</param>
+//!<param name="BothLimitSensorsActive">1001：伸出與縮回極限 Sensor 同時成立。</param>
+//!<param name="ExtendTimeout">1002：伸出動作未在 tMoveTimeout 內到達伸出極限。</param>
+//!<param name="RetractTimeout">1003：縮回或 Aborting 強制縮回未在 tMoveTimeout 內到達縮回極限。</param>
+{attribute 'qualified_only'}
+TYPE E_Cylinder_2P2SErrorID :
+(
+	NoError := 0,
+	BothLimitSensorsActive := 1001,
+	ExtendTimeout := 1002,
+	RetractTimeout := 1003
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

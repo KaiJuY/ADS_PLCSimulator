@@ -25,6 +25,14 @@ dotnet run
 | `Local`（預設） | 機器上有 TwinCAT（XAE/XAR/ADS Setup），註冊到它的 router。若 TwinCAT runtime 已佔用 851，改用別的 port。 |
 | `Embedded` | 機器上沒有 TwinCAT，啟動內建 `AmsTcpIpRouter`（佔 TCP 48898，與 TwinCAT router 互斥）。 |
 
+載入哪個專案由 `Simulator:ProjectPath` 決定（預設 `RobustSolutionDemo`）。要跑 Polar2Chamber：
+
+```powershell
+dotnet run --project src/AdsPlcSimulator.Host -- --Simulator:ProjectPath=../../projects/Polar2Chamber
+```
+
+Polar2Chamber 的內容與維護方式見 [projects/Polar2Chamber/README.md](projects/Polar2Chamber/README.md)。
+
 ## 架構
 
 | 專案 | 責任 |
@@ -43,6 +51,19 @@ dotnet run
 - Data 輸入沒接線時，用同名參數的值（所以「寫入 5」只要一個 Write Symbol 節點）。
 - 同一個 trigger 前一次 run 還在跑時再被觸發，這次會被略過並記錄 `RunSkipped`（像忙碌中的 PLC FB 忽略新請求）。
 - `On Client Write` 只對 ADS client 的寫入觸發（值沒變也觸發）；`On Change` 對任何來源的值變化觸發。
+
+### PackML service 節點與 `[#]`
+
+| 節點 | 用途 |
+|---|---|
+| `service.host` | 掃描 `root` 底下每個 module 的 PackML 交握（像一個 PLC task）；ServiceId 與 CompletionBehavior 讀自 `identityFile`。沒有 workflow 接手的 service，Execute 等 `defaultDelayMs` 後自動 Complete。 |
+| `trigger.onServiceExecute` | service 進入 Execute 時啟動 run，輸出 `index` 與 `generation`；該 service 改由 workflow 決定何時結束。 |
+| `action.completeService` | 結束 Execute。service 不在 `generation` 指的那次 Execute 時丟例外，這次 run 失敗。 |
+| `action.abortService` | 像 PLC 程式呼叫 `RequestCommand(Abort)`；`generation` 過期或已有排隊命令時丟例外。 |
+| `trigger.onStart` | workflow 載入後執行一次。 |
+
+- Symbol 路徑可含一個 `[#]`（例：`GVL_Module.Chamber_Control[#].ServiceCtrl.Chamber.Initial`）。節點用 `index` 輸入取代 `[#]`；`trigger.onServiceExecute` 的 `index` 輸出可直接接到其他節點的 `index` 輸入。路徑沒有 `[#]` 時，`index` 被忽略。
+- 同一個 `root` 同時只能有一個 workflow 的 `service.host`。重新載入該 workflow 會把所有 service 重設為 Idle。
 
 ## 擴充
 
@@ -64,3 +85,19 @@ dotnet test
 ```
 
 `Ads` 類測試需要本機 TwinCAT router；記憶體佈局測試的期望值取自 TwinCAT 4026 編譯出的 `RobustSolutionDemoProject.tmc`。
+
+## 整合測試（stage I）
+
+`tests/AdsPlcSimulator.Integration` 是 ADS client 主控台程式（不是 xUnit，`dotnet test` 不會執行它）。它連到執行中的 Host，跑 Polar2Chamber 的情境 S1–S12 與 S15，每個情境印一行 PASS／FAIL 與預期值、實際值。S13、S14 是 HTTP／瀏覽器步驟，不在 driver 內。
+
+```powershell
+# 終端機 1：啟動 Host（載入 Polar2Chamber）
+dotnet run --project src/AdsPlcSimulator.Host -- --Simulator:ProjectPath=../../projects/Polar2Chamber
+
+# 終端機 2：執行 driver
+dotnet run --project tests/AdsPlcSimulator.Integration -- [--port 851] [--only S10,S11]
+```
+
+- 全部通過時 exit code 為 0，否則為 1；連不上 Host 時印出連線錯誤並回傳 1。
+- S4 的預期值（SVID Value 為 `1`）只在剛啟動的 Host 成立；跑過 S10、S12 後要重啟 Host 才能再跑 S4。
+- S15 會把 M1 停到 Stopped，要重跑其他情境請重啟 Host。

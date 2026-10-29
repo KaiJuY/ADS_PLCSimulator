@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ReserveForGetSymbolNameByAddrress" Id="{69e15d02-2d0e-4bf9-ae72-e5493eefa232}">
+    <Declaration><![CDATA[TYPE ST_ReserveForGetSymbolNameByAddrress :
+STRUCT
+	//If structures with a single variable are used, the data type cannot be read correctly using this method.
+	//The size and address information cannot be used to distinguish between the structure itself and the individual variables.
+	//https://infosys.beckhoff.com/content/1033/tcplclib_tc3_jsonxml/4220928907.html?id=4536537886268406375
+	_Reserve : BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+  <DUT Name="E_FlowEngineeringUnit" Id="{6dbd4234-ed1e-4d5b-b012-3c72a831a148}">
+    <Declaration><![CDATA[(*!<summary>FlowController 設定值、實際值、range 與 tolerance 共用的工程單位。</summary>*)
+{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_FlowEngineeringUnit :
+(
+	StandardLiterPerMinute := 0,
+	LiterPerMinute := 1,
+	CubicMeterPerHour := 2
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -78,7 +78,20 @@ public sealed class PlcProgramBuilder
             WriteInitialValue(image, roots[index].Type, roots[index].Offset, variable.InitialValue, variable.Location);
         }
 
-        return new PlcProgram(new SymbolTable(roots, image.Length), image);
+        return new PlcProgram(new SymbolTable(roots, image.Length, CollectEnumValues()), image);
+    }
+
+    private Dictionary<string, long> CollectEnumValues()
+    {
+        var values = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+        foreach (EnumDeclaration declaration in _typeDeclarations.Values.OfType<EnumDeclaration>())
+        {
+            var enumeration = (EnumType)ResolveNamed(declaration.Name, declaration.Location);
+            foreach (EnumValue member in enumeration.Values)
+                values[$"{declaration.Name}.{member.Name}"] = member.Value;
+        }
+
+        return values;
     }
 
     private PlcType Resolve(TypeSpec spec, SourceLocation location) => spec switch

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+<DUT Name="ST_AxisDynamics" Id="{7a789f5a-94a1-5929-ac4a-70727c69de99}">
+<Declaration><![CDATA[TYPE ST_AxisDynamics :
+STRUCT
+Velocity : LREAL; // NC units/s; strictly positive
+Acceleration : LREAL; // NC units/s^2; strictly positive
+Deceleration : LREAL; // NC units/s^2; strictly positive
+Jerk : LREAL; // NC units/s^3; strictly positive
+END_STRUCT
+END_TYPE
+]]></Declaration>
+
+</DUT>
+</TcPlcObject>

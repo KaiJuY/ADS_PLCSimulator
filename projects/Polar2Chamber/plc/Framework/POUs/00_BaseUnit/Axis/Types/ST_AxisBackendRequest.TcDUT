@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.20">
+<DUT Name="ST_AxisBackendRequest" Id="{b731d313-6090-5f5e-8f7f-89cbf93d20a2}">
+<Declaration><![CDATA[TYPE ST_AxisBackendRequest :
+STRUCT
+Command : E_AxisControlCommand;
+Execute : BOOL;
+Position : LREAL; // absolute target or full signed relative displacement
+Direction : MC_Direction;
+Dynamics : ST_AxisDynamics;
+Rotary : BOOL;
+Power : BOOL;
+Halt : BOOL;
+StopLock : BOOL;
+Reset : BOOL;
+Refresh : BOOL; // one scan after entering physical recovery
+HomeCam : BOOL;
+StopDynamics : ST_AxisDynamics;
+SetPosition : BOOL;
+SetPositionValue : LREAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+
+</DUT>
+</TcPlcObject>

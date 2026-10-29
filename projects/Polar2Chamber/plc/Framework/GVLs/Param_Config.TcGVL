@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <GVL Name="Param_Config" Id="{aee02a59-14c8-4392-aff7-2b6206c787f0}" ParameterList="True">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+	MaxModuleVariable : UINT := 100;	// Num of SVID
+	MaxConfiguredAlarmsPerModule : UINT := 30;	// Num of configured ALIDs.
+	MaxHookAlarmsPerModule : UINT := 30;		// Reserved capacity for Module Hook alarms.
+	MaxServiceAlarmsPerModule : UINT := 40;		// Reserved capacity for aggregated Service errors.
+	MaxPublishedModuleAlarms : UINT := MaxConfiguredAlarmsPerModule + MaxHookAlarmsPerModule + MaxServiceAlarmsPerModule;
+	MaxModuleAlarm : UINT := MaxPublishedModuleAlarms;	// Compatibility alias for existing consumers.
+	MaxConfigParamPerModule : UINT := 300;	// Maximum number of configured ECIDs per Module.
+	MaxServiceError : UINT := 10;		// Num of Service Error per round
+	MaxServiceData : UINT := 30;		// Num of persistent Data descriptors per Service
+	MaxServiceTimeRecords : UINT := 30;	// Chronological custom timing records retained per Service run.
+	MaxServicesPerModule : UINT := 200;	// Maximum number of Services registered by one Module.
+	MaxCompositeDependencies : UINT := 10;	// Maximum number of child Services declared by one Composite Service.
+	MaxModuleData : UINT := 50;			// Num of DVID
+	MaxTransferEndpoint : UINT := 2;	// Num of wafer transfer port
+	MaxProcessStation : UINT := 4;		// Num of wafer process station
+	ModuleHeartbeat_Timeout : TIME := T#10S;
+	ServiceAliveTimeoutMin : TIME := T#100MS;
+	ServiceAliveTimeoutMax : TIME := T#10S;
+
+	// Runtime configuration limits. They also bound PLC memory and local snapshot work.
+	MaxModuleTypes : UINT := 8;
+
+	// Module type capacities bound type-specific runtime arrays.
+	MaxModulePerType : UINT := 6;
+
+	// Total config capacity is the compile-time sum of every supported Module type capacity.
+	MaxTotalConfiguredModules : UINT := MaxModulePerType * MaxModuleTypes;
+
+	// Variable mapping
+	MaxModuleMappings : UINT := 256;
+	MaxConfigVariableNodes : UINT := 512;
+
+	// Reference binding
+	MaxModuleReferences : UINT := 50;
+	MaxConfigReferenceNodes : UINT := 100;
+
+	// Registered-node snapshots used by configured VariableList and AlarmList.
+	MaxConfiguredValueSources : UINT := MaxModuleVariable + MaxConfiguredAlarmsPerModule;
+	MaxConfigValueSize : UINT := 81; // STRING(80), including the terminating zero.
+
+	// System config
+	ConfigSchemaVersion : UDINT := 4;
+	ModuleConfigFilePath : STRING(255) := 'C:\ProgramData\RobustSolution\module-config.json';
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

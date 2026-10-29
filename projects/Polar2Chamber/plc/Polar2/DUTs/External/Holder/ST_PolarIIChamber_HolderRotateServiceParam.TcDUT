@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_PolarIIChamber_HolderRotateServiceParam" Id="{14000000-0000-0000-0000-000000000044}">
+    <Declaration><![CDATA[TYPE ST_PolarIIChamber_HolderRotateServiceParam :
+STRUCT
+	OPR : ST_EmptyServiceParam;
+	MoveVelocityCW : ST_EmptyServiceParam;
+	MoveVelocityCCW : ST_EmptyServiceParam;
+	MoveModulo : ST_PolarIIChamber_AngularPositionParam;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

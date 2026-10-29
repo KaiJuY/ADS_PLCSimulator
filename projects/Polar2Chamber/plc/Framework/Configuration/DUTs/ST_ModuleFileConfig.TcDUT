@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_ModuleFileConfig" Id="{c62416ff-7f4d-4f67-a53f-e338d36967f9}">
+    <Declaration><![CDATA[TYPE ST_ModuleFileConfig :
+STRUCT
+	Enabled : BOOL;
+	Slot : UINT;
+	Id : UDINT;
+	ModuleType : T_ModuleTypeName;
+	InputMappingCount : UINT;
+	InputMappings : ARRAY[1..Param_Config.MaxModuleMappings] OF ST_MappingFileConfig;
+	OutputMappingCount : UINT;
+	OutputMappings : ARRAY[1..Param_Config.MaxModuleMappings] OF ST_MappingFileConfig;
+	ReferenceCount : UINT;
+	References : ARRAY[1..Param_Config.MaxModuleReferences] OF ST_ReferenceBindingFileConfig;
+	VariableCount : UINT;
+	VariableList : ARRAY[1..Param_Config.MaxModuleVariable] OF ST_ConfigVariableInfo;
+	ConfigParamCount : UINT;
+	ConfigParamList : ARRAY[1..Param_Config.MaxConfigParamPerModule] OF ST_ConfigParamInfo;
+	AlarmCount : UINT;
+	AlarmList : ARRAY[1..Param_Config.MaxConfiguredAlarmsPerModule] OF ST_ConfigAlarmInfo;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

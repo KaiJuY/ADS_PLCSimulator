@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.18">
+  <DUT Name="ST_SetConfigParamParam" Id="{8e7b0129-e77b-4814-855f-93745f7990ad}">
+    <Declaration><![CDATA[TYPE ST_SetConfigParamParam :
+STRUCT
+	Id : UDINT;
+	DataType : E_ConfigDataType;
+	Value : STRING(80);
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
