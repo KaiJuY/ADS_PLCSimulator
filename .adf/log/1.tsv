@@ -50,3 +50,4 @@ time	stage	decision	why	evidence	result
 2026-10-29T18:36:40+0800	H	gate：1 PASSED（327）、2 CRAP PASSED（max 12，changed-line 99.4%）且只剩 6 個已裁定 type、3 由 implementer 回報 PASSED	gate 3 通過行只在 implementer console，未留檔	gate-20261029-174929；mut-h3	owner 重跑 gate 3 確認
 2026-10-29T18:36:40+0800	H	Stryker 註解規則：mutator 清單逗號後不可空白、冒號前不可空白；disable once 不涵蓋 if 的內嵌敘述	三次重跑中註解未生效	gate3-manual-171058、172945	交 /adf:learn
 2026-10-29T18:50:57+0800	H	stage H 通過：gate 1、2（6 個 type 依 Allen 裁定為腳本誤判）、3 皆過；三個 post-merge reviewer 與 drift 的每項差異都有決定	owner 重跑 gate 3：GATE 3 PASSED (development mode)，變更行 0 存活	gate3-final-20261029-183639；dotnet test 328/328	下一步 /adf:integrate #1
+2026-10-29T20:14:18+0800	I	stage I 通過：S1–S15 全部 PASS（driver 13/13、S13 diagnostic、S14 headless Edge 截圖）；故意破壞 SetMode 時 driver 報 FAIL，還原後 PASS	AMS 851、852 被本機 TwinCAT runtime 占用（另一個 PLC，未碰觸），模擬器改用 25860；無 browser 工具，改用 headless Edge 截圖	.adf/scenarios/1.md 執行結果；driver 34c8383	Host 已關閉，無殘留程序；下一步 /adf:close #1
