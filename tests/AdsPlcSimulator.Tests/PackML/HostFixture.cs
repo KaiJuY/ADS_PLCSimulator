@@ -3,10 +3,6 @@ using AdsPlcSimulator.Core.Plc;
 
 namespace AdsPlcSimulator.Tests.PackML;
 
-/// <summary>
-/// A small module shape that follows the RobustSolution framework 1.0.0.4 contracts:
-/// two modules, each with the services A (natural completion), B (executes until stopped) and Unbound (no ServiceId).
-/// </summary>
 internal sealed class HostFixture
 {
     public const string Declarations = """
@@ -166,7 +162,6 @@ internal sealed class HostFixture
         Write($"{path}.PackMLIn.bModeChangeRequest", true);
     }
 
-    /// <summary>One module command, then one more scan so the module can see the services' answer.</summary>
     public void ModuleCommand(int module, PackMLCommand command, uint requestId = 1)
     {
         SendToModule(module, command, requestId);
@@ -186,7 +181,6 @@ internal sealed class HostFixture
 
     public object ModuleStatus(int module, string field) => Read($"GVL_Test.Modules[{module}].ModuleStatus.{field}");
 
-    /// <summary>One service command, one scan, then the request goes low and one more scan, like a client that pulses the request.</summary>
     public void ServiceCommand(int module, string service, PackMLCommand command, uint requestId = 1)
     {
         SendToService(module, service, command, requestId);
@@ -195,6 +189,5 @@ internal sealed class HostFixture
         Scan();
     }
 
-    /// <summary>Starts service A of module 1; it is in Execute at the current time afterwards.</summary>
     public void StartServiceA(uint requestId = 1) => ServiceCommand(1, "A", PackMLCommand.Start, requestId);
 }

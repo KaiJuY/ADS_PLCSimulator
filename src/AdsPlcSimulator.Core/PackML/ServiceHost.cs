@@ -271,7 +271,6 @@ public sealed class ServiceHost
             throw new ServiceHostException($"{owner}.{member.Name} is {member.Type.Name}, not {typeName}.");
     }
 
-    /// <summary>Where RequestId and the four PackMLIn fields sit inside an ST_ModuleCtrl or ST_ServiceCtrl.</summary>
     private sealed class InputLayout
     {
         private readonly Slot _requestId;
@@ -315,10 +314,6 @@ public sealed class ServiceHost
         }
     }
 
-    /// <summary>
-    /// The adjacent ResponseId and PackMLOut of one ST_ServiceStatus or ST_ModuleStatus, written as one block,
-    /// so a client that polls with Read never sees half an update.
-    /// </summary>
     private sealed class StatusBlock
     {
         private readonly Slot _responseId;
@@ -363,7 +358,6 @@ public sealed class ServiceHost
 
         public long ResponseId { get; set; }
 
-        /// <summary>Writes the block and takes it as the cache, whatever the image holds now.</summary>
         public void Reset(ProcessImage image, PackMLMachine machine)
         {
             ResponseId = 0;

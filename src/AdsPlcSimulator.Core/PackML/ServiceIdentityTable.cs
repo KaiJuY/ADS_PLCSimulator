@@ -100,7 +100,6 @@ public sealed partial class ServiceIdentityTable
     private static long ResolveEnum(string name, Func<string, long?> enumValue) =>
         enumValue(name) ?? throw new ServiceIdentityException($"Unknown enum value '{name}'.");
 
-    /// <summary>Splits "A := x, B := y" at the commas that are outside brackets.</summary>
     private static Dictionary<string, string> SplitNamedArguments(string arguments)
     {
         var named = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

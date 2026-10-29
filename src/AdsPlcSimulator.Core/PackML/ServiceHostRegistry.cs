@@ -29,7 +29,6 @@ public sealed class ServiceHostRegistry
         replaced.Retire();
         lock (_lock)
         {
-            // The old host's task may have unregistered it meanwhile; only another workflow's claim is an error.
             _ = FindOwnHost(workflow, host.RootPath);
             _hostsByRoot[host.RootPath] = new Registration(workflow, host);
         }
