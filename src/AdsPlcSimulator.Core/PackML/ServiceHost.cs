@@ -594,18 +594,28 @@ public sealed class ServiceHost
 
         private static IEnumerable<SymbolRef> FindServiceCtrls(SymbolRef node)
         {
-            PlcType type = node.Type.Unaliased;
-            if (type.Name == "ST_ServiceCtrl")
+            if (node.Type.Unaliased.Name == "ST_ServiceCtrl")
                 return [node];
-            if (type is StructType structure)
-                return structure.Members.SelectMany(member => FindServiceCtrls(
-                    new SymbolRef($"{node.Path}.{member.Name}", member.Type, node.Offset + member.Offset)));
-            if (type is not ArrayType { Dimensions.Count: 1 } array || array.ElementType.Unaliased is not (StructType or ArrayType))
+            return ChildrenOf(node).SelectMany(FindServiceCtrls);
+        }
+
+        /// <summary>Members of a struct, or elements of a one-dimensional array of structs or arrays; empty otherwise.</summary>
+        private static IEnumerable<SymbolRef> ChildrenOf(SymbolRef node) => node.Type.Unaliased switch
+        {
+            StructType structure => structure.Members.Select(member =>
+                new SymbolRef($"{node.Path}.{member.Name}", member.Type, node.Offset + member.Offset)),
+            ArrayType array => ElementsOf(node, array),
+            _ => [],
+        };
+
+        private static IEnumerable<SymbolRef> ElementsOf(SymbolRef node, ArrayType array)
+        {
+            if (array.Dimensions.Count != 1 || array.ElementType.Unaliased is not (StructType or ArrayType))
                 return [];
 
             ArrayDimension bounds = array.Dimensions[0];
-            return Enumerable.Range(bounds.LowerBound, bounds.Length).SelectMany(index => FindServiceCtrls(
-                new SymbolRef($"{node.Path}[{index}]", array.ElementType, node.Offset + array.OffsetOf([index]))));
+            return Enumerable.Range(bounds.LowerBound, bounds.Length).Select(index =>
+                new SymbolRef($"{node.Path}[{index}]", array.ElementType, node.Offset + array.OffsetOf([index])));
         }
     }
 }
