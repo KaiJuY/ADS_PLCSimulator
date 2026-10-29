@@ -258,7 +258,7 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
     public async Task Initial_stopped_during_delay_keeps_svid()
     {
         await StartPlcAsync();
-        Load("initial", InitialDocument("1000"));
+        Load("initial", InitialDocument("2000"));
 
         Write($"{Module1}.ServiceParam.Chamber.Initial.SwitchModeAfterFinish", 1L);
         await CommandAsync("Chamber.Initial", PackMLCommand.Start, PackMLState.Execute);
@@ -271,11 +271,12 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
     }
 
     [Fact]
+    [Trait("AC", "10")]
     [Trait("AC", "11")]
     public async Task SetMode_aborted_before_complete_keeps_svid()
     {
         await StartPlcAsync();
-        Load("setmode", SetModeWithHoldBeforeComplete("1000"));
+        Load("setmode", SetModeWithHoldBeforeComplete("2000"));
 
         Write($"{Module1}.ServiceParam.Chamber.SetMode.TargetMode", 2L);
         await CommandAsync("Chamber.SetMode", PackMLCommand.Start, PackMLState.Execute);
