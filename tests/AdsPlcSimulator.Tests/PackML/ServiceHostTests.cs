@@ -851,6 +851,16 @@ public class ServiceHostTests
 
     [Fact]
     [Trait("AC", "13")]
+    public void Host_with_module_status_lacking_a_member_names_the_status()
+    {
+        ServiceHostException exception = BuildFails(WithDeclarations(text =>
+            Regex.Replace(text, @"(TYPE ST_ModuleStatus : STRUCT[\s\S]*?)ResponseId : UDINT;", "$1")));
+
+        Assert.Equal("GVL_Test.Modules[1].ModuleStatus has no member 'ResponseId'.", exception.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "13")]
     public void Host_with_module_ctrl_lacking_a_member_names_the_ctrl()
     {
         ServiceHostException exception = BuildFails(WithDeclarations(text =>

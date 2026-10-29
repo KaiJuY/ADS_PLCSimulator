@@ -469,8 +469,10 @@ public sealed class ServiceHost
                 new InputLayout(ctrl.Type, ctrl.Path),
                 ctrl.Offset - serviceCtrlRoot.Offset,
                 new StatusBlock(status, status.Path),
+                // Stryker disable String: ProcessImage.WriteValue uses only the offset and type of these two symbols, never the path
                 new SymbolRef($"{status.Path}.ServiceId", serviceId.Type, status.Offset + serviceId.Offset),
                 new SymbolRef($"{status.Path}.CompletionBehavior", behavior.Type, status.Offset + behavior.Offset));
+            // Stryker restore String
         }
 
         public RawInput ReadInput(byte[] serviceCtrlBlock) =>
