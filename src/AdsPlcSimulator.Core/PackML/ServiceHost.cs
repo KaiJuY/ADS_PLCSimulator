@@ -330,8 +330,9 @@ public sealed class ServiceHost
         private readonly int _length;
         private byte[] _last = [];
 
-        public StatusBlock(SymbolRef status, string owner)
+        public StatusBlock(SymbolRef status)
         {
+            string owner = status.Path;
             StructMember responseId = Require(status.Type, "ResponseId", owner);
             StructMember packMLOut = Require(status.Type, "PackMLOut", owner);
             RequireType(packMLOut, "ST_PML_Base_Out", owner);
@@ -468,7 +469,7 @@ public sealed class ServiceHost
                 identities.Find(relative),
                 new InputLayout(ctrl.Type, ctrl.Path),
                 ctrl.Offset - serviceCtrlRoot.Offset,
-                new StatusBlock(status, status.Path),
+                new StatusBlock(status),
                 // Stryker disable String: ProcessImage.WriteValue uses only the offset and type of these two symbols, never the path
                 new SymbolRef($"{status.Path}.ServiceId", serviceId.Type, status.Offset + serviceId.Offset),
                 new SymbolRef($"{status.Path}.CompletionBehavior", behavior.Type, status.Offset + behavior.Offset));
@@ -572,7 +573,7 @@ public sealed class ServiceHost
                 module.Offset + ctrl.Offset,
                 serviceCtrlRoot.Offset,
                 serviceCtrl.Type.Size,
-                new StatusBlock(new SymbolRef($"{module.Path}.ModuleStatus", status.Type, module.Offset + status.Offset), $"{module.Path}.ModuleStatus"),
+                new StatusBlock(new SymbolRef($"{module.Path}.ModuleStatus", status.Type, module.Offset + status.Offset)),
                 services);
         }
 
