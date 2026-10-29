@@ -166,7 +166,6 @@ public sealed class ServiceExecuteTriggerNode : MemoryTriggerNode, IRegistryAwar
     }
 }
 
-/// <summary>Shared by the nodes that tell a service host how a running service ends.</summary>
 public abstract class ServiceActionNode(IndexedSymbol service) : ExecNode
 {
     protected static readonly IReadOnlyList<PortDefinition> Inputs =

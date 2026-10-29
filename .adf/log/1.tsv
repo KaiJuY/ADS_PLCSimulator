@@ -17,3 +17,10 @@ time	stage	decision	why	evidence	result
 2026-10-29T13:51:19+0800	F	新增 .gitattributes（projects/Polar2Chamber/plc/** -text），並以 git add -f 補入被 .gitignore:30 [Aa][Rr][Mm]/ 忽略的 12 個 Arm DUT	core.autocrlf=true 會改換行；ignore 規則誤中 Arm 資料夾	implementer 回報第一版只有 172 檔	.gitignore 例外規則留待 stage G 決定
 2026-10-29T14:05:29+0800	F	U2→U3 實作完成（tip f4cafab），owner 重跑 270/270 通過；接受 4 項偏離 proposal：Register 第二次檢查允許空 root、NodeSettings.Symbols 公開、hosted task 放 runtime 層、Co-Authored-By 寫 Sonnet 5.5	偏離皆有理由且不改外部行為	implementer 報告 Brief errors 1-13	送 code review
 2026-10-29T14:06:20+0800	F	U2→U3 code review MERGE yes（0 blocker、0 major、3 nit）	scope、complexity、comment、lock 順序、測試皆符合	reviewer 報告；owner 重跑 270/270	U1、U2→U3 完成，進入 stage G 合併；U4 於合併後建立
+2026-10-29T15:14:44+0800	G	impl/1-u1-data、impl/1-u2u3-engine 以 --no-ff 合併進 feat/1-polar2-service-host（a53129d），無衝突	整合分支沿用 stage B 已定的 feat/1-polar2-service-host，不另開 int/1	兩分支皆以 ace8329 為祖先；build 0 警告 0 錯誤；dotnet test 271/271（270+U1 的 1）	送 cleanup-reviewer、comment-reviewer
+2026-10-29T15:16:29+0800	G	cleanup：駁回刪除 ServiceIdentityTable.Count、ServiceHost.BoundServices	兩者都是 proposal 2.2 定義的公開形狀；BoundServices 供 U4 的 Polar2_host_binds_145_services_per_module 使用	proposal 1.md:95、:108、:541	保留
+2026-10-29T15:16:29+0800	G	cleanup nit 1：接受，_ = FindOwnHost 改為具名 ThrowIfOwnedByOtherWorkflow	丟棄回傳值讀不出意圖	ServiceHostRegistry.cs	已改，行為不變
+2026-10-29T15:16:29+0800	G	cleanup nit 2（Retire 放進同一個 registry lock）：駁回	reviewer 說無死結不成立：Scan 持 host lock 時呼叫 _overrideToken（registry lock），在 registry lock 內 Retire 會形成反向鎖序；現行兩段式符合 proposal 第 3 節	ServiceHost.cs:240、:251；proposal 第 3 節 Register 敘述	保留現狀
+2026-10-29T15:16:29+0800	G	cleanup nit 3（CtrlPaths 配置）：駁回	只在 Load 時呼叫一次，非 scan 路徑	reviewer 報告；FlowRuntime.AttachRegistry	保留
+2026-10-29T15:16:29+0800	G	comment：刪 NodeDefinition.IndexedSymbol 與 ServiceActionNode 的 doc；ExecuteGeneration doc 補「Initialize 後為 0」；駁回刪 Polar2LayoutTests 檔頭	前兩者重述名稱且周圍同類方法無 doc；Reset 也歸 0；測試檔頭沿用 MemoryLayoutTests.cs:6-8 慣例	comment-reviewer 報告；ServiceHost.cs:498	已改
+2026-10-29T15:16:29+0800	G	改動由 owner 直接套用，未派 implementer	共 4 處、10 行內的機械修改	build 0 警告；dotnet test 271/271	stage G 完成，下一步 U4 build 後進 gate

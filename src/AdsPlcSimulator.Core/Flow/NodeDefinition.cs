@@ -107,7 +107,6 @@ public sealed class NodeSettings(NodeDefinition definition, IReadOnlyDictionary<
             : throw new NodeConfigurationException($"'{symbol.Path}' is {symbol.Type.Name}; pick one of its scalar members.");
     }
 
-    /// <summary>A symbol path that may contain one "[#]" placeholder.</summary>
     public IndexedSymbol IndexedSymbol(string name, bool scalar)
     {
         string path = Text(name);

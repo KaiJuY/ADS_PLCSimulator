@@ -29,7 +29,7 @@ public sealed class ServiceHostRegistry
         replaced.Retire();
         lock (_lock)
         {
-            _ = FindOwnHost(workflow, host.RootPath);
+            ThrowIfOwnedByOtherWorkflow(workflow, host.RootPath);
             _hostsByRoot[host.RootPath] = new Registration(workflow, host);
         }
     }
@@ -82,10 +82,13 @@ public sealed class ServiceHostRegistry
 
     private ServiceHost? FindOwnHost(string workflow, string root)
     {
-        if (!_hostsByRoot.TryGetValue(root, out Registration? existing))
-            return null;
-        if (!existing.Workflow.Equals(workflow, StringComparison.OrdinalIgnoreCase))
+        ThrowIfOwnedByOtherWorkflow(workflow, root);
+        return _hostsByRoot.TryGetValue(root, out Registration? existing) ? existing.Host : null;
+    }
+
+    private void ThrowIfOwnedByOtherWorkflow(string workflow, string root)
+    {
+        if (_hostsByRoot.TryGetValue(root, out Registration? existing) && !existing.Workflow.Equals(workflow, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException($"Workflow '{existing.Workflow}' already hosts {root}.");
-        return existing.Host;
     }
 }

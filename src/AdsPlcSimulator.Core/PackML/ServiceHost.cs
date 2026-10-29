@@ -83,7 +83,7 @@ public sealed class ServiceHost
             _retired = true;
     }
 
-    /// <summary>Id of the service's current Execute entry, taken from one process-wide counter, so it never repeats across hosts or reloads; 0 before the first entry.</summary>
+    /// <summary>Id of the service's current Execute entry, taken from one process-wide counter, so it never repeats across hosts or reloads; 0 before the first entry and after Initialize.</summary>
     public long ExecuteGeneration(string ctrlPath)
     {
         lock (_lock)
