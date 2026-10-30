@@ -259,21 +259,26 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
 
     private static byte[] BuildReadWriteResponse(SumItem[] items, List<ResultReadWriteBytes> results)
     {
-        var response = new List<byte>(items.Length * 8);
-        var data = new List<byte>();
+        var payloads = new ReadOnlyMemory<byte>[items.Length];
         for (int index = 0; index < items.Length; index++)
         {
             ResultReadWriteBytes result = results[index];
-            ReadOnlyMemory<byte> bytes = result.ErrorCode == AdsErrorCode.NoError
+            payloads[index] = result.ErrorCode == AdsErrorCode.NoError
                 ? result.Data[..Math.Min(result.Data.Length, items[index].ReadLength)]
                 : ReadOnlyMemory<byte>.Empty;
-            response.AddRange(BitConverter.GetBytes((uint)result.ErrorCode));
-            response.AddRange(BitConverter.GetBytes((uint)bytes.Length));
-            data.AddRange(bytes.ToArray());
         }
 
-        response.AddRange(data);
-        return response.ToArray();
+        byte[] response = new byte[items.Length * 8 + payloads.Sum(payload => payload.Length)];
+        int dataOffset = items.Length * 8;
+        for (int index = 0; index < items.Length; index++)
+        {
+            BinaryPrimitives.WriteUInt32LittleEndian(response.AsSpan(index * 8), (uint)results[index].ErrorCode);
+            BinaryPrimitives.WriteUInt32LittleEndian(response.AsSpan(index * 8 + 4), (uint)payloads[index].Length);
+            payloads[index].Span.CopyTo(response.AsSpan(dataOffset));
+            dataOffset += payloads[index].Length;
+        }
+
+        return response;
     }
 
     internal enum SumKind

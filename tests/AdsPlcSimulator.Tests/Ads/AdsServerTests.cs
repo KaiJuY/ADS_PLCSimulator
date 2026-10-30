@@ -547,7 +547,7 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
 
     private AdsErrorCode ReadValueByName(string path, int readLength, out byte[] data)
     {
-        byte[] name = System.Text.Encoding.ASCII.GetBytes(path + "\0");
+        byte[] name = Name(path);
         byte[] buffer = new byte[readLength];
         AdsErrorCode result = _client.TryReadWrite(ValueByNameGroup, 0, buffer.AsMemory(), name.AsMemory(), out int read);
         data = buffer[..read];
