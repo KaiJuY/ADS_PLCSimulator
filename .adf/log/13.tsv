@@ -17,3 +17,5 @@ time	stage	decision	why	evidence	result
 2026-10-31T01:15:20+0800	H	post-merge：correctness 0 major（5 nit：2 個 Stryker 理由與 TryGetConstant 說明已修；MOD 優先順序既有 bug 另開 issue；Validate 對所有專案執行屬 AC10）；structure 6 nit 不改；drift 9 項以程式碼為準（§11）	correctness/structure/drift reviewer	7eaab5f	stage H 完成
 2026-10-31T01:15:20+0800	I	Integration S1–S18 16/16 通過；模擬器 heartbeat 9.99 s（Polar2 10 s），853 20.26 s（不同專案設定）；AdsClientForPolarII 約每 4 s 寫 HeartbeatIndex，旗標維持 TRUE；S18 Service Alive 940 + Abort	-	.adf/evidence/13	stage I 完成
 2026-10-31T01:24:26+0800	J	合併 5b50dd4，main build 0 錯誤、783 測試通過；關閉 #13；移除 2 個 worktree 與 impl/13-core、int/13	Allen：合併並 push main	gh issue 13	完成
+2026-10-31T01:24:57+0800	J	修正：7eaab5f 以 git add -f src 誤加 78 個 bin/obj 檔並已 push；本機 commit 移除追蹤（檔案留在磁碟），待 Allen 同意 push	自己的錯誤	git log --diff-filter=A	待 push
+2026-10-31T01:27:31+0800	J	push e1fc18a（移除 bin/obj 追蹤）	Allen：push	-	完成
