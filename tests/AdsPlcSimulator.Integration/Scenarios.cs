@@ -47,7 +47,7 @@ internal static class Scenarios
         new("S15", "Module Stop ignores later service commands", ModuleStopAsync),
     ];
 
-    // Expected sizes: tmc values listed in projects/Polar2Chamber/README.md. M1 and M6 share one layout.
+    // Expected sizes are the MaxConfigParamPerModule = 500 layout; see projects/Polar2Chamber/README.md. M1 and M6 share one layout.
     private static Task<Checks> SymbolLayoutAsync(PlcSession session)
     {
         var checks = new Checks();
@@ -98,7 +98,7 @@ internal static class Scenarios
         return checks;
     }
 
-    // Expected values: projects/Polar2Chamber/config/module-config.json (64 SVIDs for slot 1) and Polar2_ModuleModeInit.flow.json (Value '1'). They hold on a fresh Host only; S10, S12 change SVID 1 of M1.
+    // Expected values: projects/Polar2Chamber/config/module-config.json (64 SVIDs for slot 1) and Polar2_ModuleModeInit.flow.json (Value '1').
     private static Task<Checks> ModuleVariableAsync(PlcSession session)
     {
         var checks = new Checks();

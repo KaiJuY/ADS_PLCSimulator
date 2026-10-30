@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-"""Generate Polar2 config/module-config.json from the spec workbook (Python 3 standard library only).
-
-Usage: python spec-to-config.py "<spec.xlsx>" "<output module-config.json>"
-"""
 import html
 import json
 import posixpath
 import re
 import sys
 import zipfile
+from typing import NamedTuple
 
 SVID_SHEET = "ModuleVariableList_SVID"
 ECID_SHEET = "ModuleConfigParamList_ECID"
@@ -32,6 +29,13 @@ ABBREVIATIONS = [
 
 class SpecError(Exception):
     pass
+
+
+class Row(NamedTuple):
+    number: int
+    item: str
+    type: str
+    unit: str
 
 
 def column_letters(cell_ref):
@@ -67,7 +71,6 @@ def sheet_paths(zf):
 
 
 def read_sheet(zf, path, shared):
-    """Return {row number: {column letter: text}}."""
     text = zf.read(path).decode("utf-8")
     rows = {}
     for row in re.finditer(r"<row\b([^>]*?)(?:/>|>(.*?)</row>)", text, re.S):
@@ -103,24 +106,29 @@ def read_quantities(rows):
     return quantities
 
 
+def ungrouped_row(number, cells):
+    if cells.get("C", "").strip() or not cells.get("B", "").strip() or not cells.get("D", "").strip():
+        return None
+    return Row(number, cells["B"].strip(), cells["D"].strip(), cells.get("E", "").strip())
+
+
 def expand_rows(sheet_name, rows, quantities):
-    """Yield (row number, display name, type text, unit) in output order."""
-    groups = []  # (group, [(row, item, type, unit)]) in first-appearance order
+    groups = []
     group = ""
     for number in sorted(rows):
         if number == 1:
             continue
         cells = rows[number]
-        item = cells.get("C", "").strip()
-        if not item and cells.get("B", "").strip() and cells.get("D", "").strip():
-            # A row with a type but no item name (SVID "Module Mode") is one ungrouped item named by column B.
-            groups.append(("", [(number, cells["B"].strip(), cells["D"].strip(), cells.get("E", "").strip())]))
+        ungrouped = ungrouped_row(number, cells)
+        if ungrouped:
+            groups.append(("", [ungrouped]))
             continue
         if cells.get("B", "").strip():
             group = cells["B"].strip()
+        item = cells.get("C", "").strip()
         if not item:
             continue
-        entry = (number, item, cells.get("D", "").strip(), cells.get("E", "").strip())
+        entry = Row(number, item, cells.get("D", "").strip(), cells.get("E", "").strip())
         if groups and groups[-1][0] == group:
             groups[-1][1].append(entry)
         else:
@@ -129,21 +137,21 @@ def expand_rows(sheet_name, rows, quantities):
     result = []
     for group, items in groups:
         if group in ("", "-"):
-            result.extend((n, item, t, u) for n, item, t, u in items)
+            result.extend(items)
             continue
         if not group.endswith("_X"):
-            result.extend((n, f"{group} {item}", t, u) for n, item, t, u in items)
+            result.extend(row._replace(item=f"{group} {row.item}") for row in items)
             continue
         base = group[:-2].strip()
         key = base.replace(" ", "").lower()
         if key not in quantities:
-            raise SpecError(f"{sheet_name} row {items[0][0]}: no Object Quantity for '{base}'")
+            raise SpecError(f"{sheet_name} row {items[0].number}: no Object Quantity for '{base}'")
         base_name = base.replace(" ", "")
         for index in range(1, quantities[key] + 1):
-            for n, item, t, u in items:
-                if base_name == "Arm" and exceeds_nozzles(item, index):
+            for row in items:
+                if base_name == "Arm" and exceeds_nozzles(row.item, index):
                     continue
-                result.append((n, f"{base_name}{index} {item}", t, u))
+                result.append(row._replace(item=f"{base_name}{index} {row.item}"))
     return result
 
 

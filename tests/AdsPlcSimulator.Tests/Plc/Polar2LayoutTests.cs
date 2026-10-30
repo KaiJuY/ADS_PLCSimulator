@@ -1,15 +1,13 @@
+using System.Text.RegularExpressions;
 using AdsPlcSimulator.Core.Plc;
 
 namespace AdsPlcSimulator.Tests.Plc;
 
-/// <summary>
-/// Expected offsets and sizes are the .tmc values of Polar_II_ChamberDemo.tmc (BitOffs and BitSize divided by 8), moved for MaxConfigParamPerModule changed from 300 to 500; see projects/Polar2Chamber/README.md.
-/// </summary>
 public class Polar2LayoutTests
 {
     [Fact]
     [Trait("AC", "1")]
-    public void Polar2_module_layout_matches_tmc()
+    public void Polar2_module_layout_with_500_ecid_capacity()
     {
         PlcProgram program = PlcProgram.LoadDirectory(Path.Combine(TestPaths.Polar2Project, "plc"));
 
@@ -35,5 +33,13 @@ public class Polar2LayoutTests
             SymbolRef symbol = program.Symbols.Resolve(path);
             Assert.True(offset == symbol.Offset && size == symbol.Size, $"{path}: expected {offset}/{size}, got {symbol.Offset}/{symbol.Size}");
         }
+
+        string gvl = File.ReadAllText(Path.Combine(TestPaths.Polar2Project, "plc", "Framework", "GVLs", "Param_Config.TcGVL"));
+        int capacity = int.Parse(Regex.Match(gvl, @"MaxConfigParamPerModule\s*:\s*UINT\s*:=\s*(\d+)").Groups[1].Value);
+        SymbolRef list = program.Symbols.Resolve("GVL_Module.Chamber_Control[1].ModuleConfigParamList");
+        SymbolRef item = program.Symbols.Resolve("GVL_Module.Chamber_Control[1].ModuleConfigParamList[1]");
+        Assert.Equal(500, capacity);
+        Assert.Equal(152, item.Size);
+        Assert.Equal(capacity * item.Size, list.Size);
     }
 }

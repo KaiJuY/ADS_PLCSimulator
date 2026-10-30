@@ -5,7 +5,6 @@ namespace AdsPlcSimulator.Host.Project;
 
 public sealed class ModuleConfigException(string message) : Exception(message);
 
-// init properties with defaults: a JSON file without the field gets the default instead of null.
 internal sealed record ModuleConfigFile
 {
     public int SchemaVersion { get; init; }
@@ -39,7 +38,6 @@ internal sealed record DescriptorConfig
     public string? DataType { get; init; }
 }
 
-/// <summary>Publishes module identity, SVIDs and ECIDs from a project's config/module-config.json into the process image.</summary>
 internal static class ModuleConfigPublisher
 {
     public const string RelativePath = "config/module-config.json";
@@ -49,8 +47,7 @@ internal static class ModuleConfigPublisher
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    // Config data type -> (member name of E_DescriptorType, initial Value text).
-    private static readonly Dictionary<string, (string Descriptor, string Value)> DataTypes = new(StringComparer.Ordinal)
+    private static readonly Dictionary<string, (string EnumMember, string InitialValue)> DataTypes = new(StringComparer.Ordinal)
     {
         ["DINT"] = ("Integer_32bit", "0"),
         ["REAL"] = ("Float_32bit", "0"),
@@ -58,10 +55,9 @@ internal static class ModuleConfigPublisher
         ["STRING"] = ("String_80byte", ""),
     };
 
-    /// <returns>The config path when published; null when the project has no config file.</returns>
     public static string? PublishIfPresent(string projectDirectory, SymbolTable symbols, ProcessImage image)
     {
-        string path = Path.Combine(projectDirectory, "config", "module-config.json");
+        string path = Path.Combine(projectDirectory, RelativePath.Replace('/', Path.DirectorySeparatorChar));
         if (!File.Exists(path))
             return null;
 
@@ -150,7 +146,6 @@ internal static class ModuleConfigPublisher
 
     private static bool IsAscii(string text) => text.All(character => character < 128);
 
-    /// <summary>Phase one of the publish: resolves every symbol and checks every limit, so nothing is written when a check fails.</summary>
     private sealed class PublishPlanner(string path, SymbolTable symbols, List<(SymbolRef Symbol, object Value)> plan)
     {
         public void AddModule(ModuleConfigEntry module)
@@ -192,14 +187,14 @@ internal static class ModuleConfigPublisher
 
         private void AddDescriptor(string itemPath, DescriptorConfig item, bool isConfigParam)
         {
-            (string descriptor, string value) = DataTypes[item.DataType!];
+            (string enumMember, string initialValue) = DataTypes[item.DataType!];
             CheckLength($"{itemPath}.Name", item.Name!, "name");
             CheckLength($"{itemPath}.Unit", item.Unit!, "unit");
             Add($"{itemPath}.Id", (long)item.Id);
             Add($"{itemPath}.Name", item.Name!);
-            Add($"{itemPath}.DataType", descriptor);
+            Add($"{itemPath}.DataType", enumMember);
             Add($"{itemPath}.Unit", item.Unit!);
-            Add($"{itemPath}.Value", value);
+            Add($"{itemPath}.Value", initialValue);
             if (!isConfigParam)
                 return;
 
