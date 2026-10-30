@@ -9,7 +9,7 @@ namespace AdsPlcSimulator.Integration;
 
 internal sealed record Scenario(string Id, string Title, Func<PlcSession, Task<Checks>> Run);
 
-/// <summary>Scenarios S1 to S12, S15 and S16 of .adf/scenarios/1.md; S13 and S14 are browser steps and are not here. S16 runs right after S11 and continues from the Aborted SetMode it leaves; a module Stop (S15) cannot finish while a service stays Aborted.</summary>
+/// <summary>Scenarios S1 to S12, S15 and S16 of .adf/scenarios/1.md and S17 and S18 of #13; S13 and S14 are browser steps and are not here. S16 runs right after S11 and continues from the Aborted SetMode it leaves; a module Stop (S15) cannot finish while a service stays Aborted, and it leaves module 1 Stopped, so S17 and S18 run before it.</summary>
 internal static class Scenarios
 {
     private const string Gvl = "GVL_Module.Chamber_Control";
@@ -21,7 +21,11 @@ internal static class Scenarios
     private const string AlarmStatus = Module1 + ".ModuleStatus.Alarm";
     private const string AckRequest = Module1 + ".ModuleCtrl.AlarmAckRequest";
     private const string SetModeServiceId = Module1 + ".ServiceStatus.Chamber.SetMode.ServiceId";
+    private const string HeartbeatIndex = Module1 + ".HeartbeatIndex";
+    private const string ControlSourceAlive = Module1 + ".ModuleStatus.IsControlSourceAlive";
     private const uint SetModeAlarmId = 1;
+    private const uint AliveTimeoutAlarmId = 940;
+    private const int AlarmListScanLength = 10;
     private const short AcknowledgeOne = 1;
     private const short DuplicateRequest = 2;
 
@@ -29,6 +33,14 @@ internal static class Scenarios
     private static readonly TimeSpan NaturalLate = TimeSpan.FromSeconds(7);
     private static readonly TimeSpan HoldWindow = TimeSpan.FromSeconds(6);
     private static readonly TimeSpan Reaction = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan HeartbeatBeat = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan HeartbeatStillAlive = TimeSpan.FromSeconds(9);
+    private static readonly TimeSpan HeartbeatFallWindow = TimeSpan.FromSeconds(11.5);
+    private static readonly TimeSpan AliveLimit = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan AliveAbortWindow = TimeSpan.FromSeconds(1.5);
+    private static readonly TimeSpan AliveBeat = TimeSpan.FromMilliseconds(100);
+    private static readonly TimeSpan AliveKeepWindow = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan ReadInterval = TimeSpan.FromMilliseconds(200);
 
     private static readonly Endpoint ShutterOpen = Endpoint.Service(1, "Shutter.Open");
     private static readonly Endpoint ShutterClose = Endpoint.Service(1, "Shutter.Close");
@@ -52,6 +64,8 @@ internal static class Scenarios
         new("S11", "SetMode TargetMode=4 aborts with an alarm", SetModeAbortsAsync),
         new("S16", "Alarm Ack and removal", AlarmAckAsync),
         new("S12", "Initial switches mode to 3", InitialAsync),
+        new("S17", "Module heartbeat", HeartbeatAsync),
+        new("S18", "Service Alive timeout aborts", ServiceAliveAsync),
         new("S15", "Module Stop ignores later service commands", ModuleStopAsync),
     ];
 
@@ -375,6 +389,117 @@ internal static class Scenarios
 
         await session.EnsureIdleAsync(Initial);
         return checks;
+    }
+
+    private static async Task<Checks> HeartbeatAsync(PlcSession session)
+    {
+        var checks = new Checks();
+        uint index = session.Read<uint>(HeartbeatIndex);
+        var beating = Stopwatch.StartNew();
+        while (beating.Elapsed < HeartbeatBeat)
+        {
+            session.Write(HeartbeatIndex, ++index);
+            await Task.Delay(ReadInterval);
+        }
+
+        checks.Equal("IsControlSourceAlive while HeartbeatIndex changes", true, session.Read<bool>(ControlSourceAlive));
+
+        session.Write(HeartbeatIndex, ++index);
+        var silent = Stopwatch.StartNew();
+        TimeSpan? fellAt = null;
+        while (fellAt is null && silent.Elapsed < HeartbeatFallWindow)
+        {
+            await Task.Delay(ReadInterval);
+            if (!session.Read<bool>(ControlSourceAlive))
+                fellAt = silent.Elapsed;
+        }
+
+        checks.True("IsControlSourceAlive turns FALSE within 11.5 s", fellAt is not null, $"after {fellAt}");
+        checks.True("still TRUE at 9 s", fellAt is { } fell && fell >= HeartbeatStillAlive, $"after {fellAt}");
+
+        session.Write(HeartbeatIndex, ++index);
+        bool recovered = await session.WaitForAsync(() => session.Read<bool>(ControlSourceAlive), Reaction);
+        checks.True("a change turns IsControlSourceAlive TRUE again", recovered);
+        return checks;
+    }
+
+    private static async Task<Checks> ServiceAliveAsync(PlcSession session)
+    {
+        var checks = new Checks();
+        if (!await RequireIdleAsync(checks, session, HolderMove))
+            return checks;
+
+        try
+        {
+            await CheckAliveTimeoutAbortsAsync(checks, session);
+            await CheckAliveIndexKeepsExecuteAsync(checks, session);
+        }
+        finally
+        {
+            session.Write($"{HolderMove.Ctrl}.AliveTimeout", TimeSpan.Zero);
+        }
+
+        return checks;
+    }
+
+    private static async Task CheckAliveTimeoutAbortsAsync(Checks checks, PlcSession session)
+    {
+        session.Write($"{HolderMove.Ctrl}.AliveTimeout", AliveLimit);
+        session.Send(HolderMove, PackMLCommand.Start, session.NextRequestId());
+        bool aborted = await session.WaitForStateAsync(HolderMove, PackMLState.Aborted, AliveAbortWindow);
+        session.Release(HolderMove);
+        checks.True("Aborted within 1.5 s without AliveIndex updates", aborted, $"state={session.State(HolderMove)}");
+
+        int entry = FindAlarm(session, AliveTimeoutAlarmId);
+        checks.True("ModuleAlarmList has 940", entry > 0);
+        if (entry > 0)
+        {
+            string path = $"{Module1}.ModuleAlarmList[{entry}]";
+            checks.Equal("940 ServiceId", session.Read<uint>($"{HolderMove.Status}.ServiceId"), session.Read<uint>($"{path}.ServiceId"));
+            checks.Equal("940 SourceErrorId", 500u, session.Read<uint>($"{path}.SourceErrorId"));
+        }
+
+        bool stopped = await session.RunSettledAsync(HolderMove, PackMLCommand.Clear, PackMLState.Stopped);
+        checks.True("Clear reaches Stopped", stopped, $"state={session.State(HolderMove)}");
+        bool idle = await session.EnsureIdleAsync(HolderMove);
+        checks.True("Reset reaches Idle", idle, $"state={session.State(HolderMove)}");
+    }
+
+    private static async Task CheckAliveIndexKeepsExecuteAsync(Checks checks, PlcSession session)
+    {
+        if (session.State(HolderMove) != PackMLState.Idle)
+            return;
+
+        string aliveIndex = $"{HolderMove.Ctrl}.AliveIndex";
+        uint index = session.Read<uint>(aliveIndex);
+        session.Write($"{HolderMove.Ctrl}.AliveTimeout", AliveLimit);
+        session.Write(aliveIndex, ++index);
+        session.Send(HolderMove, PackMLCommand.Start, session.NextRequestId());
+        var keeping = Stopwatch.StartNew();
+        while (keeping.Elapsed < AliveKeepWindow)
+        {
+            await Task.Delay(AliveBeat);
+            session.Write(aliveIndex, ++index);
+        }
+
+        session.Release(HolderMove);
+        checks.Equal("still Execute after 2 s of AliveIndex updates", PackMLState.Execute, session.State(HolderMove));
+
+        bool stopped = await session.RunSettledAsync(HolderMove, PackMLCommand.Stop, PackMLState.Stopped);
+        checks.True("Stop reaches Stopped", stopped, $"state={session.State(HolderMove)}");
+        bool idle = await session.EnsureIdleAsync(HolderMove);
+        checks.True("Reset reaches Idle", idle, $"state={session.State(HolderMove)}");
+    }
+
+    private static int FindAlarm(PlcSession session, uint mainErrorId)
+    {
+        for (int entry = 1; entry <= AlarmListScanLength; entry++)
+        {
+            if (session.Read<uint>($"{Module1}.ModuleAlarmList[{entry}].MainErrorId") == mainErrorId)
+                return entry;
+        }
+
+        return 0;
     }
 
     private static async Task<Checks> ModuleStopAsync(PlcSession session)

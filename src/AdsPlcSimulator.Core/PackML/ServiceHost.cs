@@ -20,6 +20,8 @@ public sealed class ServiceHost
     private static readonly PackMLCommand[] ForwardedModuleCommands =
         [PackMLCommand.Stop, PackMLCommand.Abort, PackMLCommand.Clear, PackMLCommand.Reset];
 
+    private const uint AliveTimeoutErrorId = 940;
+
     private static long s_generationCounter;
 
     private readonly Lock _lock = new();
@@ -117,11 +119,7 @@ public sealed class ServiceHost
             if (mainErrorId == 0)
                 throw new InvalidOperationException("MainErrorId 0 means no error.");
 
-            uint moduleId = _moduleByService[ctrlPath].Alarm?.ReadModuleId(image) ?? 0;
-            var entry = new ExtAlarm(
-                moduleId, service.Identity!.ServiceId, mainErrorId, sourceErrorId, message, service.StatusPath,
-                AlarmSeverity.Alarm, AlarmClock.Format(_utcNow()), true, false, 1);
-            ServiceErrorResult result = service.Errors.Add(entry);
+            ServiceErrorResult result = service.Errors.Add(BuildServiceError(service, image, mainErrorId, sourceErrorId, message));
             if (result.Added)
                 service.Errors.WriteIfChanged(image);
             return result;
@@ -143,6 +141,24 @@ public sealed class ServiceHost
 
             module.SetHook(new HookSubmission(mainErrorId, sourceErrorId, message, severity, path), active);
         }
+    }
+
+    private ExtAlarm BuildServiceError(ServiceUnit service, ProcessImage image, uint mainErrorId, uint sourceErrorId, string message)
+    {
+        uint moduleId = _moduleByService[service.CtrlPath].Alarm?.ReadModuleId(image) ?? 0;
+        return new ExtAlarm(
+            moduleId, service.Identity!.ServiceId, mainErrorId, sourceErrorId, message, service.StatusPath,
+            AlarmSeverity.Alarm, AlarmClock.Format(_utcNow()), true, false, 1);
+    }
+
+    private void AddFrameworkError(ServiceUnit service, ProcessImage image, uint mainErrorId, uint sourceErrorId, string message)
+    {
+        if (service.Errors is null)
+            return;
+
+        ServiceErrorResult result = service.Errors.Add(BuildServiceError(service, image, mainErrorId, sourceErrorId, message));
+        if (result.Added)
+            service.Errors.WriteIfChanged(image);
     }
 
     private ProcessImage RequireUsable()
@@ -264,7 +280,7 @@ public sealed class ServiceHost
         bool moduleInExecute = module.Machine.State == PackMLState.Execute;
 
         foreach (ServiceUnit service in module.BoundServices)
-            ScanService(image, service, module.ReadServiceInput(service), moduleInput, moduleInExecute, now);
+            ScanService(image, service, module.ReadServiceInput(service), module.ReadServiceAlive(service, moduleInExecute), moduleInput, moduleInExecute, now);
 
         UpdateModuleResponse(module, moduleInput.PackML);
         module.Status.Write(image, module.Machine);
@@ -290,12 +306,13 @@ public sealed class ServiceHost
             module.Status.ResponseId = module.ReadModuleInput().RequestId;
     }
 
-    private void ScanService(ProcessImage image, ServiceUnit service, RawInput client, RawInput module, bool moduleInExecute, TimeSpan now)
+    private void ScanService(ProcessImage image, ServiceUnit service, RawInput client, AliveInput alive, RawInput module, bool moduleInExecute, TimeSpan now)
     {
         (long requestId, PackMLInput effective) = moduleInExecute
             ? (client.RequestId, ApplyBlocking(service, client.PackML))
             : (module.RequestId, ForwardModuleInput(service, client.PackML, module.PackML));
 
+        ApplyAlive(service, alive, ref effective, image, now);
         if (effective.CommandRequest && !service.LastCommandRequest)
             service.Status.ResponseId = requestId;
         service.LastCommandRequest = effective.CommandRequest;
@@ -306,10 +323,23 @@ public sealed class ServiceHost
         service.LastState = service.Machine.State;
         if (before != PackMLState.Execute && service.Machine.State == PackMLState.Execute)
             EnterExecute(service, now);
+        service.OnScanned(before, alive, _alive, now);
         if (PassedThroughClearingThisScan(before, service.Machine))
             service.ClearErrors(image);
 
         service.Status.Write(image, service.Machine);
+    }
+
+    private void ApplyAlive(ServiceUnit service, AliveInput alive, ref PackMLInput effective, ProcessImage image, TimeSpan now)
+    {
+        if (service.EvaluateAlive(alive, now) is { } timeout)
+            AddFrameworkError(service, image, AliveTimeoutErrorId, (uint)timeout.TotalMilliseconds, "Service Alive timeout expired.");
+        if (!service.AbortPending)
+            return;
+
+        effective = effective with { ModeRequest = false };
+        if (service.Machine.RequestCommand(PackMLCommand.Abort, modeRequestHigh: false))
+            service.ClearPendingAbort();
     }
 
     private static bool PassedThroughClearingThisScan(PackMLState before, PackMLMachine machine) =>
@@ -502,8 +532,10 @@ public sealed class ServiceHost
             SymbolRef serviceIdSymbol,
             SymbolRef behaviorSymbol,
             string statusPath,
-            ServiceErrorList? errors)
+            ServiceErrorList? errors,
+            ServiceAliveMonitor? alive)
         {
+            Alive = alive;
             StatusPath = statusPath;
             Errors = errors;
             CtrlPath = ctrlPath;
@@ -521,6 +553,8 @@ public sealed class ServiceHost
         public string StatusPath { get; }
 
         public ServiceErrorList? Errors { get; }
+
+        public ServiceAliveMonitor? Alive { get; }
 
         public ServiceIdentity? Identity { get; }
 
@@ -568,12 +602,33 @@ public sealed class ServiceHost
                 new SymbolRef($"{status.Path}.ServiceId", serviceId.Type, status.Offset + serviceId.Offset),
                 new SymbolRef($"{status.Path}.CompletionBehavior", behavior.Type, status.Offset + behavior.Offset),
                 status.Path,
-                ServiceErrorList.TryCreate(status));
+                ServiceErrorList.TryCreate(status),
+                ServiceAliveMonitor.TryCreate(ctrl, ctrl.Offset - serviceCtrlRoot.Offset));
             // Stryker restore String
         }
 
         public RawInput ReadInput(byte[] serviceCtrlBlock) =>
             _input.Decode(serviceCtrlBlock.AsSpan(_ctrlOffsetInBlock, _input.Size));
+
+        public AliveInput ReadAlive(byte[] serviceCtrlBlock, bool moduleInExecute) =>
+            Alive?.Read(serviceCtrlBlock, moduleInExecute) ?? default;
+
+        public bool AbortPending => Alive is { AbortPending: true };
+
+        public void ClearPendingAbort() => Alive?.ClearPendingAbort();
+
+        public TimeSpan? EvaluateAlive(AliveInput input, TimeSpan now) =>
+            Alive?.Evaluate(input, Machine.State == PackMLState.Execute, now);
+
+        public void OnScanned(PackMLState before, AliveInput input, AliveSettings settings, TimeSpan now)
+        {
+            if (Alive is null)
+                return;
+            if (Machine.State != PackMLState.Execute)
+                Alive.LeaveExecute();
+            else if (before != PackMLState.Execute)
+                Alive.EnterExecute(input, Behavior, settings, now);
+        }
 
         public void WriteIdentity(ProcessImage image)
         {
@@ -594,6 +649,7 @@ public sealed class ServiceHost
             LastModeRequest = client.PackML.ModeRequest;
             CommandBlocked = false;
             ModeBlocked = false;
+            Alive?.Reset();
             Generation = 0;
             EntryToken = null;
             // Stryker disable once Boolean: EntryToken is null here, so Complete and TakeCompletion cannot read the flag before EnterExecute resets it
@@ -719,6 +775,8 @@ public sealed class ServiceHost
         public void ScanHeartbeat(ProcessImage image, TimeSpan now) => Heartbeat?.Scan(image, now);
 
         public RawInput ReadServiceInput(ServiceUnit service) => service.ReadInput(_serviceCtrlBuffer);
+
+        public AliveInput ReadServiceAlive(ServiceUnit service, bool moduleInExecute) => service.ReadAlive(_serviceCtrlBuffer, moduleInExecute);
 
         private static StructMember RequireMember(SymbolRef module, string name, string? typeName)
         {

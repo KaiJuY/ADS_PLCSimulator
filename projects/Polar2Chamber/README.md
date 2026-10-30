@@ -105,6 +105,21 @@ Ack：`ModuleCtrl.AlarmAckRequest` 的 `bChangeRequest` 上升緣處理一次；
 
 Run 前若 `AlarmAckRequest.bChangeRequest` 還是 TRUE，新的 host 會把它當作上升緣處理一次（等同 PLC 重開機），所以 Run 前先把 Ctrl 清掉。
 
+## Heartbeat 與 Service Alive
+
+`Polar2_ServiceHost` 照 framework 實作兩個用途不同的機制。兩者的 timeout 都在 Run 時從 `plc/Framework/GVLs/Param_Config.TcGVL` 讀。
+
+- **Module heartbeat**（`FB_ModuleBase.M_CheckHeartbeat`）：client 定時更新 module 的 `HeartbeatIndex`；超過 `ModuleHeartbeat_Timeout`（預設 T#10S）沒變，`ModuleStatus.IsControlSourceAlive` 為 FALSE。只設旗標，不停機、不產生 alarm。重新 Run 時旗標為 TRUE，計時重來。module 缺少 `HeartbeatIndex` 或 `IsControlSourceAlive` 時，這個 module 不做 heartbeat。
+- **Service Alive**（`FB_ServiceBase.M_EvaluateAliveTimeout`）：只對 `ExecuteUntilExternalStop` 的 service。client 在 Execute 期間持續更新 `ServiceCtrl.<service>.AliveIndex` 表示「仍要繼續執行」；`AliveTimeout` 在進入 Execute 時讀一次（限制在 `ServiceAliveTimeoutMin` 到 `ServiceAliveTimeoutMax` 之間，預設 100 ms 到 10 s），超過這段時間 `AliveIndex` 沒變，同一次 scan 產生 alarm 940（`SourceErrorId` 是限制後的毫秒數）並 Abort。`AliveTimeout` 為 0 時不監控。離開 Execute 就不再監控；module 不在 Execute 時（例如 Hold），`AliveIndex` 與 `AliveTimeout` 讀作 0。workflow 接管的 service 同樣監控。
+
+相容性：`AliveTimeout` 大於 0 卻不送 `AliveIndex` 的 client，其 `ExecuteUntilExternalStop` service 會被 Abort，與真 PLC 相同。
+
+限制：
+
+- timeout 只支援 `T#` 字面值；`T#5S * 2` 這類運算式會被當成「不是 TIME」而用預設值。值為 0 或負數也用預設值。
+- `ServiceAliveTimeoutMin` 大於 `ServiceAliveTimeoutMax`（缺少的一方以預設值比較）時 Run 失敗，訊息指出兩個值。
+- 不模擬 composite service 與 coordinator 未就緒時的 `AliveIndex` 歸零。
+
 ## Workflow
 
 - `Polar2_ServiceHost`：執行 `GVL_Module.Chamber_Control` 底下所有 module 的 PackML 交握，ServiceId 與 CompletionBehavior 來自 `plc/ServiceIdentity/` 的 identity 檔。

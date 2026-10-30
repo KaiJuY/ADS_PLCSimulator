@@ -3,7 +3,6 @@ using static AdsPlcSimulator.Core.PackML.PlcLayout;
 
 namespace AdsPlcSimulator.Core.PackML;
 
-/// <summary>Sets ModuleStatus.IsControlSourceAlive FALSE when the client has not changed HeartbeatIndex for the timeout (FW: FB_ModuleBase.M_CheckHeartbeat).</summary>
 internal sealed class ModuleHeartbeat
 {
     private readonly SymbolRef _index;
@@ -20,7 +19,6 @@ internal sealed class ModuleHeartbeat
         _timeout = timeout;
     }
 
-    /// <summary>Null when HeartbeatIndex (top level of the module) or ModuleStatus.IsControlSourceAlive is missing or is not UDINT / BOOL.</summary>
     public static ModuleHeartbeat? TryCreate(SymbolRef module, TimeSpan timeout)
     {
         StructMember? index = Find(module.Type, "HeartbeatIndex");
@@ -37,7 +35,6 @@ internal sealed class ModuleHeartbeat
             timeout);
     }
 
-    /// <summary>The last index is the current HeartbeatIndex; the next Scan restarts the timer; writes TRUE.</summary>
     public void Reset(ProcessImage image)
     {
         _lastIndex = ReadIndex(image);
@@ -46,7 +43,6 @@ internal sealed class ModuleHeartbeat
         image.WriteValue(_flag, true, WriteSource.Workflow);
     }
 
-    /// <summary>Writes IsControlSourceAlive only when it changes.</summary>
     public void Scan(ProcessImage image, TimeSpan now)
     {
         long index = ReadIndex(image);
