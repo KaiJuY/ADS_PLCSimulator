@@ -8,6 +8,36 @@
       "params": {}
     },
     {
+      "id": "idModuleId",
+      "type": "action.writeSymbol",
+      "x": 40,
+      "y": 200,
+      "params": {
+        "symbol": "GVL_Module.Chamber_Control[1].ModuleStatus.ModuleId",
+        "value": "1"
+      }
+    },
+    {
+      "id": "idEnabled",
+      "type": "action.writeSymbol",
+      "x": 300,
+      "y": 200,
+      "params": {
+        "symbol": "GVL_Module.Chamber_Control[1].ModuleStatus.Enabled",
+        "value": "TRUE"
+      }
+    },
+    {
+      "id": "idModuleType",
+      "type": "action.writeSymbol",
+      "x": 560,
+      "y": 200,
+      "params": {
+        "symbol": "GVL_Module.Chamber_Control[1].ModuleStatus.ModuleType",
+        "value": "Polar2"
+      }
+    },
+    {
       "id": "loop",
       "type": "flow.forLoop",
       "x": 300,
@@ -71,6 +101,24 @@
   "links": [
     {
       "fromNode": "start",
+      "fromPort": "then",
+      "toNode": "idModuleId",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "idModuleId",
+      "fromPort": "then",
+      "toNode": "idEnabled",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "idEnabled",
+      "fromPort": "then",
+      "toNode": "idModuleType",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "idModuleType",
       "fromPort": "then",
       "toNode": "loop",
       "toPort": "exec"
