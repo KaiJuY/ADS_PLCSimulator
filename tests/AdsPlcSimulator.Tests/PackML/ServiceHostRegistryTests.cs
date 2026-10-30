@@ -37,6 +37,18 @@ public class ServiceHostRegistryTests
 
     [Fact]
     [Trait("AC", "13")]
+    public void Module_is_found_only_when_a_registered_host_runs_it()
+    {
+        var fixture = new HostFixture();
+        var registry = new ServiceHostRegistry();
+        registry.Register("host", fixture.Host);
+
+        Assert.Same(fixture.Host, registry.FindByModule("GVL_Test.Modules[2]"));
+        Assert.Null(registry.FindByModule("GVL_Test.Modules[9]"));
+    }
+
+    [Fact]
+    [Trait("AC", "13")]
     public void Same_workflow_replaces_the_host_and_retires_the_old_one()
     {
         var fixture = new HostFixture();

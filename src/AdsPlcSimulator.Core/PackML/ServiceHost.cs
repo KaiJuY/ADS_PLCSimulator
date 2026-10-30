@@ -307,6 +307,7 @@ public sealed class ServiceHost
     }
 
     private static bool PassedThroughClearingThisScan(PackMLState before, PackMLMachine machine) =>
+        // Stryker disable once Equality: Clearing is an acting state that completes in the scan that enters it, so machine.State is never Clearing after a scan and the right operand is never evaluated
         (machine.State == PackMLState.Clearing && before != PackMLState.Clearing)
         || (machine.State != before && machine.PreviousState == PackMLState.Clearing);
 

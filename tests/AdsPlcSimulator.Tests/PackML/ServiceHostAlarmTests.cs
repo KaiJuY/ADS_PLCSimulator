@@ -265,8 +265,10 @@ public class ServiceHostAlarmTests
 
         fixture.Scan();
 
-        Assert.Throws<InvalidOperationException>(() => fixture.Host.SetModuleAlarm("GVL_Test.Modules[1]", 1, 0, "m", AlarmSeverity.Alarm, "", true));
-        Assert.Throws<InvalidOperationException>(() => fixture.Host.AddServiceError(HostFixture.CtrlPath(1, "A"), 1, 0, "m"));
+        var alarm = Assert.Throws<InvalidOperationException>(() => fixture.Host.SetModuleAlarm("GVL_Test.Modules[1]", 1, 0, "m", AlarmSeverity.Alarm, "", true));
+        var error = Assert.Throws<InvalidOperationException>(() => fixture.Host.AddServiceError(HostFixture.CtrlPath(1, "A"), 1, 0, "m"));
+        Assert.Contains("GVL_Test.Modules[1] has no alarm members", alarm.Message);
+        Assert.Contains($"{HostFixture.CtrlPath(1, "A")} has no ErrorList", error.Message);
         Assert.Equal(PackMLState.Idle, fixture.ServiceState(1, "A"));
     }
 
@@ -446,9 +448,123 @@ public class ServiceHostAlarmTests
 
         Assert.False(fixture.Host.ContainsModule("GVL_Test.Modules[9]"));
         Assert.True(fixture.Host.ContainsModule("gvl_test.modules[2]"));
-        Assert.Throws<InvalidOperationException>(() => fixture.Host.SetModuleAlarm("GVL_Test.Modules[9]", 1, 0, "m", AlarmSeverity.Alarm, "", true));
-        Assert.Throws<InvalidOperationException>(() => fixture.Host.SetModuleAlarm(Module, 0, 0, "m", AlarmSeverity.Alarm, "", true));
-        Assert.Throws<InvalidOperationException>(() => fixture.Host.AddServiceError(ServiceA, 0, 0, "m"));
+        var unknown = Assert.Throws<InvalidOperationException>(() => fixture.Host.SetModuleAlarm("GVL_Test.Modules[9]", 1, 0, "m", AlarmSeverity.Alarm, "", true));
+        var zeroAlarm = Assert.Throws<InvalidOperationException>(() => fixture.Host.SetModuleAlarm(Module, 0, 0, "m", AlarmSeverity.Alarm, "", true));
+        var zeroError = Assert.Throws<InvalidOperationException>(() => fixture.Host.AddServiceError(ServiceA, 0, 0, "m"));
+        Assert.Contains("GVL_Test.Modules[9] is not a module of GVL_Test.Modules", unknown.Message);
+        Assert.Contains("MainErrorId 0 means no alarm", zeroAlarm.Message);
+        Assert.Contains("MainErrorId 0 means no error", zeroError.Message);
         Assert.Throws<InvalidOperationException>(() => fixture.Host.AddServiceError(HostFixture.CtrlPath(1, "Unbound"), 1, 0, "m"));
+    }
+
+    public static TheoryData<string, string> UnusableAlarmTypes => new()
+    {
+        { "Message : STRING(80);", "Message : WSTRING(80);" },
+        { "Path : STRING(255);", "Path : WSTRING(255);" },
+        { "DateTime : STRING(20);", "DateTime : WSTRING(20);" },
+        { "OccurrenceCount : UDINT;", "" },
+    };
+
+    [Theory]
+    [MemberData(nameof(UnusableAlarmTypes))]
+    [Trait("AC", "11")]
+    public void An_ST_ExtAlarm_that_cannot_hold_the_alarm_fields_leaves_the_module_without_alarms(string member, string replacement)
+    {
+        HostFixture fixture = NewFixture(declarations: HostFixture.AlarmDeclarations.Replace(member, replacement));
+
+        fixture.Scan();
+
+        var error = Assert.Throws<InvalidOperationException>(() => fixture.Host.AddServiceError(ServiceA, 7, 0, "m"));
+        var alarm = Assert.Throws<InvalidOperationException>(() => fixture.Host.SetModuleAlarm(Module, 7, 0, "m", AlarmSeverity.Alarm, "", true));
+        Assert.Contains("has no ErrorList", error.Message);
+        Assert.Contains("has no alarm members", alarm.Message);
+        Assert.Equal(PackMLState.Idle, fixture.ServiceState(1, "A"));
+    }
+
+    [Fact]
+    [Trait("AC", "6")]
+    public void Each_added_error_lands_in_the_next_ErrorList_entry_and_unchanged_entries_are_not_rewritten()
+    {
+        HostFixture fixture = NewFixture();
+        fixture.Host.AddServiceError(ServiceA, 7, 0, "first");
+        fixture.Write($"{Module}.ServiceStatus.A.ErrorList[1].Message", "edited by a client");
+
+        fixture.Host.AddServiceError(ServiceA, 8, 0, "second");
+
+        Assert.Equal(7, ErrorNum(fixture, 1, "MainErrorId"));
+        Assert.Equal("edited by a client", fixture.Read($"{Module}.ServiceStatus.A.ErrorList[1].Message"));
+        Assert.Equal(8, ErrorNum(fixture, 2, "MainErrorId"));
+        Assert.Equal("second", fixture.Read($"{Module}.ServiceStatus.A.ErrorList[2].Message"));
+        Assert.Equal(0, ErrorNum(fixture, 3, "MainErrorId"));
+    }
+
+    [Fact]
+    [Trait("AC", "5")]
+    public void A_removed_alarm_leaves_the_entry_behind_the_last_one_empty()
+    {
+        HostFixture fixture = NewFixture();
+        fixture.Host.SetModuleAlarm(Module, 1, 0, "one", AlarmSeverity.Alarm, "", true);
+        fixture.Host.SetModuleAlarm(Module, 2, 0, "two", AlarmSeverity.Alarm, "", true);
+        fixture.Scan();
+        fixture.Host.SetModuleAlarm(Module, 1, 0, "one", AlarmSeverity.Alarm, "", false);
+        SendAck(fixture, 1, AlarmAckCommand.AcknowledgeOne, 1, 0);
+
+        fixture.Scan();
+
+        Assert.Equal(2, ListNum(fixture, 1, "MainErrorId"));
+        Assert.Equal(0, ListNum(fixture, 2, "MainErrorId"));
+        Assert.Equal("", ListText(fixture, 2, "Message"));
+    }
+
+    [Fact]
+    [Trait("AC", "9")]
+    public void Alarms_beyond_the_ModuleAlarmList_capacity_set_Overflow()
+    {
+        HostFixture fixture = NewFixture(declarations: HostFixture.AlarmDeclarations.Replace("ARRAY[1..100] OF ST_ExtAlarm", "ARRAY[1..2] OF ST_ExtAlarm"));
+        for (uint id = 1; id <= 3; id++)
+            fixture.Host.SetModuleAlarm(Module, id, 0, "m", AlarmSeverity.Alarm, "", true);
+
+        fixture.Scan();
+
+        Assert.Equal(1, AlarmStatus(fixture, "Overflow"));
+        Assert.Equal(3, AlarmStatus(fixture, "HookLatchedCount"));
+    }
+
+    [Fact]
+    [Trait("AC", "11")]
+    public void A_service_without_ErrorList_clears_to_Stopped()
+    {
+        HostFixture fixture = NewFixture(declarations: HostFixture.Declarations);
+        AbortServiceA(fixture);
+
+        fixture.ServiceCommand(1, "A", PackMLCommand.Clear, 11);
+
+        Assert.Equal(PackMLState.Stopped, fixture.ServiceState(1, "A"));
+    }
+
+    [Fact]
+    [Trait("AC", "12")]
+    public void Initialize_refuses_a_configured_alarm_whose_source_does_not_resolve()
+    {
+        var missing = new ConfiguredAlarm("Sources.Missing", AlarmSourceType.Real, AlarmOperator.GreaterThan, 80, 0, 101, 5, "m", AlarmSeverity.Alarm);
+        HostFixture fixture = NewFixture(Table(missing), initialize: false);
+
+        var error = Assert.Throws<ServiceHostException>(() => fixture.Host.Initialize(fixture.Image, fixture.ConfiguredAlarms));
+
+        Assert.Contains("101", error.Message);
+        Assert.Contains($"{Module}.Sources.Missing", error.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "9")]
+    public void Hook_alarms_are_published_when_the_services_have_no_ErrorList()
+    {
+        HostFixture fixture = NewFixture(declarations: HostFixture.AlarmDeclarations.Replace("ErrorList : ARRAY[1..10] OF ST_ExtAlarm;", ""));
+        fixture.Host.SetModuleAlarm(Module, 30, 0, "hook", AlarmSeverity.Alarm, "", true);
+
+        fixture.Scan();
+
+        Assert.Equal(30, ListNum(fixture, 1, "MainErrorId"));
+        Assert.Equal(1, AlarmStatus(fixture, "HookLatchedCount"));
     }
 }

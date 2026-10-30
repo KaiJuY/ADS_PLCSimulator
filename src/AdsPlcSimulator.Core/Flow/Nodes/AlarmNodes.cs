@@ -20,6 +20,7 @@ internal static class AlarmInputs
 
 public sealed class AddServiceErrorNode(IndexedSymbol service, string message) : ExecNode
 {
+    // Stryker disable String: the surviving mutants change only port and parameter captions, which the Editor shows and no code reads
     public static readonly NodeDefinition Definition = new(
         "action.addServiceError",
         "Action",
@@ -43,6 +44,7 @@ public sealed class AddServiceErrorNode(IndexedSymbol service, string message) :
             new("message", ParamKind.Text, "Message"),
         ],
         Create);
+    // Stryker restore String
 
     public override Task<string?> ExecuteAsync(NodeExecution execution)
     {
@@ -70,6 +72,7 @@ public sealed class AddServiceErrorNode(IndexedSymbol service, string message) :
 
 public sealed class SetModuleAlarmNode(IndexedSymbol module, string message, AlarmSeverity severity, string path) : ExecNode
 {
+    // Stryker disable String: the surviving mutants change only port and parameter captions, which the Editor shows and no code reads
     public static readonly NodeDefinition Definition = new(
         "action.setModuleAlarm",
         "Action",
@@ -93,12 +96,14 @@ public sealed class SetModuleAlarmNode(IndexedSymbol module, string message, Ala
             new("path", ParamKind.Text, "Path (empty = module path)"),
         ],
         Create);
+    // Stryker restore String
 
     public override Task<string?> ExecuteAsync(NodeExecution execution)
     {
         string modulePath = module.Resolve(execution.Symbols, execution.Input("index")).Path;
         uint mainErrorId = AlarmInputs.ErrorId(execution.Input("mainErrorId"), "mainErrorId", 1);
         uint sourceErrorId = AlarmInputs.ErrorId(execution.Input("sourceErrorId"), "sourceErrorId", 0);
+        // Stryker disable once Boolean: Input returns the parameter default TRUE for an unset port and no node outputs null, so the ?? fallback is never used
         bool active = PlcValue.ToBoolean(execution.Input("active") ?? true);
         ServiceHost host = execution.Registry.FindByModule(modulePath)
             ?? throw new InvalidOperationException($"No service.host runs {modulePath}.");

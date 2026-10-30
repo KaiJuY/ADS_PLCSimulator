@@ -56,6 +56,7 @@ internal sealed class ModuleAlarmEngine(
 
         uint moduleId = block.ReadModuleId(image);
         _manager.BeginCycle(moduleId);
+        // Stryker disable once Statement: Reset builds a new manager and ObserveHooks skips hooks owned by config, so no hook alarm with a configured MainErrorId is ever latched
         SuppressHooksOwnedByConfig();
         Acknowledge(block, image);
         ObserveConfigured(image, moduleId, utc);
@@ -65,6 +66,7 @@ internal sealed class ModuleAlarmEngine(
         Publish(block, image);
     }
 
+    // Stryker disable once Statement,Block: Reset builds a new manager and ObserveHooks skips hooks owned by config, so no hook alarm with a configured MainErrorId is ever latched
     private void SuppressHooksOwnedByConfig()
     {
         foreach (ConfiguredBinding binding in _configured)
@@ -81,6 +83,7 @@ internal sealed class ModuleAlarmEngine(
             ConfiguredAlarm alarm = _configured[index].Alarm;
             bool valid = TrySample(image, _configured[index], out double value);
             bool met = valid && AlarmCondition.IsMet(value, alarm.Operator, alarm.Threshold, alarm.Tolerance);
+            // Stryker disable once String,Boolean: ModuleAlarmManager.Latch overwrites DateTime, Active, Acknowledged and OccurrenceCount of the snapshot
             var snapshot = new ExtAlarm(
                 moduleId, 0, alarm.MainErrorId, alarm.SourceErrorId, alarm.Message, $"{modulePath}.{alarm.Source}",
                 alarm.Severity, "", false, false, 0);
@@ -106,6 +109,7 @@ internal sealed class ModuleAlarmEngine(
                 continue;
 
             string path = hook.Path.Length == 0 ? modulePath : hook.Path;
+            // Stryker disable once Boolean: ModuleAlarmManager.Latch overwrites Active and Acknowledged of a new hook alarm
             _manager.ObserveHookAlarm(new ExtAlarm(0, 0, hook.MainErrorId, hook.SourceErrorId, hook.Message, path, hook.Severity, utc, false, false, 0));
         }
     }

@@ -455,4 +455,101 @@ public class ModuleAlarmManagerTests
         Assert.True(manager.Status.Overflow);
         Assert.Equal(1, manager.Status.ServiceLatchedCount);
     }
+
+    private static ExtAlarm Configured(uint mainErrorId) =>
+        new(0, 0, mainErrorId, 0, "configured", "path", AlarmSeverity.Alarm, "", false, false, 0);
+
+    [Fact]
+    [Trait("AC", "1")]
+    public void An_alarm_that_is_already_latched_is_reported_as_observed_again()
+    {
+        var manager = new ModuleAlarmManager(100);
+        Cycle(manager, () => manager.ObserveServiceAlarm(Alarm(1, 10)));
+        Cycle(manager, () => manager.ObserveHookAlarm(Alarm(0, 11)));
+        manager.BeginCycle(Module);
+
+        Assert.True(manager.ObserveServiceAlarm(Alarm(1, 10)));
+        Assert.True(manager.ObserveHookAlarm(Alarm(0, 11)));
+    }
+
+    [Fact]
+    [Trait("AC", "5")]
+    public void AcknowledgeOne_with_service_id_0_finds_a_configured_alarm()
+    {
+        var manager = new ModuleAlarmManager(100);
+        Cycle(manager, () => manager.UpdateConfiguredAlarm(1, true, true, Configured(20), "T"));
+
+        var acked = Cycle(manager, ack: AckOne(1, 0, 20));
+
+        Assert.True(manager.Status.AckAccepted);
+        Assert.True(acked[0]!.Acknowledged);
+    }
+
+    [Fact]
+    [Trait("AC", "5")]
+    public void Acknowledging_an_inactive_configured_alarm_removes_it()
+    {
+        var manager = new ModuleAlarmManager(100);
+        Cycle(manager, () => manager.UpdateConfiguredAlarm(1, true, true, Configured(20), "T"));
+        var inactive = Cycle(manager, () => manager.UpdateConfiguredAlarm(1, true, false, Configured(20), "T"));
+        Assert.False(inactive[0]!.Active);
+
+        var removed = Cycle(manager, ack: AckOne(1, 0, 20));
+
+        Assert.Null(removed[0]);
+    }
+
+    [Fact]
+    [Trait("AC", "5")]
+    public void A_changed_ModuleId_makes_a_held_acknowledgement_request_a_new_request()
+    {
+        var manager = new ModuleAlarmManager(100);
+        Cycle(manager, ack: AckAll(5));
+
+        Cycle(manager, ack: AckAll(5), moduleId: Module + 1);
+
+        Assert.Equal(5u, manager.Status.AckResponseId);
+        Assert.True(manager.Status.AckAccepted);
+    }
+
+    [Fact]
+    [Trait("AC", "5")]
+    public void AcknowledgeOne_with_service_id_0_prefers_the_configured_alarm_over_a_hook_alarm_with_the_same_id()
+    {
+        var manager = new ModuleAlarmManager(100);
+        Cycle(manager, () =>
+        {
+            manager.UpdateConfiguredAlarm(1, true, true, Configured(20), "T");
+            manager.ObserveHookAlarm(Alarm(0, 20));
+        });
+
+        var acked = Cycle(manager, () =>
+        {
+            manager.UpdateConfiguredAlarm(1, true, true, Configured(20), "T");
+            manager.ObserveHookAlarm(Alarm(0, 20));
+        }, AckOne(1, 0, 20));
+
+        Assert.True(acked[0]!.Acknowledged);
+        Assert.False(acked[1]!.Acknowledged);
+    }
+
+    [Fact]
+    [Trait("AC", "1")]
+    public void A_changed_ModuleId_clears_the_alarms_of_all_three_sources_and_the_acknowledgement_status()
+    {
+        var manager = new ModuleAlarmManager(100);
+        Cycle(manager, () =>
+        {
+            manager.ObserveServiceAlarm(Alarm(1, 10));
+            manager.UpdateConfiguredAlarm(1, true, true, Configured(20), "T");
+            manager.ObserveHookAlarm(Alarm(0, 30));
+        }, AckAll(5));
+        Assert.True(manager.Status.AckAccepted);
+
+        manager.BeginCycle(Module + 1);
+
+        Assert.False(manager.Status.AckAccepted);
+        Assert.Equal(0u, manager.Status.AckResponseId);
+        Assert.All(manager.Publish(), Assert.Null);
+    }
 }

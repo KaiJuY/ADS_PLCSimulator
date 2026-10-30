@@ -11,6 +11,8 @@ public sealed partial class ModuleConfigTests : IDisposable
 
     private static readonly string s_longMember = new('p', 240);
 
+    private static readonly string s_boundaryMember = new('q', 225);
+
     private static readonly string s_smallProgram = $$"""
         TYPE E_DescriptorType : (Integer_32bit := 1, Float_32bit, String_80byte, DateTime, Boolean); END_TYPE
         TYPE ST_ExtDescriptor : STRUCT Id : UDINT; Name : STRING(30); DataType : E_DescriptorType; Unit : STRING(10); Value : STRING(80); END_STRUCT END_TYPE
@@ -24,6 +26,7 @@ public sealed partial class ModuleConfigTests : IDisposable
             Flag : BOOL;
             Text : STRING(20);
             {{s_longMember}} : REAL;
+            {{s_boundaryMember}} : REAL;
             ModuleAlarmList : ARRAY[1..2] OF ST_ExtAlarm;
             ModuleVariableList : ARRAY[1..3] OF ST_ExtDescriptor;
             ModuleConfigParamList : ARRAY[1..2] OF ST_ConfigParamDescriptor;
@@ -359,5 +362,59 @@ public sealed partial class ModuleConfigTests : IDisposable
         Assert.Equal(dataType, EnumName(image, program, path + ".DataType"));
         Assert.Equal(unit, Read(image, program, path + ".Unit"));
         Assert.Equal(value, Read(image, program, path + ".Value"));
+    }
+
+    [Fact]
+    [Trait("AC", "12")]
+    public void Parse_accepts_exactly_30_alarms()
+    {
+        string alarms = string.Join(",", Enumerable.Range(1, 30).Select(index => Alarm(index)));
+
+        ModuleConfigFile config = ModuleConfigPublisher.Parse(Module($$"""{"slot":1,"alarmList":[{{alarms}}]}"""), Path);
+
+        Assert.Equal(30, config.Modules![0]!.AlarmList!.Count);
+    }
+
+    [Fact]
+    [Trait("AC", "12")]
+    public void Publish_accepts_a_source_path_of_exactly_255_characters()
+    {
+        ModuleConfigFile config = ModuleConfigPublisher.Parse(Module($$"""{"enabled":true,"slot":2,"alarmList":[{{Alarm(5, source: s_boundaryMember)}}]}"""), Path);
+
+        ConfiguredAlarmTable table = ModuleConfigPublisher.Publish(config, Path, _small.Symbols, _small.CreateProcessImage());
+
+        Assert.Equal(s_boundaryMember, Assert.Single(table.For("GVL_Module.Chamber_Control[2]")).Source);
+    }
+
+    [Fact]
+    [Trait("AC", "12")]
+    public void Publish_does_not_need_ModuleAlarmList_when_the_module_has_no_alarms()
+    {
+        PlcProgram program = ProgramWith("ModuleAlarmList : ARRAY[1..2] OF ST_ExtAlarm;", "");
+        ModuleConfigFile config = ModuleConfigPublisher.Parse(Module("""{"enabled":true,"slot":2}"""), Path);
+
+        ConfiguredAlarmTable table = ModuleConfigPublisher.Publish(config, Path, program.Symbols, program.CreateProcessImage());
+
+        Assert.Empty(table.For("GVL_Module.Chamber_Control[2]"));
+    }
+
+    [Theory]
+    [InlineData("ModuleAlarmList : ARRAY[1..2] OF ST_ExtAlarm;", "ModuleAlarmList : ST_ExtAlarm;", "ModuleAlarmList is not a one-dimensional array.")]
+    [InlineData("Message : STRING(80);", "Message : INT;", "ModuleAlarmList[1].Message is not a STRING.")]
+    [Trait("AC", "12")]
+    public void Publish_rejects_a_declaration_that_cannot_hold_the_alarm_list(string member, string replacement, string reason)
+    {
+        PlcProgram program = ProgramWith(member, replacement);
+        ModuleConfigFile config = ModuleConfigPublisher.Parse(Module($$"""{"enabled":true,"slot":2,"alarmList":[{{Alarm(5)}}]}"""), Path);
+
+        var exception = Assert.Throws<ModuleConfigException>(() => ModuleConfigPublisher.Publish(config, Path, program.Symbols, program.CreateProcessImage()));
+
+        Assert.Contains(reason, exception.Message);
+    }
+
+    private static PlcProgram ProgramWith(string member, string replacement)
+    {
+        Assert.Contains(member, s_smallProgram);
+        return TestPaths.BuildFromText(s_smallProgram.Replace(member, replacement), globalScope: "GVL_Module");
     }
 }

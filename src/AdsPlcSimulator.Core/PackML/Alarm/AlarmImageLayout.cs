@@ -57,6 +57,7 @@ internal sealed class ExtAlarmCodec
 
     private static bool IsNarrowString(Slot slot) => slot.Type.Unaliased is StringType { IsWide: false };
 
+    // Stryker disable once Equality: text[..length] equals text when the length is equal
     private static string Cut(string text, int length) => text.Length <= length ? text : text[..length];
 }
 
@@ -137,6 +138,7 @@ internal sealed class ModuleAlarmBlock
         _lastList = new ExtAlarm?[listCapacity];
     }
 
+    // Stryker disable once Boolean: EmptyStatus only decides whether a write of the zero status is skipped; the image already holds those zeros, so an extra write changes nothing
     private static AlarmStatus EmptyStatus { get; } = new(0, false, AlarmAckError.None, 0, 0, false, 0, 0);
 
     public int ListCapacity { get; }
@@ -169,6 +171,7 @@ internal sealed class ModuleAlarmBlock
             moduleId.Type);
     }
 
+    // Stryker disable once Conditional: ModuleUnit.Create requires ModuleCtrl and ModuleStatus before it calls TryCreate, so parent is never null
     private static StructMember? Child(StructMember? parent, string name) =>
         parent is null ? null : AlarmLayout.Member(parent.Type, name);
 
@@ -230,6 +233,7 @@ internal sealed class ModuleAlarmBlock
         _statusSlots[4].Write(block, (long)status.ServiceLatchedCount);
         _statusSlots[5].Write(block, status.Overflow);
         _statusSlots[6].Write(block, (long)status.HookLatchedCount);
+        // Stryker disable once Statement: the engine's hooks have unique MainErrorIds, so DuplicateId stays 0 and the zeroed block already holds it
         _statusSlots[7].Write(block, (long)status.DuplicateId);
         return block;
     }

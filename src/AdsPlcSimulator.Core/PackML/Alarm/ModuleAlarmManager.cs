@@ -72,6 +72,7 @@ public sealed class ModuleAlarmManager
         {
             _ackAccepted = false;
             _ackError = AlarmAckError.None;
+            // Stryker disable once Statement: without ChangeRequest risingEdge is false, so the guard below returns the same way
             return;
         }
 
@@ -230,6 +231,7 @@ public sealed class ModuleAlarmManager
         if (!state.PreviousActive)
         {
             if (state.Latched)
+                // Stryker disable once Boolean: the statement after the if sets Active = true again
                 state.Alarm = state.Alarm! with { Active = true, Acknowledged = false, OccurrenceCount = state.Alarm.OccurrenceCount + 1 };
             else
                 Latch(state, snapshot, 0, utcDateTime);
@@ -240,6 +242,7 @@ public sealed class ModuleAlarmManager
 
     private static void ClearConfigured(Lifecycle state)
     {
+        // Stryker disable once Logical: a latched configured alarm that is not PreviousActive is already inactive and unacknowledged (acknowledging an inactive alarm clears it), and Clear resets PreviousActive with Latched, so no state differs between || and &&
         if (!state.PreviousActive || !state.Latched)
             return;
 
@@ -277,6 +280,7 @@ public sealed class ModuleAlarmManager
 
     private void Latch(Lifecycle state, ExtAlarm snapshot, uint serviceId, string dateTime)
     {
+        // Stryker disable once Statement: a state that is not latched always holds the Clear defaults, because every path that unlatches a state calls Clear
         state.Clear();
         state.Latched = true;
         state.Alarm = snapshot with
@@ -365,6 +369,7 @@ public sealed class ModuleAlarmManager
         {
             Latched = false;
             Alarm = null;
+            // Stryker disable once Boolean: Seen of an unlatched state is never read, because BeginCycle resets it each cycle and LatchInto sets it after Latch
             Seen = false;
             PreviousActive = false;
         }

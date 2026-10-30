@@ -95,6 +95,18 @@ public sealed class AlarmNodeTests : IAsyncLifetime
         Assert.NotNull(definition.FindParam("message"));
     }
 
+    [Theory]
+    [InlineData("action.addServiceError", "index,mainErrorId,sourceErrorId")]
+    [InlineData("action.setModuleAlarm", "index,mainErrorId,sourceErrorId,active")]
+    [Trait("AC", "6")]
+    public void Data_inputs_are_optional_because_the_parameters_supply_their_values(string type, string dataInputs)
+    {
+        NodeDefinition definition = NodeCatalog.Default.Find(type)!;
+
+        Assert.Equal(dataInputs.Split(','), definition.Inputs.Where(port => port.Kind == PortKind.Data).Select(port => port.Name));
+        Assert.All(definition.Inputs.Where(port => port.Kind == PortKind.Data), port => Assert.True(port.Optional));
+    }
+
     [Fact]
     [Trait("AC", "6")]
     public async Task AddServiceError_writes_the_entry_and_outputs_added_and_reason()
@@ -165,6 +177,7 @@ public sealed class AlarmNodeTests : IAsyncLifetime
         FlowEvent result = await RunAsync(OneNode(AddError(), (mainErrorId, "mainErrorId")));
 
         Assert.Equal(FlowEventKind.RunFailed, result.Kind);
+        Assert.Contains($"mainErrorId {mainErrorId} is outside 1..4294967295.", result.Error);
         Assert.Equal(0, Number($"{ErrorList}[1].MainErrorId"));
     }
 
@@ -188,6 +201,7 @@ public sealed class AlarmNodeTests : IAsyncLifetime
         FlowEvent result = await RunAsync(OneNode(AddError(("mainErrorId", "7")), ("-1", "sourceErrorId")));
 
         Assert.Equal(FlowEventKind.RunFailed, result.Kind);
+        Assert.Contains("sourceErrorId -1 is outside 0..4294967295.", result.Error);
     }
 
     [Fact]
@@ -197,7 +211,7 @@ public sealed class AlarmNodeTests : IAsyncLifetime
         FlowEvent result = await RunAsync(OneNode(AddError(("mainErrorId", "7"))));
 
         Assert.Equal(FlowEventKind.RunFailed, result.Kind);
-        Assert.Contains("No service.host", result.Error);
+        Assert.Contains("No service.host runs GVL_Test.Modules[1].ServiceCtrl.A.", result.Error);
     }
 
     [Fact]
@@ -226,6 +240,8 @@ public sealed class AlarmNodeTests : IAsyncLifetime
         WorkflowDiagnostic diagnostic = Assert.Single(_runtime.Load("w", document));
 
         Assert.Equal("n", diagnostic.NodeId);
+        Assert.Contains($"'{service}' is ", diagnostic.Message);
+        Assert.Contains("not ST_ServiceCtrl", diagnostic.Message);
     }
 
     [Fact]
@@ -286,6 +302,7 @@ public sealed class AlarmNodeTests : IAsyncLifetime
         FlowEvent result = await RunAsync(OneNode(SetAlarm(), (mainErrorId, "mainErrorId")));
 
         Assert.Equal(FlowEventKind.RunFailed, result.Kind);
+        Assert.Contains($"mainErrorId {mainErrorId} is outside 1..4294967295.", result.Error);
     }
 
     [Fact]
@@ -295,6 +312,7 @@ public sealed class AlarmNodeTests : IAsyncLifetime
         FlowEvent result = await RunAsync(OneNode(SetAlarm(("mainErrorId", "30"))));
 
         Assert.Equal(FlowEventKind.RunFailed, result.Kind);
+        Assert.Contains("No service.host runs GVL_Test.Modules[1].", result.Error);
     }
 
     [Fact]
@@ -320,6 +338,8 @@ public sealed class AlarmNodeTests : IAsyncLifetime
         WorkflowDiagnostic diagnostic = Assert.Single(_runtime.Load("w", document));
 
         Assert.Equal("n", diagnostic.NodeId);
+        Assert.Contains("'GVL_Test.Modules[1].ModuleCtrl.RequestId' is ", diagnostic.Message);
+        Assert.Contains("not a module struct", diagnostic.Message);
     }
 
     [Fact]
@@ -331,5 +351,45 @@ public sealed class AlarmNodeTests : IAsyncLifetime
         WorkflowDiagnostic diagnostic = Assert.Single(_runtime.Load("w", document));
 
         Assert.Contains("severity", diagnostic.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "6")]
+    public async Task AddServiceError_without_a_main_error_id_fails_the_run()
+    {
+        FlowEvent result = await RunAsync(OneNode(AddError()));
+
+        Assert.Equal(FlowEventKind.RunFailed, result.Kind);
+        Assert.Contains("Input 'mainErrorId' has no link and no value.", result.Error);
+    }
+
+    [Fact]
+    [Trait("AC", "9")]
+    public async Task SetModuleAlarm_refuses_a_negative_source_error_id()
+    {
+        await LoadHostAsync();
+
+        FlowEvent result = await RunAsync(OneNode(SetAlarm(("mainErrorId", "30")), ("-1", "sourceErrorId")));
+
+        Assert.Equal(FlowEventKind.RunFailed, result.Kind);
+        Assert.Contains("sourceErrorId -1 is outside 0..4294967295.", result.Error);
+    }
+
+    [Fact]
+    [Trait("AC", "9")]
+    public async Task SetModuleAlarm_continues_with_the_node_linked_to_then()
+    {
+        await LoadHostAsync();
+        var document = new WorkflowDocument
+        {
+            Nodes = [Node("start", "trigger.onStart"), SetAlarm(("mainErrorId", "30")), Node("n2", "action.setModuleAlarm", ("module", "GVL_Test.Modules[1]"), ("mainErrorId", "31"))],
+            Links = [Link("start", "then", "n", "exec"), Link("n", "then", "n2", "exec")],
+        };
+
+        FlowEvent result = await RunAsync(document);
+        await WaitUntilAsync(() => Number($"{AlarmList}[2].MainErrorId") == 31, "the second hook alarm");
+
+        Assert.Equal(FlowEventKind.RunCompleted, result.Kind);
+        Assert.Equal(30, Number($"{AlarmList}[1].MainErrorId"));
     }
 }
