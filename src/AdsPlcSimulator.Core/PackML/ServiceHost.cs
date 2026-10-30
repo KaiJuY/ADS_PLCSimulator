@@ -628,6 +628,7 @@ public sealed class ServiceHost
             if (Alive is null)
                 return;
             if (Machine.State != PackMLState.Execute)
+                // Stryker disable once Statement: the monitor only acts in Execute, and every entry into Execute calls EnterExecute, which sets _active again
                 Alive.LeaveExecute();
             else if (before != PackMLState.Execute)
                 Alive.EnterExecute(input, Behavior, settings, now);

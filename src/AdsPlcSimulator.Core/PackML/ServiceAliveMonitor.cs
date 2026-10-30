@@ -51,6 +51,7 @@ internal sealed class ServiceAliveMonitor
 
     public void Reset()
     {
+        // Stryker disable once Boolean: _active only gates Evaluate in Execute, and every entry into Execute calls EnterExecute, which sets _active again
         _active = false;
         AbortPending = false;
     }
@@ -67,6 +68,7 @@ internal sealed class ServiceAliveMonitor
         AbortPending = false;
     }
 
+    // Stryker disable once Boolean: _active only gates Evaluate in Execute, and every entry into Execute calls EnterExecute, which sets _active again
     public void LeaveExecute() => _active = false;
 
     public TimeSpan? Evaluate(AliveInput input, bool inExecute, TimeSpan now)
@@ -83,6 +85,7 @@ internal sealed class ServiceAliveMonitor
         if (_timedOut || now - _unchangedSince < _timeout)
             return null;
 
+        // Stryker disable once Boolean: the Abort queued by the timeout leaves Execute in the same scan, and EnterExecute clears _timedOut when the service returns
         _timedOut = true;
         AbortPending = true;
         return _timeout;

@@ -10,6 +10,7 @@ internal sealed class ModuleHeartbeat
     private readonly TimeSpan _timeout;
     private long _lastIndex;
     private TimeSpan? _unchangedSince;
+    // Stryker disable once Boolean: ServiceHost.Scan throws before Initialize, and Initialize calls Reset, which sets _alive, so the initial value is never read
     private bool _alive = true;
 
     private ModuleHeartbeat(SymbolRef index, SymbolRef flag, TimeSpan timeout)
@@ -23,6 +24,7 @@ internal sealed class ModuleHeartbeat
     {
         StructMember? index = Find(module.Type, "HeartbeatIndex");
         StructMember? status = Find(module.Type, "ModuleStatus");
+        // Stryker disable once Conditional: ModuleUnit.Create requires ModuleStatus before it calls TryCreate, so status is never null here
         StructMember? flag = status is null ? null : Find(status.Type, "IsControlSourceAlive");
         if (index is null || status is null || flag is null)
             return null;
@@ -30,7 +32,9 @@ internal sealed class ModuleHeartbeat
             return null;
 
         return new ModuleHeartbeat(
+            // Stryker disable once String: ProcessImage.ReadValue uses only the offset and type of the symbol, never its path
             new SymbolRef($"{module.Path}.HeartbeatIndex", index.Type, module.Offset + index.Offset),
+            // Stryker disable once String: ProcessImage.WriteValue uses only the offset and type of the symbol, never its path
             new SymbolRef($"{module.Path}.ModuleStatus.IsControlSourceAlive", flag.Type, module.Offset + status.Offset + flag.Offset),
             timeout);
     }

@@ -177,4 +177,52 @@ public class ModuleHeartbeatTests
         fixture.ScanAt(Seconds(13));
         Assert.Equal(1, writes);
     }
+
+    [Theory]
+    [InlineData("IsControlSourceAlive : BOOL;", "IsControlSourceAlive : INT;")]
+    [InlineData("HeartbeatIndex : UDINT;", "HeartbeatIndex : DINT;")]
+    [Trait("AC", "4")]
+    public void Module_with_one_member_of_the_wrong_type_has_no_heartbeat(string original, string replaced)
+    {
+        var fixture = new HostFixture(declarations: HostFixture.HeartbeatDeclarations.Replace(original, replaced));
+
+        Assert.Equal(0L, Convert.ToInt64(fixture.Read(Flag1)));
+
+        fixture.ScanAt(Seconds(0));
+        fixture.ScanAt(Seconds(60));
+        Assert.Equal(0L, Convert.ToInt64(fixture.Read(Flag1)));
+    }
+
+    [Fact]
+    [Trait("AC", "4")]
+    public void Module_without_the_flag_member_has_no_heartbeat_and_PackML_runs()
+    {
+        var fixture = new HostFixture(declarations: HostFixture.HeartbeatDeclarations.Replace("IsControlSourceAlive : BOOL;", "Spare : BOOL;"));
+
+        fixture.ScanAt(Seconds(0));
+        fixture.ScanAt(Seconds(60));
+        fixture.StartServiceA();
+
+        Assert.Equal(PackMLState.Execute, fixture.ServiceState(1, "A"));
+    }
+
+    [Fact]
+    [Trait("AC", "2")]
+    public void Index_that_is_not_the_first_member_of_the_second_module_is_read_at_its_own_offset()
+    {
+        string declarations = HostFixture.AlarmDeclarations
+            .Replace("ServiceParam : ST_TestServiceParams;", "ServiceParam : ST_TestServiceParams; HeartbeatIndex : UDINT;");
+        var fixture = new HostFixture(declarations: declarations);
+
+        for (int step = 0; step <= 12; step++)
+        {
+            fixture.Write("GVL_Test.Modules[2].HeartbeatIndex", (long)step);
+            fixture.ScanAt(Seconds(step * 5));
+            Assert.Equal(true, fixture.Read(Flag2));
+        }
+
+        fixture.ScanAt(Seconds(70));
+        Assert.Equal(false, fixture.Read(Flag2));
+        Assert.Equal(false, fixture.Read(Flag1));
+    }
 }

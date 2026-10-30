@@ -34,6 +34,7 @@ public sealed record AliveSettings(TimeSpan HeartbeatTimeout, TimeSpan ServiceAl
     }
 
     public TimeSpan Clamp(TimeSpan aliveTimeout) =>
+        // Stryker disable once Equality: at the boundary the unchanged branch returns the limit, which equals the timeout, so both comparisons give the same value
         aliveTimeout < ServiceAliveMin ? ServiceAliveMin : aliveTimeout > ServiceAliveMax ? ServiceAliveMax : aliveTimeout;
 
     private static TimeSpan Read(SymbolTable symbols, string name, TimeSpan fallback, out bool isDefault)

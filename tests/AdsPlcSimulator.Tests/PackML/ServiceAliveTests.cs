@@ -313,4 +313,51 @@ public class ServiceAliveTests
         Assert.Equal(PackMLState.Aborted, fixture.ServiceState(1, "B"));
         Assert.Equal(true, fixture.ServiceStatus(1, "B", "PackMLOut.bCommandRejected"));
     }
+
+    [Theory]
+    [InlineData("AliveIndex : UDINT;", "")]
+    [InlineData("AliveTimeout : TIME;", "")]
+    [InlineData("AliveIndex : UDINT;", "AliveIndex : INT;")]
+    [InlineData("AliveTimeout : TIME;", "AliveTimeout : DINT;")]
+    [Trait("AC", "5")]
+    public void Service_with_a_missing_or_wrongly_typed_alive_member_is_not_monitored(string original, string replaced)
+    {
+        HostFixture fixture = Create(HostFixture.AlarmDeclarations.Replace(original, replaced));
+
+        if (fixture.Symbols.TryResolve($"{CtrlB}.AliveTimeout", out _, out _))
+            fixture.Write($"{CtrlB}.AliveTimeout", 500L);
+        fixture.ServiceCommand(1, "B", PackMLCommand.Start);
+        fixture.ScanAt(Seconds(10));
+
+        Assert.Equal(PackMLState.Execute, fixture.ServiceState(1, "B"));
+        Assert.Equal(0, ErrorId(fixture, 1));
+    }
+
+    [Fact]
+    [Trait("AC", "5")]
+    public void Service_without_the_alive_members_runs_and_leaves_Execute_normally()
+    {
+        string declarations = HostFixture.Declarations.Replace("AliveIndex : UDINT;", "").Replace("AliveTimeout : TIME;", "");
+        HostFixture fixture = new(declarations: declarations);
+
+        fixture.StartServiceA();
+        fixture.ScanAt(Seconds(1));
+        fixture.ServiceCommand(1, "A", PackMLCommand.Stop, 2);
+
+        Assert.Equal(PackMLState.Stopped, fixture.ServiceState(1, "A"));
+    }
+
+    [Fact]
+    [Trait("AC", "6")]
+    public void Mode_request_held_by_the_client_is_not_processed_in_the_scan_of_the_timeout_Abort()
+    {
+        HostFixture fixture = StartB();
+        fixture.Write($"{CtrlB}.PackMLIn.eMode", 99L);
+        fixture.Write($"{CtrlB}.PackMLIn.bModeChangeRequest", true);
+
+        fixture.ScanAt(Seconds(0.5));
+
+        Assert.Equal(PackMLState.Aborted, fixture.ServiceState(1, "B"));
+        Assert.Equal(false, fixture.ServiceStatus(1, "B", "PackMLOut.bModeChangeRejected"));
+    }
 }
