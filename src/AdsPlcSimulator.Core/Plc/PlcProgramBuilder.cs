@@ -90,7 +90,7 @@ public sealed class PlcProgramBuilder
             WriteInitialValue(image, roots[index].Type, roots[index].Offset, variable.InitialValue, variable.Location);
         }
 
-        return new PlcProgram(new SymbolTable(roots, image.Length, CollectEnumValues()), image);
+        return new PlcProgram(new SymbolTable(roots, image.Length, CollectEnumValues(), CollectConstantValues()), image);
     }
 
     private Dictionary<string, long> CollectEnumValues()
@@ -101,6 +101,23 @@ public sealed class PlcProgramBuilder
             var enumeration = (EnumType)ResolveNamed(declaration.Name, declaration.Location);
             foreach (EnumValue member in enumeration.Values)
                 values[$"{declaration.Name}.{member.Name}"] = member.Value;
+        }
+
+        return values;
+    }
+
+    private Dictionary<string, object> CollectConstantValues()
+    {
+        var values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        foreach (GlobalVariableDeclaration constant in _constants.Values.ToList())
+        {
+            try
+            {
+                values[$"{constant.Scope}.{constant.Variable.Name}"] = EvaluateConstant(constant);
+            }
+            catch (Exception exception) when (exception is PlcBuildException or ArithmeticException or InvalidCastException)
+            {
+            }
         }
 
         return values;
@@ -441,10 +458,16 @@ public sealed class PlcProgramBuilder
         if (!_constantsInProgress.Add(key))
             throw new PlcBuildException($"{constant.Variable.Location}: constant '{key}' depends on itself.");
 
-        object value = Evaluate(constant.Variable.InitialValue, constant.Variable.Location);
-        _constantsInProgress.Remove(key);
-        _constantValues[key] = value;
-        return value;
+        try
+        {
+            object value = Evaluate(constant.Variable.InitialValue, constant.Variable.Location);
+            _constantValues[key] = value;
+            return value;
+        }
+        finally
+        {
+            _constantsInProgress.Remove(key);
+        }
     }
 
     private static int AlignUp(int offset, int alignment) => (offset + alignment - 1) / alignment * alignment;

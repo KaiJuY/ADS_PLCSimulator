@@ -23,13 +23,16 @@ public sealed class SymbolTable
 {
     private readonly Dictionary<string, RootSymbol> _rootsByPath;
     private readonly Dictionary<string, long> _enumValues;
+    private readonly Dictionary<string, object> _constants;
 
-    public SymbolTable(IReadOnlyList<RootSymbol> roots, int imageSize, IReadOnlyDictionary<string, long>? enumValues = null)
+    public SymbolTable(IReadOnlyList<RootSymbol> roots, int imageSize, IReadOnlyDictionary<string, long>? enumValues = null,
+        IReadOnlyDictionary<string, object>? constants = null)
     {
         Roots = roots;
         ImageSize = imageSize;
         _rootsByPath = roots.ToDictionary(root => root.Path, StringComparer.OrdinalIgnoreCase);
         _enumValues = new Dictionary<string, long>(enumValues ?? new Dictionary<string, long>(), StringComparer.OrdinalIgnoreCase);
+        _constants = new Dictionary<string, object>(constants ?? new Dictionary<string, object>(), StringComparer.OrdinalIgnoreCase);
     }
 
     public IReadOnlyList<RootSymbol> Roots { get; }
@@ -38,6 +41,10 @@ public sealed class SymbolTable
 
     /// <summary>Value of a declared enum member, e.g. "E_PolarIIChamberServiceId.ShutterOpen"; case-insensitive.</summary>
     public bool TryGetEnumValue(string qualifiedName, out long value) => _enumValues.TryGetValue(qualifiedName, out value);
+
+    /// <summary>Value of a VAR_GLOBAL CONSTANT, e.g. "Param_Config.ModuleHeartbeat_Timeout"; case-insensitive.
+    /// TIME constants are TimeSpan, integers long, reals double, strings string, booleans bool.</summary>
+    public bool TryGetConstant(string qualifiedName, out object value) => _constants.TryGetValue(qualifiedName, out value!);
 
     public SymbolRef Resolve(string path) =>
         TryResolve(path, out SymbolRef symbol, out string? error) ? symbol : throw new SymbolResolutionException(error!);
