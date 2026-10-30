@@ -547,7 +547,7 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
 
     private AdsErrorCode ReadValueByName(string path, int readLength, out byte[] data)
     {
-        byte[] name = System.Text.Encoding.ASCII.GetBytes(path + " ");
+        byte[] name = System.Text.Encoding.ASCII.GetBytes(path + "\0");
         byte[] buffer = new byte[readLength];
         AdsErrorCode result = _client.TryReadWrite(ValueByNameGroup, 0, buffer.AsMemory(), name.AsMemory(), out int read);
         data = buffer[..read];
@@ -590,8 +590,8 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
     [Trait("AC", "5")]
     public void Requests_for_an_unknown_handle_fail_and_notification_add_reports_invalid_offset()
     {
-        Assert.NotEqual(AdsErrorCode.NoError, TryWriteBytes(HandleGroup, UnknownHandle, [1, 2, 3, 4]));
-        Assert.NotEqual(AdsErrorCode.NoError, TryReadBytes(HandleGroup, UnknownHandle, 4, out _));
+        Assert.Equal(AdsErrorCode.DeviceSymbolVersionInvalid, TryWriteBytes(HandleGroup, UnknownHandle, [1, 2, 3, 4]));
+        Assert.Equal(AdsErrorCode.DeviceSymbolVersionInvalid, TryReadBytes(HandleGroup, UnknownHandle, 4, out _));
         AddNotification(HandleGroup, UnknownHandle, 4, AdsTransMode.OnChange, out AdsErrorCode add);
         Assert.Equal(AdsErrorCode.DeviceInvalidOffset, add);
         Assert.NotEqual(AdsErrorCode.NoError, _client.TryDeleteDeviceNotification(UnknownHandle));
@@ -640,6 +640,267 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
         Assert.Equal(expected == AdsErrorCode.NoError && !byHandle ? (int)indexOffset : 0, offset);
         if (expected == AdsErrorCode.NoError)
             Assert.Equal(byHandle ? Math.Min(dataLength, size) : dataLength, watchLength);
+    }
+
+    private const uint SumReadGroup = 0xF080;
+    private const uint SumWriteGroup = 0xF081;
+    private const uint SumReadWriteGroup = 0xF082;
+    private const uint SymbolVersionGroup = 0xF008;
+    private const uint HandleByNameGroup = 0xF003;
+    private const uint FarOffset = 0x7FFF_FFF0;
+
+    private static byte[] U32s(params uint[] values) => values.SelectMany(BitConverter.GetBytes).ToArray();
+
+    private static AdsErrorCode[] Codes(byte[] data, int count) =>
+        Enumerable.Range(0, count).Select(index => (AdsErrorCode)BitConverter.ToUInt32(data, index * 4)).ToArray();
+
+    private static (AdsErrorCode Code, uint Length)[] CodeLengthPairs(byte[] data, int count) =>
+        Enumerable.Range(0, count).Select(index => ((AdsErrorCode)BitConverter.ToUInt32(data, index * 8), BitConverter.ToUInt32(data, index * 8 + 4))).ToArray();
+
+    private (AdsErrorCode Result, int Read, byte[] Data) SumRead((uint Group, uint Offset, int Length)[] items, int extra = 0)
+    {
+        byte[] request = U32s(items.SelectMany(item => new[] { item.Group, item.Offset, (uint)item.Length }).ToArray());
+        byte[] response = new byte[items.Length * 4 + items.Sum(item => item.Length) + extra];
+        AdsErrorCode result = _client.TryReadWrite(SumReadGroup, (uint)items.Length, response, request, out int read);
+        return (result, read, response);
+    }
+
+    private (AdsErrorCode Result, int Read, byte[] Data) SumWrite((uint Group, uint Offset, byte[] Data)[] items, int extra = 0)
+    {
+        byte[] request = [.. U32s(items.SelectMany(item => new[] { item.Group, item.Offset, (uint)item.Data.Length }).ToArray()), .. items.SelectMany(item => item.Data)];
+        byte[] response = new byte[items.Length * 4 + extra];
+        AdsErrorCode result = _client.TryReadWrite(SumWriteGroup, (uint)items.Length, response, request, out int read);
+        return (result, read, response);
+    }
+
+    private (AdsErrorCode Result, int Read, byte[] Data) SumReadWrite((uint Group, uint Offset, int ReadLength, byte[] Data)[] items, int readBufferLength)
+    {
+        byte[] request = [.. U32s(items.SelectMany(item => new[] { item.Group, item.Offset, (uint)item.ReadLength, (uint)item.Data.Length }).ToArray()), .. items.SelectMany(item => item.Data)];
+        byte[] response = new byte[readBufferLength];
+        AdsErrorCode result = _client.TryReadWrite(SumReadWriteGroup, (uint)items.Length, response, request, out int read);
+        return (result, read, response);
+    }
+
+    private static byte[] Name(string path) => System.Text.Encoding.ASCII.GetBytes(path + "\0");
+
+    private uint CreateRawHandle(string path)
+    {
+        byte[] response = new byte[4];
+        Assert.Equal(AdsErrorCode.NoError, _client.TryReadWrite(HandleByNameGroup, 0, response, Name(path), out _));
+        return BitConverter.ToUInt32(response);
+    }
+
+    private void ReleaseRawHandle(uint handle) => TryWriteBytes(ReleaseGroup, 0, BitConverter.GetBytes(handle));
+
+    [Fact]
+    [Trait("AC", "1")]
+    public void Sum_read_answers_each_item_with_its_own_error_code_and_a_zero_padded_slot()
+    {
+        SymbolRef element = Sym($"{Control}[1]");
+        SymbolRef field = Sym(RequestIdOf3);
+        WithImageBytes(element.Offset, Sequence(8, 1), () =>
+            WithImageBytes(field.Offset, [0xA1, 0xA2, 0xA3, 0xA4], () =>
+                WithHandle($"{Control}[1]", handle =>
+                {
+                    int tooLong = element.Size + 4;
+                    var (result, read, data) = SumRead([(DataGroup, (uint)element.Offset, 8), (DataGroup, (uint)field.Offset, 4), (DataGroup, FarOffset, 4), (HandleGroup, handle, 8), (HandleGroup, handle, tooLong)]);
+
+                    Assert.Equal(AdsErrorCode.NoError, result);
+                    Assert.Equal(data.Length, read);
+                    Assert.Equal([AdsErrorCode.NoError, AdsErrorCode.NoError, AdsErrorCode.DeviceInvalidOffset, AdsErrorCode.NoError, AdsErrorCode.NoError], Codes(data, 5));
+                    Assert.Equal(ImageBytes(element.Offset, 8), data[20..28]);
+                    Assert.Equal(new byte[] { 0xA1, 0xA2, 0xA3, 0xA4 }, data[28..32]);
+                    Assert.Equal(new byte[4], data[32..36]);
+                    Assert.Equal(ImageBytes(element.Offset, 8), data[36..44]);
+                    Assert.Equal(ImageBytes(element.Offset, element.Size), data[44..(44 + element.Size)]);
+                    Assert.Equal(new byte[4], data[(44 + element.Size)..]);
+                })));
+    }
+
+    [Fact]
+    [Trait("AC", "2")]
+    public void Sum_read_of_an_unknown_handle_fails_only_that_item()
+    {
+        var (result, _, data) = SumRead([(HandleGroup, UnknownHandle, 4)]);
+
+        Assert.Equal(AdsErrorCode.NoError, result);
+        Assert.Equal([AdsErrorCode.DeviceSymbolVersionInvalid], Codes(data, 1));
+        Assert.Equal(new byte[4], data[4..]);
+    }
+
+    [Fact]
+    [Trait("AC", "3")]
+    public void Sum_read_with_a_wrong_response_size_or_a_broken_header_is_refused()
+    {
+        uint offset = (uint)Sym($"{Control}[1]").Offset;
+        Assert.Equal(AdsErrorCode.DeviceInvalidSize, SumRead([(DataGroup, offset, 8)], extra: 16).Result);
+
+        byte[] request = U32s(DataGroup, offset, 4);
+        Assert.Equal(AdsErrorCode.DeviceInvalidSize, _client.TryReadWrite(SumReadGroup, 1, new byte[2], request, out _));
+        Assert.Equal(AdsErrorCode.DeviceInvalidSize, _client.TryReadWrite(SumReadGroup, 0, new byte[64], Array.Empty<byte>(), out _));
+        Assert.Equal(AdsErrorCode.DeviceInvalidOffset, _client.TryReadWrite(SumReadGroup, 2, new byte[64], request, out _));
+    }
+
+    [Fact]
+    [Trait("AC", "4")]
+    public async Task Sum_write_stores_valid_items_refuses_bad_ones_and_triggers_on_client_write()
+    {
+        const string requestId = "GVL_Module.Chamber1_Control[2].ServiceCtrl.DoorClose.RequestId";
+        const string handlePath = "GVL_Module.Chamber1_Control[3].ServiceCtrl.DoorClose.RequestId";
+        SymbolRef triggerField = Sym(requestId);
+        SymbolRef handleField = Sym(handlePath);
+        var monitor = new CompletionMonitor();
+        await using var runtime = new FlowRuntime(_image, _program.Symbols, NodeCatalog.Default, monitor, new NoSimulation());
+        Assert.Empty(runtime.Load("sum-write", RespondOnClientWrite(requestId, "GVL_Module.Chamber1_Control[2].ServiceStatus.DoorClose.ResponseId")));
+        byte[] originalTrigger = ImageBytes(triggerField.Offset, 4);
+        byte[] originalHandle = ImageBytes(handleField.Offset, 8);
+        uint handle = _client.CreateVariableHandle(handlePath);
+        try
+        {
+            byte[] neighbour = ImageBytes(handleField.Offset + 4, 4);
+            var (result, read, data) = SumWrite([(DataGroup, (uint)triggerField.Offset, BitConverter.GetBytes(321u)), (DataGroup, FarOffset, new byte[4]), (HandleGroup, handle, BitConverter.GetBytes(654u)), (HandleGroup, handle, new byte[8])], extra: 8);
+
+            Assert.Equal(AdsErrorCode.NoError, result);
+            Assert.Equal(16, read);
+            Assert.Equal([AdsErrorCode.NoError, AdsErrorCode.DeviceInvalidOffset, AdsErrorCode.NoError, AdsErrorCode.DeviceInvalidSize], Codes(data, 4));
+            Assert.Equal(321u, BitConverter.ToUInt32(ImageBytes(triggerField.Offset, 4)));
+            Assert.Equal(654u, BitConverter.ToUInt32(ImageBytes(handleField.Offset, 4)));
+            Assert.Equal(neighbour, ImageBytes(handleField.Offset + 4, 4));
+            await monitor.Completed.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        }
+        finally
+        {
+            _client.TryDeleteVariableHandle(handle);
+            _image.Write(triggerField.Offset, originalTrigger, WriteSource.Client);
+            _image.Write(handleField.Offset, originalHandle, WriteSource.Client);
+        }
+    }
+
+    [Fact]
+    [Trait("AC", "5")]
+    public void Sum_write_releases_variable_handles()
+    {
+        uint first = CreateRawHandle($"{Control}[1]");
+        uint second = CreateRawHandle(RequestIdOf3);
+
+        var (result, read, data) = SumWrite([(ReleaseGroup, 0, BitConverter.GetBytes(first)), (ReleaseGroup, 0, BitConverter.GetBytes(second))]);
+
+        Assert.Equal(AdsErrorCode.NoError, result);
+        Assert.Equal(8, read);
+        Assert.Equal([AdsErrorCode.NoError, AdsErrorCode.NoError], Codes(data, 2));
+    }
+
+    [Fact]
+    [Trait("AC", "6")]
+    public void Sum_read_write_creates_handles_and_reports_failures_per_item()
+    {
+        var (result, read, data) = SumReadWrite([(HandleByNameGroup, 0, 4, Name($"{Control}[1]")), (HandleByNameGroup, 0, 4, Name("GVL_Module.NoSuchSymbol")), (HandleByNameGroup, 0, 4, Name(RequestIdOf3))], 24 + 12);
+        uint first = BitConverter.ToUInt32(data, 24);
+        uint second = BitConverter.ToUInt32(data, 28);
+        try
+        {
+            Assert.Equal(AdsErrorCode.NoError, result);
+            Assert.Equal(32, read);
+            Assert.Equal([(AdsErrorCode.NoError, 4u), (AdsErrorCode.DeviceSymbolNotFound, 0u), (AdsErrorCode.NoError, 4u)], CodeLengthPairs(data, 3));
+            Assert.Equal(AdsErrorCode.NoError, TryReadBytes(HandleGroup, first, 8, out byte[] bytes));
+            Assert.Equal(ImageBytes(Sym($"{Control}[1]").Offset, 8), bytes);
+            Assert.Equal(AdsErrorCode.NoError, TryReadBytes(HandleGroup, second, 4, out _));
+        }
+        finally
+        {
+            ReleaseRawHandle(first);
+            ReleaseRawHandle(second);
+        }
+
+        var (refused, _, refusedData) = SumReadWrite([(HandleByNameGroup, 0, 8, Name($"{Control}[1]"))], 16);
+        Assert.Equal(AdsErrorCode.NoError, refused);
+        Assert.Equal([(AdsErrorCode.DeviceInvalidSize, 0u)], CodeLengthPairs(refusedData, 1));
+    }
+
+    [Fact]
+    [Trait("AC", "7")]
+    public void Sum_read_write_refuses_raw_data_items_and_nested_sums_per_item()
+    {
+        uint offset = (uint)Sym($"{Control}[1]").Offset;
+
+        var (rawResult, _, rawData) = SumReadWrite([(DataGroup, offset, 8, [])], 8 + 8);
+        var (nestedResult, _, nestedData) = SumReadWrite([(SumReadWriteGroup, 0, 8, [])], 8 + 8);
+
+        Assert.Equal(AdsErrorCode.NoError, rawResult);
+        Assert.Equal([(AdsErrorCode.DeviceServiceNotSupported, 0u)], CodeLengthPairs(rawData, 1));
+        Assert.Equal(AdsErrorCode.NoError, nestedResult);
+        Assert.Equal([(AdsErrorCode.DeviceServiceNotSupported, 0u)], CodeLengthPairs(nestedData, 1));
+    }
+
+    [Fact]
+    [Trait("AC", "8")]
+    public void Symbol_version_reads_as_one_byte_with_value_one()
+    {
+        Assert.Equal(AdsErrorCode.NoError, TryReadBytes(SymbolVersionGroup, 0, 1, out byte[] one));
+        Assert.Equal(new byte[] { 1 }, one);
+        Assert.Equal(AdsErrorCode.NoError, TryReadBytes(SymbolVersionGroup, 0, 4, out byte[] four));
+        Assert.Equal(new byte[] { 1 }, four);
+    }
+
+    [Fact]
+    [Trait("AC", "9")]
+    public async Task Symbol_version_notification_sends_the_value_once_and_refuses_zero_length()
+    {
+        using var watcher = new NotificationWatcher(_client);
+        uint handle = AddNotification(SymbolVersionGroup, 0, 4, AdsTransMode.OnChange, out AdsErrorCode result);
+        try
+        {
+            Assert.Equal(AdsErrorCode.NoError, result);
+            Assert.True(await watcher.WaitFor(handle, data => data.SequenceEqual(new byte[] { 1 })), "initial value not received");
+            await Task.Delay(1000);
+            Assert.Equal(1, watcher.Count(handle));
+        }
+        finally
+        {
+            _client.TryDeleteDeviceNotification(handle);
+        }
+
+        AddNotification(SymbolVersionGroup, 0, 0, AdsTransMode.OnChange, out AdsErrorCode zero);
+        Assert.Equal(AdsErrorCode.DeviceInvalidWatchsize, zero);
+    }
+
+    public static IEnumerable<object[]> SumHeaderCases()
+    {
+        const int read = 0, write = 1, readWrite = 2;
+        yield return [Array.Empty<byte>(), 0u, read, AdsErrorCode.DeviceInvalidSize];
+        yield return [new byte[12], 2u, read, AdsErrorCode.DeviceInvalidOffset];
+        yield return [new byte[12], uint.MaxValue, write, AdsErrorCode.DeviceInvalidOffset];
+        yield return [U32s(1, 2, 0x8000_0000), 1u, read, AdsErrorCode.DeviceInvalidSize];
+        yield return [U32s(1, 2, 0x8000_0000), 1u, write, AdsErrorCode.DeviceInvalidSize];
+        yield return [U32s(1, 2, 4, 0x8000_0000), 1u, readWrite, AdsErrorCode.DeviceInvalidSize];
+        yield return [U32s(1, 2, 4), 1u, write, AdsErrorCode.DeviceInvalidOffset];
+        yield return [U32s(1, 2, 4, 9), 1u, readWrite, AdsErrorCode.DeviceInvalidOffset];
+        yield return [new byte[16], 1u, read, AdsErrorCode.DeviceInvalidOffset];
+        yield return [U32s(1, 2, 4, 5, 6, 7), 1u, write, AdsErrorCode.DeviceInvalidOffset];
+        yield return [U32s(1, 2, 4, 0xAABBCCDD), 1u, write, AdsErrorCode.NoError];
+        yield return [U32s(1, 2, 4), 1u, read, AdsErrorCode.NoError];
+    }
+
+    [Theory]
+    [MemberData(nameof(SumHeaderCases))]
+    public void Sum_header_parsing_returns_the_error_for_a_malformed_request(byte[] request, uint count, int kind, AdsErrorCode expected)
+    {
+        Assert.Equal(expected, PlcAdsServer.ParseSumItems(request, count, (PlcAdsServer.SumKind)kind, out PlcAdsServer.SumItem[] items));
+        if (expected == AdsErrorCode.NoError)
+            Assert.Equal((int)count, items.Length);
+        else
+            Assert.Empty(items);
+    }
+
+    [Fact]
+    public void Sum_header_parsing_locates_each_write_payload_after_the_headers()
+    {
+        byte[] request = [.. U32s(10, 11, 2, 20, 21, 3), 1, 2, 3, 4, 5];
+
+        Assert.Equal(AdsErrorCode.NoError, PlcAdsServer.ParseSumItems(request, 2, PlcAdsServer.SumKind.Write, out PlcAdsServer.SumItem[] items));
+
+        Assert.Equal(new PlcAdsServer.SumItem(10, 11, 0, 2, 24), items[0]);
+        Assert.Equal(new PlcAdsServer.SumItem(20, 21, 0, 3, 26), items[1]);
     }
 
     private sealed class NotificationWatcher : IDisposable
