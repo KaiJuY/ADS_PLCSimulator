@@ -78,4 +78,22 @@ public sealed class ProjectStartupServiceTests : IAsyncLifetime
         Assert.Equal(RunOutcome.Failed, result.Outcome);
         Assert.Contains("shutting down", result.Error);
     }
+
+    [Fact]
+    [Trait("AC", "2")]
+    public async Task Start_with_the_embedded_router_throws_when_the_router_port_is_taken()
+    {
+        var service = new ProjectStartupService(
+            _host,
+            Options.Create(new SimulatorOptions()),
+            Options.Create(new AdsOptions { Router = AdsRouterMode.Embedded, Port = ProjectTestRoot.Port }),
+            new TestHostEnvironment(_root.Root),
+            _root.LoggerFactory);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => service.StartAsync(timeout.Token));
+
+        Assert.Contains("could not start", exception.Message);
+        await service.StopAsync(CancellationToken.None);
+    }
 }

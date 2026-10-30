@@ -100,4 +100,41 @@ public sealed class SessionPartsTests
         Assert.Equal("../../projects", simulator.GetProperty("ProjectsRoot").GetString());
         Assert.False(simulator.TryGetProperty("ProjectPath", out _));
     }
+
+    [Fact]
+    [Trait("AC", "11")]
+    public async Task Running_project_exposes_its_simulation_folder_as_directory_contents()
+    {
+        using var root = new ProjectTestRoot();
+        ProjectHost host = root.CreateHost();
+        var provider = new RunningProjectFileProvider(host);
+        Assert.False(provider.GetDirectoryContents("").Exists);
+
+        await host.RunAsync("Alpha");
+        try
+        {
+            Assert.Contains(provider.GetDirectoryContents(""), file => file.Name == "index.html");
+        }
+        finally
+        {
+            await host.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    [Trait("AC", "5")]
+    public void Session_construction_loads_the_workflow_files_of_the_project()
+    {
+        using var root = new ProjectTestRoot();
+        string workflows = Path.Combine(root.ProjectPath("Alpha"), "workflows");
+        Directory.CreateDirectory(workflows);
+        File.WriteAllText(Path.Combine(workflows, "wf.flow.json"), "{\"nodes\":[],\"links\":[]}");
+        var hub = new LiveHub(NullLogger<LiveHub>.Instance);
+
+        SimulatorSession session = new(root.ProjectPath("Alpha"), hub, NullLogger<SimulatorSession>.Instance);
+
+        WorkflowStatus status = Assert.Single(session.Workflows);
+        Assert.Equal("wf", status.Name);
+        Assert.True(status.Loaded);
+    }
 }

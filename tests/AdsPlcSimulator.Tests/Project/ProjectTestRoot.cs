@@ -54,12 +54,15 @@ internal sealed class ProjectTestRoot : IDisposable
 {
     public const ushort Port = 25855;
 
+    // Read before any test starts an embedded router, which replaces the process-wide AmsNetId.Local.
+    private static readonly AmsNetId LocalNetId = AmsNetId.Local;
+
     private readonly CapturingLoggerProvider _logs = new();
 
     public ProjectTestRoot()
     {
         Root = Path.Combine(Path.GetTempPath(), "adsplc-" + Guid.NewGuid().ToString("N"));
-        WriteFile("Alpha/plc/a.st", "VAR_GLOBAL nAlpha : INT := 7; END_VAR");
+        WriteFile("Alpha/plc/a.st", "TYPE ST_P : STRUCT n : INT; END_STRUCT END_TYPE VAR_GLOBAL nAlpha : INT := 7; stP : ST_P; END_VAR");
         WriteFile("Alpha/simulation/index.html", "<html></html>");
         WriteFile("Beta/plc/b.st", "VAR_GLOBAL nBeta : DINT; END_VAR");
         WriteFile("Broken/plc/x.st", "TYPE ST_X : STRUCT n : INT; END_STRUCT END_TYPE");
@@ -103,14 +106,14 @@ internal sealed class ProjectTestRoot : IDisposable
     public static AdsErrorCode ReadState()
     {
         using var client = new AdsClient { Timeout = 1000 };
-        client.Connect(AmsNetId.Local, Port);
+        client.Connect(LocalNetId, Port);
         return client.TryReadState(out _);
     }
 
     public static byte ReadSymbolVersion()
     {
         using var client = new AdsClient { Timeout = 1000 };
-        client.Connect(AmsNetId.Local, Port);
+        client.Connect(LocalNetId, Port);
         var version = new byte[1];
         AdsErrorCode error = client.TryRead(0xF008, 0, version.AsMemory(), out _);
         Assert.Equal(AdsErrorCode.NoError, error);
@@ -120,7 +123,7 @@ internal sealed class ProjectTestRoot : IDisposable
     public static (AdsErrorCode Error, object? Value) ReadSymbol(string path, Type type)
     {
         using var client = new AdsClient { Timeout = 1000 };
-        client.Connect(AmsNetId.Local, Port);
+        client.Connect(LocalNetId, Port);
         AdsErrorCode error = client.TryCreateVariableHandle(path, out uint handle);
         if (error != AdsErrorCode.NoError)
             return (error, null);

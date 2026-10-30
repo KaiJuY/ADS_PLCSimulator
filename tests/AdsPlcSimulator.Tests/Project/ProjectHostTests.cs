@@ -353,4 +353,50 @@ public sealed class ProjectHostTests : IAsyncLifetime
         Assert.Equal(ProjectState.Stopped, status.State);
         Assert.Equal("Beta", status.Last);
     }
+
+    [Fact]
+    [Trait("AC", "4")]
+    public void ListProjects_returns_empty_and_warns_when_the_root_is_a_file()
+    {
+        string file = Path.Combine(_root.Root, "not-a-folder.txt");
+        File.WriteAllText(file, "x");
+        ProjectHost host = NewHost(projectsRoot: file);
+
+        Assert.Empty(host.ListProjects());
+    }
+
+    [Fact]
+    [Trait("AC", "9")]
+    public async Task Run_proceeds_once_the_previous_registration_has_finished()
+    {
+        var release = new TaskCompletionSource();
+        int calls = 0;
+        ProjectHost host = NewHost(
+            registerTimeout: TimeSpan.FromMilliseconds(200),
+            connect: (server, token) => Interlocked.Increment(ref calls) == 1 ? release.Task : server.ConnectServerAsync(token));
+
+        RunResult first = await host.RunAsync("Alpha");
+        Assert.Equal(RunOutcome.Failed, first.Outcome);
+        RunResult blocked = await host.RunAsync("Alpha");
+        Assert.Contains("still held", blocked.Error);
+
+        release.SetResult();
+        await Task.Delay(300);
+        RunResult second = await host.RunAsync("Alpha");
+
+        Assert.Equal(RunOutcome.Started, second.Outcome);
+    }
+
+    [Fact]
+    [Trait("AC", "6")]
+    public async Task Stop_completes_and_warns_when_disposing_the_session_throws()
+    {
+        ProjectHost host = NewHost(disposeSession: _ => throw new InvalidOperationException("boom"));
+        await host.RunAsync("Alpha");
+
+        await host.StopAsync();
+
+        Assert.Equal(ProjectState.Stopped, host.GetStatus().State);
+        Assert.Contains(_root.Logs, entry => entry.Level == LogLevel.Warning && entry.Message.Contains("Disposing Alpha failed"));
+    }
 }

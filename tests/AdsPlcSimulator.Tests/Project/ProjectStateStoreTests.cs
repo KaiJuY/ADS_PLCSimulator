@@ -99,4 +99,14 @@ public sealed class ProjectStateStoreTests : IDisposable
 
         Assert.Empty(Directory.GetFiles(_directory, "*.tmp"));
     }
+
+    [Fact]
+    [Trait("AC", "13")]
+    public void DefaultPath_is_the_state_file_under_the_local_application_data_folder()
+    {
+        string? path = ProjectStateStore.DefaultPath;
+
+        Assert.NotNull(path);
+        Assert.EndsWith(Path.Combine("AdsPlcSimulator", "state.json"), path);
+    }
 }
