@@ -151,6 +151,8 @@ public sealed class ProjectEndpointsTests : IAsyncLifetime
         Assert.Contains("a.nAlpha", body);
         Assert.DoesNotContain("a.stP", body);
         Assert.Equal("[]", Describe(SimulatorEndpoints.Symbols(_host, "nothing-like-this", 5)).Body);
+        Assert.Equal(2, JsonDocument.Parse(Describe(SimulatorEndpoints.Symbols(_host, "a.", null)).Body).RootElement.GetArrayLength());
+        Assert.Equal(1, JsonDocument.Parse(Describe(SimulatorEndpoints.Symbols(_host, "a.", 1)).Body).RootElement.GetArrayLength());
     }
 
     [Fact]
@@ -182,16 +184,17 @@ public sealed class ProjectEndpointsTests : IAsyncLifetime
 
     [Theory]
     [Trait("AC", "11")]
-    [InlineData("a.nMissing", "1", 404)]
-    [InlineData("a.stP", "1", 400)]
-    [InlineData("a.nAlpha", "abc", 400)]
-    public async Task WriteSymbol_while_running_rejects_bad_requests(string path, string value, int expected)
+    [InlineData("a.nMissing", "1", 404, "a.nMissing")]
+    [InlineData("a.stP", "1", 400, "not a scalar")]
+    [InlineData("a.nAlpha", "abc", 400, "")]
+    public async Task WriteSymbol_while_running_rejects_bad_requests(string path, string value, int expected, string error)
     {
         await RunAlphaAsync();
 
         IResult result = SimulatorEndpoints.WriteSymbol(_host, new SimulatorEndpoints.SymbolWriteRequest(path, value));
 
         Assert.Equal(expected, Describe(result).Status);
+        Assert.Contains(error, Describe(result).Body);
         Assert.Contains("7", Describe(SimulatorEndpoints.ReadSymbol(_host, "a.nAlpha")).Body);
     }
 
@@ -210,6 +213,7 @@ public sealed class ProjectEndpointsTests : IAsyncLifetime
         await RunAlphaAsync();
 
         Assert.Equal(400, Describe(SimulatorEndpoints.ReadWorkflow(_host, "bad name")).Status);
+        Assert.Contains("Invalid workflow name.", Describe(SimulatorEndpoints.ReadWorkflow(_host, "bad name")).Body);
         Assert.Equal(404, Describe(SimulatorEndpoints.ReadWorkflow(_host, "wf")).Status);
 
         await SaveAsync(_host, _root.Hub, "wf", "{\"nodes\":[],\"links\":[]}");
@@ -219,17 +223,18 @@ public sealed class ProjectEndpointsTests : IAsyncLifetime
 
     [Theory]
     [Trait("AC", "11")]
-    [InlineData("bad name", "{}", 400)]
-    [InlineData("wf", "not json", 400)]
-    [InlineData("wf", "null", 400)]
-    [InlineData("wf", "{\"nodes\":[],\"links\":[]}", 200)]
-    public async Task SaveWorkflow_while_running_validates_name_and_body(string name, string body, int expected)
+    [InlineData("bad name", "{}", 400, "letters, digits")]
+    [InlineData("wf", "not json", 400, "Invalid workflow JSON")]
+    [InlineData("wf", "null", 400, "Empty body.")]
+    [InlineData("wf", "{\"nodes\":[],\"links\":[]}", 200, "")]
+    public async Task SaveWorkflow_while_running_validates_name_and_body(string name, string body, int expected, string error)
     {
         await RunAlphaAsync();
 
         IResult result = await SaveAsync(_host, _root.Hub, name, body);
 
         Assert.Equal(expected, Describe(result).Status);
+        Assert.Contains(error, Describe(result).Body);
         string file = Path.Combine(_root.ProjectPath("Alpha"), "workflows", name + ".flow.json");
         Assert.Equal(expected == 200, File.Exists(file));
         if (expected == 200)

@@ -12,7 +12,7 @@ The scripts read `.adf/profile.json`. Keep both files in step.
 | Target frameworks | net9.0 (all three projects) |
 | Main framework (development gates) | net9.0 |
 | Release frameworks | net9.0 |
-| Expected test count | 468 on 2026-10-30 (net9.0; #6) |
+| Expected test count | 470 on 2026-10-30 (net9.0; #6) |
 | Full suite time | about 1 minute with coverage (net9.0) |
 
 ## Known load-dependent tests

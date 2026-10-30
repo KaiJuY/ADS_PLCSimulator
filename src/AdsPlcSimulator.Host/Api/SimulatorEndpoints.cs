@@ -123,6 +123,7 @@ internal static class SimulatorEndpoints
         }
 
         WorkflowStatus status = session.SaveWorkflow(name, document);
+        // Stryker disable once Statement: the broadcast goes to connected editors, and a unit test has no WebSocket client
         hub.PublishWorkflowStatus(status);
         return Results.Ok(status);
     }

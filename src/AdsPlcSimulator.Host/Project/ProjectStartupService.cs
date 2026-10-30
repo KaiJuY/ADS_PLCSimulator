@@ -22,11 +22,13 @@ internal sealed class ProjectStartupService(
     {
         try
         {
+            // Stryker disable once Statement: the embedded router cannot run beside the TwinCAT router (TCP 48898), so tests use Local mode, where this has no effect
             await StartRouterAsync(cancellationToken);
             await RunProjectPathAsync();
         }
         catch
         {
+            // Stryker disable once Statement: the embedded router cannot run beside the TwinCAT router (TCP 48898), so tests use Local mode, where this has no effect
             await StopRouterAsync();
             throw;
         }
@@ -35,6 +37,7 @@ internal sealed class ProjectStartupService(
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         await host.DisposeAsync();
+        // Stryker disable once Statement: the embedded router cannot run beside the TwinCAT router (TCP 48898), so tests use Local mode, where this has no effect
         await StopRouterAsync();
     }
 
@@ -47,12 +50,14 @@ internal sealed class ProjectStartupService(
         var router = new AmsTcpIpRouter(AmsNetId.Parse(settings.NetId), loggerFactory);
         _router = router;
         _routerTask = router.StartAsync(_routerStop.Token);
+        // Stryker disable once Statement: the embedded router cannot run beside the TwinCAT router (TCP 48898), so tests use Local mode, where this has no effect
         await WaitUntilRunningAsync(() => router.IsRunning, _routerTask, cancellationToken);
     }
 
     internal static async Task WaitUntilRunningAsync(Func<bool> isRunning, Task routerTask, CancellationToken cancellationToken)
     {
         while (!isRunning() && !routerTask.IsCompleted)
+            // Stryker disable once Statement: the delay only paces the polling loop
             await Task.Delay(100, cancellationToken);
 
         if (isRunning())
@@ -71,6 +76,7 @@ internal sealed class ProjectStartupService(
             throw new InvalidOperationException(result.Error);
     }
 
+    // Stryker disable all: the embedded router cannot run beside the TwinCAT router (TCP 48898), so tests use Local mode, where this has no effect
     private async Task StopRouterAsync()
     {
         _router?.Stop();
@@ -83,4 +89,5 @@ internal sealed class ProjectStartupService(
         {
         }
     }
+    // Stryker restore all
 }

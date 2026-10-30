@@ -45,6 +45,7 @@ public sealed partial class SimulatorSession : IAsyncDisposable
         }
         catch
         {
+            // Stryker disable once Statement,Boolean,String: cleanup runs on an instance the failed constructor never returns, so a test cannot observe it
             CleanUpAfterFailedConstruction();
             throw;
         }
@@ -89,6 +90,7 @@ public sealed partial class SimulatorSession : IAsyncDisposable
         (SimulationFiles as IDisposable)?.Dispose();
     }
 
+    // Stryker disable all: cleanup runs on an instance the failed constructor never returns, so a test cannot observe it
     private void CleanUpAfterFailedConstruction()
     {
         Live.Close();
@@ -104,6 +106,7 @@ public sealed partial class SimulatorSession : IAsyncDisposable
 
         (SimulationFiles as IDisposable)?.Dispose();
     }
+    // Stryker restore all
 
     private void LoadWorkflowFile(string name)
     {

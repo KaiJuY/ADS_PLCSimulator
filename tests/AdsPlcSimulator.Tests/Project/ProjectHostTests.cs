@@ -399,4 +399,51 @@ public sealed class ProjectHostTests : IAsyncLifetime
         Assert.Equal(ProjectState.Stopped, host.GetStatus().State);
         Assert.Contains(_root.Logs, entry => entry.Level == LogLevel.Warning && entry.Message.Contains("Disposing Alpha failed"));
     }
+    [Fact]
+    [Trait("AC", "5")]
+    public async Task Failed_registration_disposes_the_loaded_session_and_clears_its_simulation_state()
+    {
+        int disposed = 0;
+        ProjectHost host = NewHost(disposeSession: session =>
+        {
+            Interlocked.Increment(ref disposed);
+            _root.Hub.Invoke("Door", "Open", null);
+            return session.DisposeAsync();
+        });
+        var occupant = ProjectTestRoot.CreateOccupant();
+        await occupant.ConnectServerAsync(CancellationToken.None);
+
+        try
+        {
+            Assert.Equal(RunOutcome.Failed, (await host.RunAsync("Alpha")).Outcome);
+        }
+        finally
+        {
+            occupant.Disconnect();
+            occupant.Dispose();
+        }
+
+        Assert.Equal(1, disposed);
+        Assert.Equal(0, _root.Hub.SimulationStateCount);
+    }
+    [Fact]
+    [Trait("AC", "5")]
+    public async Task Connect_that_throws_at_once_fails_the_run_and_leaves_no_pending_release()
+    {
+        bool first = true;
+        ProjectHost host = NewHost(connect: (server, token) =>
+        {
+            if (!first)
+                return server.ConnectServerAsync(token);
+            first = false;
+            throw new InvalidOperationException("router gone");
+        });
+
+        RunResult failed = await host.RunAsync("Alpha");
+        RunResult retried = await host.RunAsync("Alpha");
+
+        Assert.Equal(RunOutcome.Failed, failed.Outcome);
+        Assert.Contains("router gone", failed.Error);
+        Assert.Equal(RunOutcome.Started, retried.Outcome);
+    }
 }

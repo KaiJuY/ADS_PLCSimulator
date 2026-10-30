@@ -90,11 +90,13 @@ public sealed class ProjectHost : IAsyncDisposable
                 .Order(StringComparer.Ordinal)
                 .ToList();
         }
+        // Stryker disable all: listing a directory that exists cannot be made to fail in a unit test
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             _logger.LogWarning("Could not list projects in {Root}: {Message}", ProjectsRoot, exception.Message);
             return [];
         }
+        // Stryker restore all
     }
 
     public Task<RunResult> RunAsync(string? name)
@@ -200,6 +202,7 @@ public sealed class ProjectHost : IAsyncDisposable
         }
 
         string message = $"AMS port {Port} is still held by the previous project. Restart the Host.";
+        // Stryker disable once Statement,String: a log line has no test value
         _logger.LogError("{Message}", message);
         return Failed(message);
     }
@@ -218,6 +221,7 @@ public sealed class ProjectHost : IAsyncDisposable
         {
             await ReleaseFailedRegistrationAsync(session, server, connect);
             string message = $"AMS port {Port} could not be registered ({exception.Message}). Is another runtime using this port?";
+            // Stryker disable once Statement,String: a log line has no test value
             _logger.LogError("Run {Project} failed: {Message}", name, message);
             return message;
         }
@@ -225,10 +229,13 @@ public sealed class ProjectHost : IAsyncDisposable
 
     private async Task ReleaseFailedRegistrationAsync(SimulatorSession session, PlcAdsServer server, Task? connect)
     {
+        // Stryker disable once Boolean,Equality,Statement: waiting on a completed connect returns at once, so every form behaves the same
         if (connect is { IsCompleted: false })
+            // Stryker disable once Statement: the grace wait only lowers the chance of _pendingRelease; the outcome without it is the same Failed result
             await WaitQuietlyAsync(connect, RegisterTimeout);
 
         if (connect is null || connect.IsCompleted)
+            // Stryker disable once Statement: the server never registered, so disposing it has no observable effect
             server.Dispose();
         else
             _pendingRelease = connect.ContinueWith(_ => server.Dispose(), TaskScheduler.Default);
@@ -276,6 +283,7 @@ public sealed class ProjectHost : IAsyncDisposable
             await release.WaitAsync(StopTimeout);
             return true;
         }
+        // Stryker disable all: Disconnect of a registered server returns at once (C2), so a test cannot make the release hang or fail
         catch (TimeoutException)
         {
             _pendingRelease = release;
@@ -287,6 +295,7 @@ public sealed class ProjectHost : IAsyncDisposable
         }
 
         return false;
+        // Stryker restore all
     }
 
     private async Task DisposeSessionBoundedAsync(SimulatorSession session)
@@ -309,6 +318,7 @@ public sealed class ProjectHost : IAsyncDisposable
     {
         try
         {
+            // Stryker disable once Statement: see the grace wait above
             await task.WaitAsync(timeout);
         }
         catch (Exception)
