@@ -44,14 +44,20 @@ internal sealed class ProjectStartupService(
         if (settings.Router != AdsRouterMode.Embedded)
             return;
 
-        _router = new AmsTcpIpRouter(AmsNetId.Parse(settings.NetId), loggerFactory);
-        _routerTask = _router.StartAsync(_routerStop.Token);
-        while (!_router.IsRunning && !_routerTask.IsCompleted)
+        var router = new AmsTcpIpRouter(AmsNetId.Parse(settings.NetId), loggerFactory);
+        _router = router;
+        _routerTask = router.StartAsync(_routerStop.Token);
+        await WaitUntilRunningAsync(() => router.IsRunning, _routerTask, cancellationToken);
+    }
+
+    internal static async Task WaitUntilRunningAsync(Func<bool> isRunning, Task routerTask, CancellationToken cancellationToken)
+    {
+        while (!isRunning() && !routerTask.IsCompleted)
             await Task.Delay(100, cancellationToken);
 
-        if (_router.IsRunning)
+        if (isRunning())
             return;
-        throw new InvalidOperationException(RouterStartFailure, _routerTask.Exception?.GetBaseException());
+        throw new InvalidOperationException(RouterStartFailure, routerTask.Exception?.GetBaseException());
     }
 
     private async Task RunProjectPathAsync()

@@ -81,19 +81,35 @@ public sealed class ProjectStartupServiceTests : IAsyncLifetime
 
     [Fact]
     [Trait("AC", "2")]
-    public async Task Start_with_the_embedded_router_throws_when_the_router_port_is_taken()
+    public async Task Router_wait_returns_once_the_router_runs()
     {
-        var service = new ProjectStartupService(
-            _host,
-            Options.Create(new SimulatorOptions()),
-            Options.Create(new AdsOptions { Router = AdsRouterMode.Embedded, Port = ProjectTestRoot.Port }),
-            new TestHostEnvironment(_root.Root),
-            _root.LoggerFactory);
-        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        int checks = 0;
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => service.StartAsync(timeout.Token));
+        await ProjectStartupService.WaitUntilRunningAsync(() => ++checks > 2, new TaskCompletionSource().Task, CancellationToken.None);
+
+        Assert.True(checks > 2);
+    }
+
+    [Fact]
+    [Trait("AC", "2")]
+    public async Task Router_wait_throws_with_the_router_failure_when_the_router_task_faults()
+    {
+        var failure = new IOException("TCP 48898 in use");
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => ProjectStartupService.WaitUntilRunningAsync(() => false, Task.FromException(failure), CancellationToken.None));
 
         Assert.Contains("could not start", exception.Message);
-        await service.StopAsync(CancellationToken.None);
+        Assert.Same(failure, exception.InnerException);
+    }
+
+    [Fact]
+    [Trait("AC", "2")]
+    public async Task Router_wait_throws_when_the_router_task_ends_without_running()
+    {
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => ProjectStartupService.WaitUntilRunningAsync(() => false, Task.CompletedTask, CancellationToken.None));
+
+        Assert.Null(exception.InnerException);
     }
 }

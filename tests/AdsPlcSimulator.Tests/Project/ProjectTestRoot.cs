@@ -54,9 +54,6 @@ internal sealed class ProjectTestRoot : IDisposable
 {
     public const ushort Port = 25855;
 
-    // Read before any test starts an embedded router, which replaces the process-wide AmsNetId.Local.
-    private static readonly AmsNetId LocalNetId = AmsNetId.Local;
-
     private readonly CapturingLoggerProvider _logs = new();
 
     public ProjectTestRoot()
@@ -106,14 +103,14 @@ internal sealed class ProjectTestRoot : IDisposable
     public static AdsErrorCode ReadState()
     {
         using var client = new AdsClient { Timeout = 1000 };
-        client.Connect(LocalNetId, Port);
+        client.Connect(AmsNetId.Local, Port);
         return client.TryReadState(out _);
     }
 
     public static byte ReadSymbolVersion()
     {
         using var client = new AdsClient { Timeout = 1000 };
-        client.Connect(LocalNetId, Port);
+        client.Connect(AmsNetId.Local, Port);
         var version = new byte[1];
         AdsErrorCode error = client.TryRead(0xF008, 0, version.AsMemory(), out _);
         Assert.Equal(AdsErrorCode.NoError, error);
@@ -123,7 +120,7 @@ internal sealed class ProjectTestRoot : IDisposable
     public static (AdsErrorCode Error, object? Value) ReadSymbol(string path, Type type)
     {
         using var client = new AdsClient { Timeout = 1000 };
-        client.Connect(LocalNetId, Port);
+        client.Connect(AmsNetId.Local, Port);
         AdsErrorCode error = client.TryCreateVariableHandle(path, out uint handle);
         if (error != AdsErrorCode.NoError)
             return (error, null);
