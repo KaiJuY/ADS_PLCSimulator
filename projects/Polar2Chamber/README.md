@@ -46,7 +46,7 @@ dotnet run --project src/AdsPlcSimulator.Host -- --Simulator:ProjectPath=../../p
 ## Workflow
 
 - `Polar2_ServiceHost`：執行 `GVL_Module.Chamber_Control` 底下所有 module 的 PackML 交握，ServiceId 與 CompletionBehavior 來自 `plc/ServiceIdentity/` 的 identity 檔。
-- `Polar2_ModuleModeInit`：啟動時把 6 個 module 的 SVID 1 寫回 `'1'`。
+- `Polar2_ModuleModeInit`：啟動時把 6 個 module 的 SVID 1 寫回 `'1'`；另外把 slot 1 的 identity 寫成 `ModuleId=1`、`Enabled=TRUE`、`ModuleType=Polar2`，其餘 slot 保持 0、FALSE、空字串。
 - `Polar2_Chamber_SetMode`：Chamber.SetMode 進入 Execute 時，依 `TargetMode`（0 到 3）寫入 SVID 1，超出範圍則保持原值，然後完成 service。
 - `Polar2_Chamber_Initial`：Chamber.Initial 進入 Execute 後等待 5000 ms 再完成；依 `SwitchModeAfterFinish` 把 SVID 1 寫成 `'2'`（1）或 `'3'`（2），其他值保持原值。
 

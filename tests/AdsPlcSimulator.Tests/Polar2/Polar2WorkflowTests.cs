@@ -179,6 +179,25 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
         }
     }
 
+    [Fact]
+    [Trait("AC", "11")]
+    public async Task ModuleModeInit_publishes_identity_of_slot_1_only()
+    {
+        Load("modeinit", LoadDocument("Polar2_ModuleModeInit"));
+        await WaitForRunAsync("modeinit", FlowEventKind.RunCompleted);
+
+        Assert.Equal(1, ReadNumber($"{Root}[1].ModuleStatus.ModuleId"));
+        Assert.True((bool)Read($"{Root}[1].ModuleStatus.Enabled"));
+        Assert.Equal("Polar2", Read($"{Root}[1].ModuleStatus.ModuleType"));
+
+        for (int module = 2; module <= 6; module++)
+        {
+            Assert.Equal(0, ReadNumber($"{Root}[{module}].ModuleStatus.ModuleId"));
+            Assert.False((bool)Read($"{Root}[{module}].ModuleStatus.Enabled"));
+            Assert.Equal("", Read($"{Root}[{module}].ModuleStatus.ModuleType"));
+        }
+    }
+
     [Theory]
     [Trait("AC", "10")]
     [InlineData(0, "0")]
