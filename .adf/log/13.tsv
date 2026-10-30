@@ -1,0 +1,19 @@
+time	stage	decision	why	evidence	result
+2026-10-31T00:00:15+0800	A	Q1–Q4 Yes（照 framework、timeout 讀 Param_Config、853 只驗 heartbeat）；Allen 說明 AliveIndex 用途為持續執行意圖，與 heartbeat 分開描述；Q5 A 一個 issue 兩組驗收條件	Allen 逐輪決定	FB_ModuleBase.TcPOU:284-310；FB_ServiceBase.TcPOU:222-300	issue #13
+2026-10-31T00:00:15+0800	A	concept check：need 補 consumer（SDK HeartbeatWriter、AliveIndex 綁定）與值無效規則，其餘為 Allen 決定；fit 補 Abort 壓低 mode request、module 離開 Execute 照常監控、HeartbeatIndex 位置、無 ErrorList/已有 940 仍 Abort、相容性	-	-	-
+2026-10-31T00:08:22+0800	B	一條鏈 U1 常數 API → U2 heartbeat → U3 Service Alive，U4 整合在 stage I	U2/U3 同改 ServiceHost.cs；常數 API 為前提	PlcProgramBuilder.cs:45-66	Allen 核准
+2026-10-31T00:08:22+0800	C	proposal 13.md：常數放 SymbolTable.TryGetConstant；AliveSettings.FromSymbols（≤0/缺→預設，Min>Max→ServiceHostException，Run 失敗）；ModuleHeartbeat、ServiceAliveMonitor 新類別；Abort pending 時壓低 mode request	issue 無衝突；無新的需 Allen 決定	C1–C11 VERIFIED	stage D
+2026-10-31T00:19:06+0800	D+E	round 1：5 角度完成；AbortPending → Allen P1 A（照 framework，並改為 framework 順序同 scan Abort），其餘 FIX；issue AC6 更新	.adf/proposals/13.review.md	FB_ServiceBase.TcPOU:388-398；PackMLMachine.cs:152-163	交 judge
+2026-10-31T00:22:03+0800	D+E	round 1 judge NOT READY（3 major）全部 FIX；進 round 2	judge	13.review.md	round 2
+2026-10-31T00:25:38+0800	D+E	round 2：4 角度 0 major，comprehension 3 major（說明），全部 FIX；交 judge	13.review.md	-	judge round 2
+2026-10-31T00:27:37+0800	D+E	judge round 2 READY；2 nit 修正	proposal-judge	13.review.md	stage F
+2026-10-31T00:39:19+0800	F	U1 24f80a1、U2 ec482da、U3 cadadea；768 測試；code review MERGE yes（4 nit 留 stage G）	code-reviewer	-	stage F 完成
+2026-10-31T00:40:41+0800	G	cleanup：採用 IsKind 共用、AddError helper、AliveSettings.Validate、移除多餘 _timedOut 重設、補 Min==Max 測試；不採用 CollectConstantValues 加註解。comment：刪 ServiceAliveMonitor:71 改以測試名稱表達；保留 Scenarios.cs:12（S16 順序限制）	cleanup-reviewer、comment-reviewer	-	交 implementer
+2026-10-31T00:42:06+0800	G	套用 cleanup/comment：8582cfb，773 測試；Validate 呼叫 FromSymbols（RequireOrdered 共用檢查）	implementer	-	stage G 完成
+2026-10-31T00:43:29+0800	H	gate 1 773 通過；gate 2 CRAP 與覆蓋率 98.6% 通過，type 複雜度 PlcProgramBuilder 208→210 照 #1 Allen 決定視為腳本誤判（超過 12 的 EvaluateBinary 等 5 個方法未改，+2 來自新方法 CollectConstantValues 與 try/finally）；gate 3 直接跑 Stryker	.adf/log/1.tsv:32 先例	gate-20261031-004207	進行中
+2026-10-31T00:44:26+0800	I	853 heartbeat（只寫 HeartbeatIndex，已寫回 0）：遞增 → TRUE；停止 20.26 s 後 FALSE（Polar2 Param_Config 宣告 10 s；853 為 framework demo 專案，常數無法經 ADS 讀出）	R4	.adf/evidence/13/853-heartbeat-*.log	待與模擬器比對
+2026-10-31T00:52:21+0800	H	Stryker 直接跑：改動行存活 15（Core），Host 0 → 交 implementer	gate 3 規則	scratchpad/surv13.txt	進行中
+2026-10-31T01:12:24+0800	H	gate 3：改動行存活 0（7 殺、8 等價標記附理由）；783 測試；a0b8a0e	implementer	scratchpad/stryker13core3	gate 完成
+2026-10-31T01:15:20+0800	H	post-merge：correctness 0 major（5 nit：2 個 Stryker 理由與 TryGetConstant 說明已修；MOD 優先順序既有 bug 另開 issue；Validate 對所有專案執行屬 AC10）；structure 6 nit 不改；drift 9 項以程式碼為準（§11）	correctness/structure/drift reviewer	7eaab5f	stage H 完成
+2026-10-31T01:15:20+0800	I	Integration S1–S18 16/16 通過；模擬器 heartbeat 9.99 s（Polar2 10 s），853 20.26 s（不同專案設定）；AdsClientForPolarII 約每 4 s 寫 HeartbeatIndex，旗標維持 TRUE；S18 Service Alive 940 + Abort	-	.adf/evidence/13	stage I 完成
+2026-10-31T01:24:26+0800	J	合併 5b50dd4，main build 0 錯誤、783 測試通過；關閉 #13；移除 2 個 worktree 與 impl/13-core、int/13	Allen：合併並 push main	gh issue 13	完成
