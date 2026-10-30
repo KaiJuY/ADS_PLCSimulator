@@ -111,9 +111,13 @@ def expand_rows(sheet_name, rows, quantities):
         if number == 1:
             continue
         cells = rows[number]
+        item = cells.get("C", "").strip()
+        if not item and cells.get("B", "").strip() and cells.get("D", "").strip():
+            # A row with a type but no item name (SVID "Module Mode") is one ungrouped item named by column B.
+            groups.append(("", [(number, cells["B"].strip(), cells["D"].strip(), cells.get("E", "").strip())]))
+            continue
         if cells.get("B", "").strip():
             group = cells["B"].strip()
-        item = cells.get("C", "").strip()
         if not item:
             continue
         entry = (number, item, cells.get("D", "").strip(), cells.get("E", "").strip())

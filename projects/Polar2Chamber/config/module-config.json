@@ -9,400 +9,406 @@
       "variableList": [
         {
           "id": 1,
+          "name": "Module Mode",
+          "unit": "",
+          "dataType": "DINT"
+        },
+        {
+          "id": 2,
           "name": "Arm1 Lift Position",
           "unit": "mm",
           "dataType": "REAL"
         },
         {
-          "id": 2,
+          "id": 3,
           "name": "Arm1 Rotate Position",
           "unit": "deg",
           "dataType": "REAL"
         },
         {
-          "id": 3,
+          "id": 4,
           "name": "Arm1 Lift Speed",
           "unit": "mm/s",
           "dataType": "REAL"
         },
         {
-          "id": 4,
+          "id": 5,
           "name": "Arm1 Rotate Speed",
           "unit": "RPM",
           "dataType": "DINT"
         },
         {
-          "id": 5,
+          "id": 6,
           "name": "Arm1 Noz1 Temperature",
           "unit": "degC",
           "dataType": "REAL"
         },
         {
-          "id": 6,
+          "id": 7,
           "name": "Arm1 Noz2 Temperature",
           "unit": "degC",
           "dataType": "REAL"
         },
         {
-          "id": 7,
+          "id": 8,
           "name": "Arm1 Noz3 Temperature",
           "unit": "degC",
           "dataType": "REAL"
         },
         {
-          "id": 8,
+          "id": 9,
           "name": "Arm1 Noz1 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 9,
+          "id": 10,
           "name": "Arm1 Noz2 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 10,
+          "id": 11,
           "name": "Arm1 Noz3 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 11,
+          "id": 12,
           "name": "Arm1 NP Noz1 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 12,
+          "id": 13,
           "name": "Arm1 NP Noz2 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 13,
+          "id": 14,
           "name": "Arm1 NP Noz3 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 14,
+          "id": 15,
           "name": "Arm2 Lift Position",
           "unit": "mm",
           "dataType": "REAL"
         },
         {
-          "id": 15,
+          "id": 16,
           "name": "Arm2 Rotate Position",
           "unit": "deg",
           "dataType": "REAL"
         },
         {
-          "id": 16,
+          "id": 17,
           "name": "Arm2 Lift Speed",
           "unit": "mm/s",
           "dataType": "REAL"
         },
         {
-          "id": 17,
+          "id": 18,
           "name": "Arm2 Rotate Speed",
           "unit": "RPM",
           "dataType": "DINT"
         },
         {
-          "id": 18,
+          "id": 19,
           "name": "Arm2 Noz1 Temperature",
           "unit": "degC",
           "dataType": "REAL"
         },
         {
-          "id": 19,
+          "id": 20,
           "name": "Arm2 Noz2 Temperature",
           "unit": "degC",
           "dataType": "REAL"
         },
         {
-          "id": 20,
+          "id": 21,
           "name": "Arm2 Noz3 Temperature",
           "unit": "degC",
           "dataType": "REAL"
         },
         {
-          "id": 21,
+          "id": 22,
           "name": "Arm2 Noz1 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 22,
+          "id": 23,
           "name": "Arm2 Noz2 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 23,
+          "id": 24,
           "name": "Arm2 Noz3 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 24,
+          "id": 25,
           "name": "Arm2 NP Noz1 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 25,
+          "id": 26,
           "name": "Arm2 NP Noz2 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 26,
+          "id": 27,
           "name": "Arm2 NP Noz3 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 27,
+          "id": 28,
           "name": "Arm3 Lift Position",
           "unit": "mm",
           "dataType": "REAL"
         },
         {
-          "id": 28,
+          "id": 29,
           "name": "Arm3 Rotate Position",
           "unit": "deg",
           "dataType": "REAL"
         },
         {
-          "id": 29,
+          "id": 30,
           "name": "Arm3 Lift Speed",
           "unit": "mm/s",
           "dataType": "REAL"
         },
         {
-          "id": 30,
+          "id": 31,
           "name": "Arm3 Rotate Speed",
           "unit": "RPM",
           "dataType": "DINT"
         },
         {
-          "id": 31,
+          "id": 32,
           "name": "Arm3 Noz1 Temperature",
           "unit": "degC",
           "dataType": "REAL"
         },
         {
-          "id": 32,
+          "id": 33,
           "name": "Arm3 Noz2 Temperature",
           "unit": "degC",
           "dataType": "REAL"
         },
         {
-          "id": 33,
+          "id": 34,
           "name": "Arm3 Noz1 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 34,
+          "id": 35,
           "name": "Arm3 Noz2 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 35,
+          "id": 36,
           "name": "Arm3 NP Noz1 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 36,
+          "id": 37,
           "name": "Arm3 NP Noz2 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 37,
+          "id": 38,
           "name": "Arm4 Lift Position",
           "unit": "mm",
           "dataType": "REAL"
         },
         {
-          "id": 38,
+          "id": 39,
           "name": "Arm4 Rotate Position",
           "unit": "deg",
           "dataType": "REAL"
         },
         {
-          "id": 39,
+          "id": 40,
           "name": "Arm4 Lift Speed",
           "unit": "mm/s",
           "dataType": "REAL"
         },
         {
-          "id": 40,
+          "id": 41,
           "name": "Arm4 Rotate Speed",
           "unit": "RPM",
           "dataType": "DINT"
         },
         {
-          "id": 41,
+          "id": 42,
           "name": "Arm4 Noz1 Temperature",
           "unit": "degC",
           "dataType": "REAL"
         },
         {
-          "id": 42,
+          "id": 43,
           "name": "Arm4 Noz1 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 43,
+          "id": 44,
           "name": "Arm4 NP Noz1 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 44,
+          "id": 45,
           "name": "Cup1 Master Lift Position",
           "unit": "mm",
           "dataType": "REAL"
         },
         {
-          "id": 45,
+          "id": 46,
           "name": "Cup1 Slave Lift Position",
           "unit": "mm",
           "dataType": "REAL"
         },
         {
-          "id": 46,
+          "id": 47,
           "name": "Cup2 Master Lift Position",
           "unit": "mm",
           "dataType": "REAL"
         },
         {
-          "id": 47,
+          "id": 48,
           "name": "Cup2 Slave Lift Position",
           "unit": "mm",
           "dataType": "REAL"
         },
         {
-          "id": 48,
+          "id": 49,
           "name": "Cup3 Master Lift Position",
           "unit": "mm",
           "dataType": "REAL"
         },
         {
-          "id": 49,
+          "id": 50,
           "name": "Cup3 Slave Lift Position",
           "unit": "mm",
           "dataType": "REAL"
         },
         {
-          "id": 50,
+          "id": 51,
           "name": "Cup4 Master Lift Position",
           "unit": "mm",
           "dataType": "REAL"
         },
         {
-          "id": 51,
+          "id": 52,
           "name": "Cup4 Slave Lift Position",
           "unit": "mm",
           "dataType": "REAL"
         },
         {
-          "id": 52,
+          "id": 53,
           "name": "Holder Rotate Speed",
           "unit": "RPM",
           "dataType": "DINT"
         },
         {
-          "id": 53,
+          "id": 54,
           "name": "FixNozzle1 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 54,
+          "id": 55,
           "name": "FixNozzle2 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 55,
+          "id": 56,
           "name": "FixNozzle3 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 56,
+          "id": 57,
           "name": "FixNozzle4 Flow/Pressure",
           "unit": "ml/s / Pa",
           "dataType": "DINT",
           "comment": "unit: ml/sec / Pa"
         },
         {
-          "id": 57,
+          "id": 58,
           "name": "Outside Ring Rotate Speed",
           "unit": "RPM",
           "dataType": "DINT"
         },
         {
-          "id": 58,
+          "id": 59,
           "name": "ExhaustFan1 Pressure",
           "unit": "Pa",
           "dataType": "REAL"
         },
         {
-          "id": 59,
+          "id": 60,
           "name": "ExhaustFan2 Pressure",
           "unit": "Pa",
           "dataType": "REAL"
         },
         {
-          "id": 60,
+          "id": 61,
           "name": "ExhaustFan3 Pressure",
           "unit": "Pa",
           "dataType": "REAL"
         },
         {
-          "id": 61,
+          "id": 62,
           "name": "ExhaustFan4 Pressure",
           "unit": "Pa",
           "dataType": "REAL"
         },
         {
-          "id": 62,
+          "id": 63,
           "name": "FFU Speed",
           "unit": "RPM",
           "dataType": "DINT"
         },
         {
-          "id": 63,
+          "id": 64,
           "name": "FFU Pressure",
           "unit": "Pa",
           "dataType": "REAL"
