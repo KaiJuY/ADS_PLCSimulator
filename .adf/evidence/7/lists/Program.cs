@@ -14,7 +14,7 @@ for (int slot = 1; slot <= 6; slot++)
     Console.WriteLine($"== slot {slot} ModuleId={Read<uint>($"{m}.ModuleStatus.ModuleId")} Enabled={Read<bool>($"{m}.ModuleStatus.Enabled")} Type='{Str($"{m}.ModuleStatus.ModuleType")}' SVIDcount={Read<ushort>($"{m}.ModuleStatus.Variable.PublishedCount")} DVIDcount={Read<ushort>($"{m}.ModuleStatus.Data.PublishedCount")}");
     Descriptors($"{m}.ModuleVariableList", 100, "SVID", ecid: false);
     Descriptors($"{m}.ModuleDataList", 50, "DVID", ecid: false);
-    Descriptors($"{m}.ModuleConfigParamList", 300, "ECID", ecid: true);
+    Descriptors($"{m}.ModuleConfigParamList", 500, "ECID", ecid: true);
     for (int i = 1; ; i++)
     {
         string a = $"{m}.ModuleAlarmList[{i}]";
@@ -32,7 +32,8 @@ void Descriptors(string list, int max, string kind, bool ecid)
     for (int i = 1; i <= max; i++)
     {
         string e = $"{list}[{i}]";
-        uint id = Read<uint>($"{e}.Id");
+        if (!TryRead($"{e}.Id", out uint id))
+            break;
         string name = Str($"{e}.Name");
         if (id == 0 && name.Length == 0)
             continue;

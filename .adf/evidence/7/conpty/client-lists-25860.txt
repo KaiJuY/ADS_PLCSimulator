@@ -1,0 +1,4991 @@
+== Beckhoff Controller SDK console demo ==
+ AmsNetId : 127.0.0.1.1.1
+ AdsPort : 25860
+ ContainerPath : GVL_Module.Chamber_Control
+ ModuleId : 1
+ BindingModel : discover by identity
+ > new DiagnosticCollector(new DiagnosticCollectorOptions { MinimumLevel = minimumLevel })
+ > new RollingFileDiagnosticSink(new RollingFileDiagnosticSinkOptions(LogDirectory, FileNamePrefix, minimumLevel, null, null), OnFaulted)
+ > _collector.Faulted += OnFaulted
+ > _collector.AddSink(_fileSink, ownsSink: true)
+ > _collector.AddSink(_consoleSink, ownsSink: false)
+ > _collector.RecordPublished += OnRecordPublished
+ - The demo opens this connection once, for every feature area. MinimalModuleConnection is the same sequence without the demo's own needs, and that file copies whole.
+ > new TwinCatAdsTransport()
+ > transport.ConnectAsync(amsNetId, port, cancellationToken)
+ - ADS connected. IsConnected=True
+ > ModuleDirectory.ScanAsync(transport, containerPath, cancellationToken)
+ - Container GVL_Module.Chamber_Control has 6 slots (SizeDivision) and 1 live.
+ > ModuleTypeMap.ScanAsync(transport, rootSymbol, cancellationToken, diagnostics)
+ - Type ST_PolarIIChamber_CtrlStatus declares 165 Services.
+ > ModuleClientBuilder.Create(transport)
+ > .UseScannedDefinition(typeMap, DemoServices.All)
+ > .WithLogicalName("GC1")
+ > .WithSessionId(sessionId)
+ > .WithDiagnostics(diagnostics.Collector)
+ > .WithModuleId(1)
+ > .WithContainerPath("GVL_Module.Chamber_Control")
+ > .BuildAsync(cancellationToken)
+ - Bound GVL_Module.Chamber_Control[1]. The PLC confirms ModuleId=1.
+ > ModuleStatusSnapshot status = await module.ReadStatusAsync(cancellationToken)
+ - Module reports state=Stopped mode=Unknown.
+ > _module.DiagnosticsFaulted += OnModuleDiagnosticsFaulted
+ SessionId : 912ec935-87d4-44a1-8686-f321a9027d2a
+ LogDirectory : C:\Users\AllenY\AppData\Local\Beckhoff.Controller.ConsoleDemo\Logs
+ LogFilePrefix : console-demo-29988== Top menu ==Module : GVL_Module.Chamber_Control[1] id=1 client=Ready gen=1 state=Stopped mode=Unknown (at open) [6] Discovery and binding (manual ch 6)
+ [7] Connection and lifecycle (manual ch 7)
+ [8] Module commands (manual ch 8)
+ [9] Service operations (manual ch 9)
+ [A] Status and events (manual ch 10)
+ [B] Lists and CSV recording (manual ch 11)
+ [C] Diagnostics and logging (manual ch 12)
+ [D] Results versus exceptions (manual ch 13)
+
+ [Q] Quit
+
+Select:B
+
+== Lists and CSV recording (manual ch 11) ==
+
+Module : GVL_Module.Chamber_Control[1] id=1 client=Ready gen=1 state=Stopped mode=Unknown (at open)
+
+ [1] Alarms.AcquireCurrent and ReadAsync
+ [2] Alarms.Start, Raised, Cleared, Stop
+ [3] ModuleVariables.ReadAsync
+ [4] ModuleVariables.Start, Changed, Watch, Stop
+ [5] ModuleData.ReadAsync
+ [6] ModuleData.Start, Changed, Watch, Stop
+ [7] ModuleConfigParams.ReadAsync
+ [8] ModuleConfigParams.Start, Changed, Watch, Stop
+ [9] Recorder.Create and record to CSV
+
+ [B] Back
+
+Select:3
+ Purpose: Read module.ModuleVariables once to get the values of this moment. The revision only
+ moves when the content changed, and this list is fixed at startup on this PLC, so a
+ still revision is the normal answer here.
+ > VariableListSource source = module.ModuleVariables
+ > string name = source.ListName
+ ListName : ModuleVariableList
+ CurrentPollInterval : (null, not polling)
+ - ReadAsync does not set CurrentPollInterval (manual 11.5).
+ > VariableListSnapshot before = source.AcquireCurrent()
+ Before : (null)
+ > VariableListSnapshot list = await source.ReadAsync(cancellationToken)
+ Revision : 1
+ ReadAtUtc : 2026-10-30T09:26:35.2745734+00:00
+ ReadAtTicks : 331501095841
+ IsEmpty : False
+ Entries.Count : 64
+ Same object : False
+ - A read of the same content answers the same object (manual 11.3).
+ - An empty list is a snapshot with IsEmpty true, not null (manual 11.3).
+ id=1 Int32 Module Mode = 3
+ id=2 Float32 Arm1 Lift Position = 0 mm
+ id=3 Float32 Arm1 Rotate Position = 0 deg
+ id=4 Float32 Arm1 Lift Speed = 0 mm/s
+ id=5 Int32 Arm1 Rotate Speed = 0 RPM
+ id=6 Float32 Arm1 Noz1 Temperature = 0 degC
+ id=7 Float32 Arm1 Noz2 Temperature = 0 degC
+ id=8 Float32 Arm1 Noz3 Temperature = 0 degC
+ - First 8 of 64.
+
+Press Enter to continue.
+
+
+== Lists and CSV recording (manual ch 11) ==
+
+Module : GVL_Module.Chamber_Control[1] id=1 client=Ready gen=1 state=Stopped mode=Unknown (at open)
+
+ [1] Alarms.AcquireCurrent and ReadAsync
+ [2] Alarms.Start, Raised, Cleared, Stop
+ [3] ModuleVariables.ReadAsync
+ [4] ModuleVariables.Start, Changed, Watch, Stop
+ [5] ModuleData.ReadAsync
+ [6] ModuleData.Start, Changed, Watch, Stop
+ [7] ModuleConfigParams.ReadAsync
+ [8] ModuleConfigParams.Start, Changed, Watch, Stop
+ [9] Recorder.Create and record to CSV
+
+ [B] Back
+
+Select:7
+ Purpose: Read every config parameter (ECID) and its current value. The revision only moves
+ when the content changed, and this list is fixed at startup on this PLC, so a still
+ revision is the normal answer here.
+ > ConfigParamListSource source = module.ModuleConfigParams
+ > string name = source.ListName
+ ListName : ModuleConfigParamList
+ CurrentPollInterval : (null, not polling)
+ - This source is read only. A write goes through SetConfigParam (manual 9.12).
+ > ConfigParamListSnapshot before = source.AcquireCurrent()
+ Before : (null)
+ - One cycle reads 45,600 bytes. It is the largest of the four lists (manual 11.6).
+ > ConfigParamListSnapshot list = await source.ReadAsync(cancellationToken)
+ Revision : 1
+ ReadAtUtc : 2026-10-30T09:26:35.4906323+00:00
+ ReadAtTicks : 331503256433
+ IsEmpty : False
+ Entries.Count : 438
+ - Only an ECID the Module metadata declares appears here (manual 11.6).
+
+ Id : 1
+ Name : Module Disable (the metadata name, not the PLC variable)
+ DataType : Boolean
+ Unit :
+ RawValue : FALSE
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 1 (a position, not an identity)
+
+ Id : 2
+ Name : Door Interlock Disable (the metadata name, not the PLC variable)
+ DataType : Boolean
+ Unit :
+ RawValue : FALSE
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 2 (a position, not an identity)
+
+ Id : 3
+ Name : Initial Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 3 (a position, not an identity)
+
+ Id : 4
+ Name : Single Process Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 4 (a position, not an identity)
+
+ Id : 5
+ Name : EMGS Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 5 (a position, not an identity)
+
+ Id : 6
+ Name : Arm1 Lift Speed (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 6 (a position, not an identity)
+
+ Id : 7
+ Name : Arm1 Lift Speed (Jog) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 7 (a position, not an identity)
+
+ Id : 8
+ Name : Arm1 Lift Acc (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 8 (a position, not an identity)
+
+ Id : 9
+ Name : Arm1 Lift Dec (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 9 (a position, not an identity)
+
+ Id : 10
+ Name : Arm1 Lift Positive Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 10 (a position, not an identity)
+
+ Id : 11
+ Name : Arm1 Lift Negative Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 11 (a position, not an identity)
+
+ Id : 12
+ Name : Arm1 Lift Top Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 12 (a position, not an identity)
+
+ Id : 13
+ Name : Arm1 Lift Down Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 13 (a position, not an identity)
+
+ Id : 14
+ Name : Arm1 Lift Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 14 (a position, not an identity)
+
+ Id : 15
+ Name : Arm1 Rotate Speed (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 15 (a position, not an identity)
+
+ Id : 16
+ Name : Arm1 Rotate Speed (Jog) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 16 (a position, not an identity)
+
+ Id : 17
+ Name : Arm1 Rotate Feedrate (the metadata name, not the PLC variable)
+ DataType : Float32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 17 (a position, not an identity)
+
+ Id : 18
+ Name : Arm1 Rotate Acc (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg/s^2
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 18 (a position, not an identity)
+
+ Id : 19
+ Name : Arm1 Rotate Dec (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg/s^2
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 19 (a position, not an identity)
+
+ Id : 20
+ Name : Arm1 Rotate Pos Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 20 (a position, not an identity)
+
+ Id : 21
+ Name : Arm1 Rotate Neg Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 21 (a position, not an identity)
+
+ Id : 22
+ Name : Arm1 Rotate Nozzle Port Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 22 (a position, not an identity)
+
+ Id : 23
+ Name : Arm1 Rotate Noz1 Center Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 23 (a position, not an identity)
+
+ Id : 24
+ Name : Arm1 Rotate Noz2 Center Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 24 (a position, not an identity)
+
+ Id : 25
+ Name : Arm1 Rotate Noz3 Center Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 25 (a position, not an identity)
+
+ Id : 26
+ Name : Arm1 Rotate Timeout (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 26 (a position, not an identity)
+
+ Id : 27
+ Name : Arm1 Nozzle1 Chemical Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 27 (a position, not an identity)
+
+ Id : 28
+ Name : Arm1 Nozzle1 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 28 (a position, not an identity)
+
+ Id : 29
+ Name : Arm1 Nozzle1 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 29 (a position, not an identity)
+
+ Id : 30
+ Name : Arm1 Nozzle1 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 30 (a position, not an identity)
+
+ Id : 31
+ Name : Arm1 Nozzle1 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 31 (a position, not an identity)
+
+ Id : 32
+ Name : Arm1 Nozzle1 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 32 (a position, not an identity)
+
+ Id : 33
+ Name : Arm1 Nozzle1 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 33 (a position, not an identity)
+
+ Id : 34
+ Name : Arm1 Nozzle2 Chemical Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 34 (a position, not an identity)
+
+ Id : 35
+ Name : Arm1 Nozzle2 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 35 (a position, not an identity)
+
+ Id : 36
+ Name : Arm1 Nozzle2 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 36 (a position, not an identity)
+
+ Id : 37
+ Name : Arm1 Nozzle2 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 37 (a position, not an identity)
+
+ Id : 38
+ Name : Arm1 Nozzle2 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 38 (a position, not an identity)
+
+ Id : 39
+ Name : Arm1 Nozzle2 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 39 (a position, not an identity)
+
+ Id : 40
+ Name : Arm1 Nozzle2 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 40 (a position, not an identity)
+
+ Id : 41
+ Name : Arm1 Nozzle3 Chemical Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 41 (a position, not an identity)
+
+ Id : 42
+ Name : Arm1 Nozzle3 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 42 (a position, not an identity)
+
+ Id : 43
+ Name : Arm1 Nozzle3 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 43 (a position, not an identity)
+
+ Id : 44
+ Name : Arm1 Nozzle3 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 44 (a position, not an identity)
+
+ Id : 45
+ Name : Arm1 Nozzle3 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 45 (a position, not an identity)
+
+ Id : 46
+ Name : Arm1 Nozzle3 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 46 (a position, not an identity)
+
+ Id : 47
+ Name : Arm1 Nozzle3 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 47 (a position, not an identity)
+
+ Id : 48
+ Name : Arm1 NP Noz1 Chemical Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 48 (a position, not an identity)
+
+ Id : 49
+ Name : Arm1 NP Noz1 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 49 (a position, not an identity)
+
+ Id : 50
+ Name : Arm1 NP Noz1 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 50 (a position, not an identity)
+
+ Id : 51
+ Name : Arm1 NP Noz1 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 51 (a position, not an identity)
+
+ Id : 52
+ Name : Arm1 NP Noz1 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 52 (a position, not an identity)
+
+ Id : 53
+ Name : Arm1 NP Noz1 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 53 (a position, not an identity)
+
+ Id : 54
+ Name : Arm1 NP Noz1 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 54 (a position, not an identity)
+
+ Id : 55
+ Name : Arm1 NP Noz2 Chemical Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 55 (a position, not an identity)
+
+ Id : 56
+ Name : Arm1 NP Noz2 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 56 (a position, not an identity)
+
+ Id : 57
+ Name : Arm1 NP Noz2 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 57 (a position, not an identity)
+
+ Id : 58
+ Name : Arm1 NP Noz2 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 58 (a position, not an identity)
+
+ Id : 59
+ Name : Arm1 NP Noz2 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 59 (a position, not an identity)
+
+ Id : 60
+ Name : Arm1 NP Noz2 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 60 (a position, not an identity)
+
+ Id : 61
+ Name : Arm1 NP Noz2 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 61 (a position, not an identity)
+
+ Id : 62
+ Name : Arm1 NP Noz3 Chemical Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 62 (a position, not an identity)
+
+ Id : 63
+ Name : Arm1 NP Noz3 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 63 (a position, not an identity)
+
+ Id : 64
+ Name : Arm1 NP Noz3 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 64 (a position, not an identity)
+
+ Id : 65
+ Name : Arm1 NP Noz3 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 65 (a position, not an identity)
+
+ Id : 66
+ Name : Arm1 NP Noz3 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 66 (a position, not an identity)
+
+ Id : 67
+ Name : Arm1 NP Noz3 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 67 (a position, not an identity)
+
+ Id : 68
+ Name : Arm1 NP Noz3 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 68 (a position, not an identity)
+
+ Id : 69
+ Name : Arm1 NP Drain Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 69 (a position, not an identity)
+
+ Id : 70
+ Name : Arm1 Nozzle Preflush Enable (the metadata name, not the PLC variable)
+ DataType : Boolean
+ Unit :
+ RawValue : FALSE
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 70 (a position, not an identity)
+
+ Id : 71
+ Name : Arm1 Nozzle Preflush Idle Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 71 (a position, not an identity)
+
+ Id : 72
+ Name : Arm1 Noz Preflush Flush Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 72 (a position, not an identity)
+
+ Id : 73
+ Name : Arm1 Nozzle Preflush Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 73 (a position, not an identity)
+
+ Id : 74
+ Name : Arm1 Nozzle Clean Idle Enable (the metadata name, not the PLC variable)
+ DataType : Boolean
+ Unit :
+ RawValue : FALSE
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 74 (a position, not an identity)
+
+ Id : 75
+ Name : Arm1 Nozzle Clean Idle Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 75 (a position, not an identity)
+
+ Id : 76
+ Name : Arm1 Noz Clean Wafer Count En (the metadata name, not the PLC variable)
+ DataType : Boolean
+ Unit :
+ RawValue : FALSE
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 76 (a position, not an identity)
+
+ Id : 77
+ Name : Arm1 Nozzle Clean Wafer Count (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 77 (a position, not an identity)
+
+ Id : 78
+ Name : Arm1 Noz Clean Noz1 Sup Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 78 (a position, not an identity)
+
+ Id : 79
+ Name : Arm1 Noz Clean Noz2 Sup Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 79 (a position, not an identity)
+
+ Id : 80
+ Name : Arm1 Noz Clean Noz3 Sup Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 80 (a position, not an identity)
+
+ Id : 81
+ Name : Arm1 Nozzle Clean Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 81 (a position, not an identity)
+
+ Id : 82
+ Name : Arm1 Arm Test Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 82 (a position, not an identity)
+
+ Id : 83
+ Name : Arm1 Arm Align Test Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 83 (a position, not an identity)
+
+ Id : 84
+ Name : Arm2 Lift Speed (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 84 (a position, not an identity)
+
+ Id : 85
+ Name : Arm2 Lift Speed (Jog) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 85 (a position, not an identity)
+
+ Id : 86
+ Name : Arm2 Lift Acc (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 86 (a position, not an identity)
+
+ Id : 87
+ Name : Arm2 Lift Dec (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 87 (a position, not an identity)
+
+ Id : 88
+ Name : Arm2 Lift Positive Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 88 (a position, not an identity)
+
+ Id : 89
+ Name : Arm2 Lift Negative Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 89 (a position, not an identity)
+
+ Id : 90
+ Name : Arm2 Lift Top Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 90 (a position, not an identity)
+
+ Id : 91
+ Name : Arm2 Lift Down Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 91 (a position, not an identity)
+
+ Id : 92
+ Name : Arm2 Lift Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 92 (a position, not an identity)
+
+ Id : 93
+ Name : Arm2 Rotate Speed (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 93 (a position, not an identity)
+
+ Id : 94
+ Name : Arm2 Rotate Speed (Jog) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 94 (a position, not an identity)
+
+ Id : 95
+ Name : Arm2 Rotate Feedrate (the metadata name, not the PLC variable)
+ DataType : Float32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 95 (a position, not an identity)
+
+ Id : 96
+ Name : Arm2 Rotate Acc (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg/s^2
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 96 (a position, not an identity)
+
+ Id : 97
+ Name : Arm2 Rotate Dec (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg/s^2
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 97 (a position, not an identity)
+
+ Id : 98
+ Name : Arm2 Rotate Pos Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 98 (a position, not an identity)
+
+ Id : 99
+ Name : Arm2 Rotate Neg Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 99 (a position, not an identity)
+
+ Id : 100
+ Name : Arm2 Rotate Nozzle Port Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 100 (a position, not an identity)
+
+ Id : 101
+ Name : Arm2 Rotate Noz1 Center Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 101 (a position, not an identity)
+
+ Id : 102
+ Name : Arm2 Rotate Noz2 Center Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 102 (a position, not an identity)
+
+ Id : 103
+ Name : Arm2 Rotate Noz3 Center Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 103 (a position, not an identity)
+
+ Id : 104
+ Name : Arm2 Rotate Timeout (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 104 (a position, not an identity)
+
+ Id : 105
+ Name : Arm2 Nozzle1 Chemical Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 105 (a position, not an identity)
+
+ Id : 106
+ Name : Arm2 Nozzle1 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 106 (a position, not an identity)
+
+ Id : 107
+ Name : Arm2 Nozzle1 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 107 (a position, not an identity)
+
+ Id : 108
+ Name : Arm2 Nozzle1 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 108 (a position, not an identity)
+
+ Id : 109
+ Name : Arm2 Nozzle1 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 109 (a position, not an identity)
+
+ Id : 110
+ Name : Arm2 Nozzle1 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 110 (a position, not an identity)
+
+ Id : 111
+ Name : Arm2 Nozzle1 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 111 (a position, not an identity)
+
+ Id : 112
+ Name : Arm2 Nozzle2 Chemical Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 112 (a position, not an identity)
+
+ Id : 113
+ Name : Arm2 Nozzle2 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 113 (a position, not an identity)
+
+ Id : 114
+ Name : Arm2 Nozzle2 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 114 (a position, not an identity)
+
+ Id : 115
+ Name : Arm2 Nozzle2 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 115 (a position, not an identity)
+
+ Id : 116
+ Name : Arm2 Nozzle2 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 116 (a position, not an identity)
+
+ Id : 117
+ Name : Arm2 Nozzle2 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 117 (a position, not an identity)
+
+ Id : 118
+ Name : Arm2 Nozzle2 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 118 (a position, not an identity)
+
+ Id : 119
+ Name : Arm2 Nozzle3 Chemical Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 119 (a position, not an identity)
+
+ Id : 120
+ Name : Arm2 Nozzle3 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 120 (a position, not an identity)
+
+ Id : 121
+ Name : Arm2 Nozzle3 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 121 (a position, not an identity)
+
+ Id : 122
+ Name : Arm2 Nozzle3 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 122 (a position, not an identity)
+
+ Id : 123
+ Name : Arm2 Nozzle3 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 123 (a position, not an identity)
+
+ Id : 124
+ Name : Arm2 Nozzle3 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 124 (a position, not an identity)
+
+ Id : 125
+ Name : Arm2 Nozzle3 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 125 (a position, not an identity)
+
+ Id : 126
+ Name : Arm2 NP Noz1 Chemical Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 126 (a position, not an identity)
+
+ Id : 127
+ Name : Arm2 NP Noz1 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 127 (a position, not an identity)
+
+ Id : 128
+ Name : Arm2 NP Noz1 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 128 (a position, not an identity)
+
+ Id : 129
+ Name : Arm2 NP Noz1 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 129 (a position, not an identity)
+
+ Id : 130
+ Name : Arm2 NP Noz1 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 130 (a position, not an identity)
+
+ Id : 131
+ Name : Arm2 NP Noz1 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 131 (a position, not an identity)
+
+ Id : 132
+ Name : Arm2 NP Noz1 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 132 (a position, not an identity)
+
+ Id : 133
+ Name : Arm2 NP Noz2 Chemical Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 133 (a position, not an identity)
+
+ Id : 134
+ Name : Arm2 NP Noz2 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 134 (a position, not an identity)
+
+ Id : 135
+ Name : Arm2 NP Noz2 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 135 (a position, not an identity)
+
+ Id : 136
+ Name : Arm2 NP Noz2 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 136 (a position, not an identity)
+
+ Id : 137
+ Name : Arm2 NP Noz2 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 137 (a position, not an identity)
+
+ Id : 138
+ Name : Arm2 NP Noz2 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 138 (a position, not an identity)
+
+ Id : 139
+ Name : Arm2 NP Noz2 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 139 (a position, not an identity)
+
+ Id : 140
+ Name : Arm2 NP Noz3 Chemical Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 140 (a position, not an identity)
+
+ Id : 141
+ Name : Arm2 NP Noz3 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 141 (a position, not an identity)
+
+ Id : 142
+ Name : Arm2 NP Noz3 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 142 (a position, not an identity)
+
+ Id : 143
+ Name : Arm2 NP Noz3 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 143 (a position, not an identity)
+
+ Id : 144
+ Name : Arm2 NP Noz3 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 144 (a position, not an identity)
+
+ Id : 145
+ Name : Arm2 NP Noz3 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 145 (a position, not an identity)
+
+ Id : 146
+ Name : Arm2 NP Noz3 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 146 (a position, not an identity)
+
+ Id : 147
+ Name : Arm2 NP Drain Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 147 (a position, not an identity)
+
+ Id : 148
+ Name : Arm2 Nozzle Preflush Enable (the metadata name, not the PLC variable)
+ DataType : Boolean
+ Unit :
+ RawValue : FALSE
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 148 (a position, not an identity)
+
+ Id : 149
+ Name : Arm2 Nozzle Preflush Idle Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 149 (a position, not an identity)
+
+ Id : 150
+ Name : Arm2 Noz Preflush Flush Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 150 (a position, not an identity)
+
+ Id : 151
+ Name : Arm2 Nozzle Preflush Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 151 (a position, not an identity)
+
+ Id : 152
+ Name : Arm2 Nozzle Clean Idle Enable (the metadata name, not the PLC variable)
+ DataType : Boolean
+ Unit :
+ RawValue : FALSE
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 152 (a position, not an identity)
+
+ Id : 153
+ Name : Arm2 Nozzle Clean Idle Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 153 (a position, not an identity)
+
+ Id : 154
+ Name : Arm2 Noz Clean Wafer Count En (the metadata name, not the PLC variable)
+ DataType : Boolean
+ Unit :
+ RawValue : FALSE
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 154 (a position, not an identity)
+
+ Id : 155
+ Name : Arm2 Nozzle Clean Wafer Count (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 155 (a position, not an identity)
+
+ Id : 156
+ Name : Arm2 Noz Clean Noz1 Sup Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 156 (a position, not an identity)
+
+ Id : 157
+ Name : Arm2 Noz Clean Noz2 Sup Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 157 (a position, not an identity)
+
+ Id : 158
+ Name : Arm2 Noz Clean Noz3 Sup Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 158 (a position, not an identity)
+
+ Id : 159
+ Name : Arm2 Nozzle Clean Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 159 (a position, not an identity)
+
+ Id : 160
+ Name : Arm2 Arm Test Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 160 (a position, not an identity)
+
+ Id : 161
+ Name : Arm2 Arm Align Test Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 161 (a position, not an identity)
+
+ Id : 162
+ Name : Arm3 Lift Speed (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 162 (a position, not an identity)
+
+ Id : 163
+ Name : Arm3 Lift Speed (Jog) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 163 (a position, not an identity)
+
+ Id : 164
+ Name : Arm3 Lift Acc (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 164 (a position, not an identity)
+
+ Id : 165
+ Name : Arm3 Lift Dec (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 165 (a position, not an identity)
+
+ Id : 166
+ Name : Arm3 Lift Positive Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 166 (a position, not an identity)
+
+ Id : 167
+ Name : Arm3 Lift Negative Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 167 (a position, not an identity)
+
+ Id : 168
+ Name : Arm3 Lift Top Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 168 (a position, not an identity)
+
+ Id : 169
+ Name : Arm3 Lift Down Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 169 (a position, not an identity)
+
+ Id : 170
+ Name : Arm3 Lift Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 170 (a position, not an identity)
+
+ Id : 171
+ Name : Arm3 Rotate Speed (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 171 (a position, not an identity)
+
+ Id : 172
+ Name : Arm3 Rotate Speed (Jog) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 172 (a position, not an identity)
+
+ Id : 173
+ Name : Arm3 Rotate Feedrate (the metadata name, not the PLC variable)
+ DataType : Float32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 173 (a position, not an identity)
+
+ Id : 174
+ Name : Arm3 Rotate Acc (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg/s^2
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 174 (a position, not an identity)
+
+ Id : 175
+ Name : Arm3 Rotate Dec (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg/s^2
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 175 (a position, not an identity)
+
+ Id : 176
+ Name : Arm3 Rotate Pos Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 176 (a position, not an identity)
+
+ Id : 177
+ Name : Arm3 Rotate Neg Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 177 (a position, not an identity)
+
+ Id : 178
+ Name : Arm3 Rotate Nozzle Port Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 178 (a position, not an identity)
+
+ Id : 179
+ Name : Arm3 Rotate Noz1 Center Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 179 (a position, not an identity)
+
+ Id : 180
+ Name : Arm3 Rotate Noz2 Center Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 180 (a position, not an identity)
+
+ Id : 181
+ Name : Arm3 Rotate Timeout (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 181 (a position, not an identity)
+
+ Id : 182
+ Name : Arm3 Nozzle1 Chemical Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 182 (a position, not an identity)
+
+ Id : 183
+ Name : Arm3 Nozzle1 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 183 (a position, not an identity)
+
+ Id : 184
+ Name : Arm3 Nozzle1 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 184 (a position, not an identity)
+
+ Id : 185
+ Name : Arm3 Nozzle1 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 185 (a position, not an identity)
+
+ Id : 186
+ Name : Arm3 Nozzle1 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 186 (a position, not an identity)
+
+ Id : 187
+ Name : Arm3 Nozzle1 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 187 (a position, not an identity)
+
+ Id : 188
+ Name : Arm3 Nozzle1 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 188 (a position, not an identity)
+
+ Id : 189
+ Name : Arm3 Nozzle2 Chemical Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 189 (a position, not an identity)
+
+ Id : 190
+ Name : Arm3 Nozzle2 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 190 (a position, not an identity)
+
+ Id : 191
+ Name : Arm3 Nozzle2 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 191 (a position, not an identity)
+
+ Id : 192
+ Name : Arm3 Nozzle2 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 192 (a position, not an identity)
+
+ Id : 193
+ Name : Arm3 Nozzle2 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 193 (a position, not an identity)
+
+ Id : 194
+ Name : Arm3 Nozzle2 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 194 (a position, not an identity)
+
+ Id : 195
+ Name : Arm3 Nozzle2 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 195 (a position, not an identity)
+
+ Id : 196
+ Name : Arm3 NP Noz1 Chemical Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 196 (a position, not an identity)
+
+ Id : 197
+ Name : Arm3 NP Noz1 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 197 (a position, not an identity)
+
+ Id : 198
+ Name : Arm3 NP Noz1 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 198 (a position, not an identity)
+
+ Id : 199
+ Name : Arm3 NP Noz1 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 199 (a position, not an identity)
+
+ Id : 200
+ Name : Arm3 NP Noz1 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 200 (a position, not an identity)
+
+ Id : 201
+ Name : Arm3 NP Noz1 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 201 (a position, not an identity)
+
+ Id : 202
+ Name : Arm3 NP Noz1 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 202 (a position, not an identity)
+
+ Id : 203
+ Name : Arm3 NP Noz2 Chemical Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 203 (a position, not an identity)
+
+ Id : 204
+ Name : Arm3 NP Noz2 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 204 (a position, not an identity)
+
+ Id : 205
+ Name : Arm3 NP Noz2 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 205 (a position, not an identity)
+
+ Id : 206
+ Name : Arm3 NP Noz2 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 206 (a position, not an identity)
+
+ Id : 207
+ Name : Arm3 NP Noz2 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 207 (a position, not an identity)
+
+ Id : 208
+ Name : Arm3 NP Noz2 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 208 (a position, not an identity)
+
+ Id : 209
+ Name : Arm3 NP Noz2 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 209 (a position, not an identity)
+
+ Id : 210
+ Name : Arm3 NP Drain Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 210 (a position, not an identity)
+
+ Id : 211
+ Name : Arm3 Nozzle Preflush Enable (the metadata name, not the PLC variable)
+ DataType : Boolean
+ Unit :
+ RawValue : FALSE
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 211 (a position, not an identity)
+
+ Id : 212
+ Name : Arm3 Nozzle Preflush Idle Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 212 (a position, not an identity)
+
+ Id : 213
+ Name : Arm3 Noz Preflush Flush Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 213 (a position, not an identity)
+
+ Id : 214
+ Name : Arm3 Nozzle Preflush Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 214 (a position, not an identity)
+
+ Id : 215
+ Name : Arm3 Nozzle Clean Idle Enable (the metadata name, not the PLC variable)
+ DataType : Boolean
+ Unit :
+ RawValue : FALSE
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 215 (a position, not an identity)
+
+ Id : 216
+ Name : Arm3 Nozzle Clean Idle Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 216 (a position, not an identity)
+
+ Id : 217
+ Name : Arm3 Noz Clean Wafer Count En (the metadata name, not the PLC variable)
+ DataType : Boolean
+ Unit :
+ RawValue : FALSE
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 217 (a position, not an identity)
+
+ Id : 218
+ Name : Arm3 Nozzle Clean Wafer Count (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 218 (a position, not an identity)
+
+ Id : 219
+ Name : Arm3 Noz Clean Noz1 Sup Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 219 (a position, not an identity)
+
+ Id : 220
+ Name : Arm3 Noz Clean Noz2 Sup Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 220 (a position, not an identity)
+
+ Id : 221
+ Name : Arm3 Nozzle Clean Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 221 (a position, not an identity)
+
+ Id : 222
+ Name : Arm3 Arm Test Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 222 (a position, not an identity)
+
+ Id : 223
+ Name : Arm3 Arm Align Test Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 223 (a position, not an identity)
+
+ Id : 224
+ Name : Arm4 Lift Speed (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 224 (a position, not an identity)
+
+ Id : 225
+ Name : Arm4 Lift Speed (Jog) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 225 (a position, not an identity)
+
+ Id : 226
+ Name : Arm4 Lift Acc (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 226 (a position, not an identity)
+
+ Id : 227
+ Name : Arm4 Lift Dec (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 227 (a position, not an identity)
+
+ Id : 228
+ Name : Arm4 Lift Positive Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 228 (a position, not an identity)
+
+ Id : 229
+ Name : Arm4 Lift Negative Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 229 (a position, not an identity)
+
+ Id : 230
+ Name : Arm4 Lift Top Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 230 (a position, not an identity)
+
+ Id : 231
+ Name : Arm4 Lift Down Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 231 (a position, not an identity)
+
+ Id : 232
+ Name : Arm4 Lift Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 232 (a position, not an identity)
+
+ Id : 233
+ Name : Arm4 Rotate Speed (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 233 (a position, not an identity)
+
+ Id : 234
+ Name : Arm4 Rotate Speed (Jog) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 234 (a position, not an identity)
+
+ Id : 235
+ Name : Arm4 Rotate Feedrate (the metadata name, not the PLC variable)
+ DataType : Float32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 235 (a position, not an identity)
+
+ Id : 236
+ Name : Arm4 Rotate Acc (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg/s^2
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 236 (a position, not an identity)
+
+ Id : 237
+ Name : Arm4 Rotate Dec (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg/s^2
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 237 (a position, not an identity)
+
+ Id : 238
+ Name : Arm4 Rotate Pos Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 238 (a position, not an identity)
+
+ Id : 239
+ Name : Arm4 Rotate Neg Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 239 (a position, not an identity)
+
+ Id : 240
+ Name : Arm4 Rotate Nozzle Port Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 240 (a position, not an identity)
+
+ Id : 241
+ Name : Arm4 Rotate Noz1 Center Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 241 (a position, not an identity)
+
+ Id : 242
+ Name : Arm4 Rotate Timeout (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 242 (a position, not an identity)
+
+ Id : 243
+ Name : Arm4 Nozzle1 Chemical Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 243 (a position, not an identity)
+
+ Id : 244
+ Name : Arm4 Nozzle1 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 244 (a position, not an identity)
+
+ Id : 245
+ Name : Arm4 Nozzle1 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 245 (a position, not an identity)
+
+ Id : 246
+ Name : Arm4 Nozzle1 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 246 (a position, not an identity)
+
+ Id : 247
+ Name : Arm4 Nozzle1 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 247 (a position, not an identity)
+
+ Id : 248
+ Name : Arm4 Nozzle1 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 248 (a position, not an identity)
+
+ Id : 249
+ Name : Arm4 Nozzle1 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 249 (a position, not an identity)
+
+ Id : 250
+ Name : Arm4 NP Noz1 Chemical Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 250 (a position, not an identity)
+
+ Id : 251
+ Name : Arm4 NP Noz1 Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 251 (a position, not an identity)
+
+ Id : 252
+ Name : Arm4 NP Noz1 Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 252 (a position, not an identity)
+
+ Id : 253
+ Name : Arm4 NP Noz1 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 253 (a position, not an identity)
+
+ Id : 254
+ Name : Arm4 NP Noz1 Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 254 (a position, not an identity)
+
+ Id : 255
+ Name : Arm4 NP Noz1 Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 255 (a position, not an identity)
+
+ Id : 256
+ Name : Arm4 NP Noz1 Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 256 (a position, not an identity)
+
+ Id : 257
+ Name : Arm4 NP Drain Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 257 (a position, not an identity)
+
+ Id : 258
+ Name : Arm4 Nozzle Preflush Enable (the metadata name, not the PLC variable)
+ DataType : Boolean
+ Unit :
+ RawValue : FALSE
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 258 (a position, not an identity)
+
+ Id : 259
+ Name : Arm4 Nozzle Preflush Idle Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 259 (a position, not an identity)
+
+ Id : 260
+ Name : Arm4 Noz Preflush Flush Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 260 (a position, not an identity)
+
+ Id : 261
+ Name : Arm4 Nozzle Preflush Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 261 (a position, not an identity)
+
+ Id : 262
+ Name : Arm4 Nozzle Clean Idle Enable (the metadata name, not the PLC variable)
+ DataType : Boolean
+ Unit :
+ RawValue : FALSE
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 262 (a position, not an identity)
+
+ Id : 263
+ Name : Arm4 Nozzle Clean Idle Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 263 (a position, not an identity)
+
+ Id : 264
+ Name : Arm4 Noz Clean Wafer Count En (the metadata name, not the PLC variable)
+ DataType : Boolean
+ Unit :
+ RawValue : FALSE
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 264 (a position, not an identity)
+
+ Id : 265
+ Name : Arm4 Nozzle Clean Wafer Count (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 265 (a position, not an identity)
+
+ Id : 266
+ Name : Arm4 Noz Clean Noz1 Sup Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 266 (a position, not an identity)
+
+ Id : 267
+ Name : Arm4 Nozzle Clean Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 267 (a position, not an identity)
+
+ Id : 268
+ Name : Arm4 Arm Test Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 268 (a position, not an identity)
+
+ Id : 269
+ Name : Arm4 Arm Align Test Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 269 (a position, not an identity)
+
+ Id : 270
+ Name : Cup1 Speed (Jog) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 270 (a position, not an identity)
+
+ Id : 271
+ Name : Cup1 Speed (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 271 (a position, not an identity)
+
+ Id : 272
+ Name : Cup1 Acc (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s^2
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 272 (a position, not an identity)
+
+ Id : 273
+ Name : Cup1 Dec (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s^3
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 273 (a position, not an identity)
+
+ Id : 274
+ Name : Cup1 Positive Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 274 (a position, not an identity)
+
+ Id : 275
+ Name : Cup1 Negative Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 275 (a position, not an identity)
+
+ Id : 276
+ Name : Cup1 Top Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 276 (a position, not an identity)
+
+ Id : 277
+ Name : Cup1 Down Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 277 (a position, not an identity)
+
+ Id : 278
+ Name : Cup1 Middle Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 278 (a position, not an identity)
+
+ Id : 279
+ Name : Cup1 Timeout Alarm (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 279 (a position, not an identity)
+
+ Id : 280
+ Name : Cup1 Timeout Warning (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 280 (a position, not an identity)
+
+ Id : 281
+ Name : Cup1 Drain Select Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 281 (a position, not an identity)
+
+ Id : 282
+ Name : Cup2 Speed (Jog) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 282 (a position, not an identity)
+
+ Id : 283
+ Name : Cup2 Speed (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 283 (a position, not an identity)
+
+ Id : 284
+ Name : Cup2 Acc (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s^2
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 284 (a position, not an identity)
+
+ Id : 285
+ Name : Cup2 Dec (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s^3
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 285 (a position, not an identity)
+
+ Id : 286
+ Name : Cup2 Positive Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 286 (a position, not an identity)
+
+ Id : 287
+ Name : Cup2 Negative Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 287 (a position, not an identity)
+
+ Id : 288
+ Name : Cup2 Top Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 288 (a position, not an identity)
+
+ Id : 289
+ Name : Cup2 Down Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 289 (a position, not an identity)
+
+ Id : 290
+ Name : Cup2 Middle Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 290 (a position, not an identity)
+
+ Id : 291
+ Name : Cup2 Timeout Alarm (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 291 (a position, not an identity)
+
+ Id : 292
+ Name : Cup2 Timeout Warning (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 292 (a position, not an identity)
+
+ Id : 293
+ Name : Cup2 Drain Select Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 293 (a position, not an identity)
+
+ Id : 294
+ Name : Cup3 Speed (Jog) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 294 (a position, not an identity)
+
+ Id : 295
+ Name : Cup3 Speed (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 295 (a position, not an identity)
+
+ Id : 296
+ Name : Cup3 Acc (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s^2
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 296 (a position, not an identity)
+
+ Id : 297
+ Name : Cup3 Dec (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s^3
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 297 (a position, not an identity)
+
+ Id : 298
+ Name : Cup3 Positive Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 298 (a position, not an identity)
+
+ Id : 299
+ Name : Cup3 Negative Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 299 (a position, not an identity)
+
+ Id : 300
+ Name : Cup3 Top Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 300 (a position, not an identity)
+
+ Id : 301
+ Name : Cup3 Down Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 301 (a position, not an identity)
+
+ Id : 302
+ Name : Cup3 Middle Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 302 (a position, not an identity)
+
+ Id : 303
+ Name : Cup3 Timeout Alarm (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 303 (a position, not an identity)
+
+ Id : 304
+ Name : Cup3 Timeout Warning (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 304 (a position, not an identity)
+
+ Id : 305
+ Name : Cup3 Drain Select Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 305 (a position, not an identity)
+
+ Id : 306
+ Name : Cup4 Speed (Jog) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 306 (a position, not an identity)
+
+ Id : 307
+ Name : Cup4 Speed (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 307 (a position, not an identity)
+
+ Id : 308
+ Name : Cup4 Acc (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s^2
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 308 (a position, not an identity)
+
+ Id : 309
+ Name : Cup4 Dec (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s^3
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 309 (a position, not an identity)
+
+ Id : 310
+ Name : Cup4 Positive Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 310 (a position, not an identity)
+
+ Id : 311
+ Name : Cup4 Negative Limit Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 311 (a position, not an identity)
+
+ Id : 312
+ Name : Cup4 Top Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 312 (a position, not an identity)
+
+ Id : 313
+ Name : Cup4 Down Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 313 (a position, not an identity)
+
+ Id : 314
+ Name : Cup4 Middle Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 314 (a position, not an identity)
+
+ Id : 315
+ Name : Cup4 Timeout Alarm (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 315 (a position, not an identity)
+
+ Id : 316
+ Name : Cup4 Timeout Warning (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 316 (a position, not an identity)
+
+ Id : 317
+ Name : Cup4 Drain Select Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 317 (a position, not an identity)
+
+ Id : 318
+ Name : Holder Rotate Speed (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 318 (a position, not an identity)
+
+ Id : 319
+ Name : Holder Rotate Acc (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg/s^2
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 319 (a position, not an identity)
+
+ Id : 320
+ Name : Holder Rotate Dec (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg/s^2
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 320 (a position, not an identity)
+
+ Id : 321
+ Name : Holder Rotate Timeout (OPR) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 321 (a position, not an identity)
+
+ Id : 322
+ Name : Holder Rotate Timeout (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 322 (a position, not an identity)
+
+ Id : 323
+ Name : Holder Rotate Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 323 (a position, not an identity)
+
+ Id : 324
+ Name : Holder Rotate Speed +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 324 (a position, not an identity)
+
+ Id : 325
+ Name : Holder Rotate Speed -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 325 (a position, not an identity)
+
+ Id : 326
+ Name : Holder Lift Speed (Jog) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 326 (a position, not an identity)
+
+ Id : 327
+ Name : Holder Lift Speed (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm/s
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 327 (a position, not an identity)
+
+ Id : 328
+ Name : Holder Lift Top Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 328 (a position, not an identity)
+
+ Id : 329
+ Name : Holder Lift Down Pos (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : mm
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 329 (a position, not an identity)
+
+ Id : 330
+ Name : Holder Lift Timeout (Normal) (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 330 (a position, not an identity)
+
+ Id : 331
+ Name : Holder Gripper Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 331 (a position, not an identity)
+
+ Id : 332
+ Name : FixNozzle1 Chemical Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 332 (a position, not an identity)
+
+ Id : 333
+ Name : FixNozzle1 Chem Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 333 (a position, not an identity)
+
+ Id : 334
+ Name : FixNozzle1 Chem Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 334 (a position, not an identity)
+
+ Id : 335
+ Name : FixNozzle1 Chemical Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 335 (a position, not an identity)
+
+ Id : 336
+ Name : FixNozzle1 Chem Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 336 (a position, not an identity)
+
+ Id : 337
+ Name : FixNoz1 Chem Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 337 (a position, not an identity)
+
+ Id : 338
+ Name : FixNoz1 Chem Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 338 (a position, not an identity)
+
+ Id : 339
+ Name : FixNozzle2 Chemical Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 339 (a position, not an identity)
+
+ Id : 340
+ Name : FixNozzle2 Chem Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 340 (a position, not an identity)
+
+ Id : 341
+ Name : FixNozzle2 Chem Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 341 (a position, not an identity)
+
+ Id : 342
+ Name : FixNozzle2 Chemical Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 342 (a position, not an identity)
+
+ Id : 343
+ Name : FixNozzle2 Chem Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 343 (a position, not an identity)
+
+ Id : 344
+ Name : FixNoz2 Chem Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 344 (a position, not an identity)
+
+ Id : 345
+ Name : FixNoz2 Chem Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 345 (a position, not an identity)
+
+ Id : 346
+ Name : FixNozzle3 Chemical Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 346 (a position, not an identity)
+
+ Id : 347
+ Name : FixNozzle3 Chem Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 347 (a position, not an identity)
+
+ Id : 348
+ Name : FixNozzle3 Chem Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 348 (a position, not an identity)
+
+ Id : 349
+ Name : FixNozzle3 Chemical Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 349 (a position, not an identity)
+
+ Id : 350
+ Name : FixNozzle3 Chem Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 350 (a position, not an identity)
+
+ Id : 351
+ Name : FixNoz3 Chem Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 351 (a position, not an identity)
+
+ Id : 352
+ Name : FixNoz3 Chem Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 352 (a position, not an identity)
+
+ Id : 353
+ Name : FixNozzle4 Chemical Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 353 (a position, not an identity)
+
+ Id : 354
+ Name : FixNozzle4 Chem Flow Offset (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : %
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 354 (a position, not an identity)
+
+ Id : 355
+ Name : FixNozzle4 Chem Suckback Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 355 (a position, not an identity)
+
+ Id : 356
+ Name : FixNozzle4 Chemical Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 356 (a position, not an identity)
+
+ Id : 357
+ Name : FixNozzle4 Chem Stable Time (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 357 (a position, not an identity)
+
+ Id : 358
+ Name : FixNoz4 Chem Flow +Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 358 (a position, not an identity)
+
+ Id : 359
+ Name : FixNoz4 Chem Flow -Dev Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ml/sec
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 359 (a position, not an identity)
+
+ Id : 360
+ Name : Outside Ring Lift Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 360 (a position, not an identity)
+
+ Id : 361
+ Name : Outside Ring Rotate Speed (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 361 (a position, not an identity)
+
+ Id : 362
+ Name : Outside Ring Rotate Acc (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg/s^2
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 362 (a position, not an identity)
+
+ Id : 363
+ Name : Outside Ring Rotate Dec (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : deg/s^2
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 363 (a position, not an identity)
+
+ Id : 364
+ Name : Shutter Timeout (the metadata name, not the PLC variable)
+ DataType : Float32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 364 (a position, not an identity)
+
+ Id : 365
+ Name : ExhaustFan1 Target Pressure (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : Pa
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 365 (a position, not an identity)
+
+ Id : 366
+ Name : ExhFan1 Rotate Max Speed Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 366 (a position, not an identity)
+
+ Id : 367
+ Name : ExhaustFan1 Tolerance (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : Pa
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 367 (a position, not an identity)
+
+ Id : 368
+ Name : ExhaustFan1 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 368 (a position, not an identity)
+
+ Id : 369
+ Name : ExhaustFan2 Target Pressure (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : Pa
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 369 (a position, not an identity)
+
+ Id : 370
+ Name : ExhFan2 Rotate Max Speed Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 370 (a position, not an identity)
+
+ Id : 371
+ Name : ExhaustFan2 Tolerance (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : Pa
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 371 (a position, not an identity)
+
+ Id : 372
+ Name : ExhaustFan2 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 372 (a position, not an identity)
+
+ Id : 373
+ Name : ExhaustFan3 Target Pressure (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : Pa
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 373 (a position, not an identity)
+
+ Id : 374
+ Name : ExhFan3 Rotate Max Speed Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 374 (a position, not an identity)
+
+ Id : 375
+ Name : ExhaustFan3 Tolerance (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : Pa
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 375 (a position, not an identity)
+
+ Id : 376
+ Name : ExhaustFan3 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 376 (a position, not an identity)
+
+ Id : 377
+ Name : ExhaustFan4 Target Pressure (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : Pa
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 377 (a position, not an identity)
+
+ Id : 378
+ Name : ExhFan4 Rotate Max Speed Limit (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 378 (a position, not an identity)
+
+ Id : 379
+ Name : ExhaustFan4 Tolerance (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : Pa
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 379 (a position, not an identity)
+
+ Id : 380
+ Name : ExhaustFan4 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 380 (a position, not an identity)
+
+ Id : 381
+ Name : Exhaust Damper Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 381 (a position, not an identity)
+
+ Id : 382
+ Name : SideVent1 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 382 (a position, not an identity)
+
+ Id : 383
+ Name : SideVent2 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 383 (a position, not an identity)
+
+ Id : 384
+ Name : SideVent3 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 384 (a position, not an identity)
+
+ Id : 385
+ Name : SideVent4 Timeout (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : ms
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 385 (a position, not an identity)
+
+ Id : 386
+ Name : FFU Speed (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit : RPM
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 386 (a position, not an identity)
+
+ Id : 387
+ Name : FFU Pressure +Limit (the metadata name, not the PLC variable)
+ DataType : Float32
+ Unit : Pa
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 387 (a position, not an identity)
+
+ Id : 388
+ Name : FFU Pressure -Limit (the metadata name, not the PLC variable)
+ DataType : Float32
+ Unit : Pa
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 388 (a position, not an identity)
+
+ Id : 389
+ Name : Table Drainer 1 ToFac SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 389 (a position, not an identity)
+
+ Id : 390
+ Name : Table Drainer 1 Return SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 390 (a position, not an identity)
+
+ Id : 391
+ Name : Table Drainer 2 ToFac SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 391 (a position, not an identity)
+
+ Id : 392
+ Name : Table Drainer 2 Return SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 392 (a position, not an identity)
+
+ Id : 393
+ Name : Table Drainer 3 ToFac SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 393 (a position, not an identity)
+
+ Id : 394
+ Name : Table Drainer 3 Return SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 394 (a position, not an identity)
+
+ Id : 395
+ Name : Table Drainer 4 ToFac SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 395 (a position, not an identity)
+
+ Id : 396
+ Name : Table Drainer 4 Return SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 396 (a position, not an identity)
+
+ Id : 397
+ Name : Table Drainer 5 ToFac SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 397 (a position, not an identity)
+
+ Id : 398
+ Name : Table Drainer 5 Return SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 398 (a position, not an identity)
+
+ Id : 399
+ Name : Table Drainer 6 ToFac SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 399 (a position, not an identity)
+
+ Id : 400
+ Name : Table Drainer 6 Return SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 400 (a position, not an identity)
+
+ Id : 401
+ Name : Table Drainer 7 ToFac SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 401 (a position, not an identity)
+
+ Id : 402
+ Name : Table Drainer 7 Return SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 402 (a position, not an identity)
+
+ Id : 403
+ Name : Table Drainer 8 ToFac SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 403 (a position, not an identity)
+
+ Id : 404
+ Name : Table Drainer 8 Return SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 404 (a position, not an identity)
+
+ Id : 405
+ Name : Table Drainer 9 ToFac SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 405 (a position, not an identity)
+
+ Id : 406
+ Name : Table Drainer 9 Return SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 406 (a position, not an identity)
+
+ Id : 407
+ Name : Table Drainer 10 ToFac SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 407 (a position, not an identity)
+
+ Id : 408
+ Name : Table Drainer 10 Return SvcId (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 408 (a position, not an identity)
+
+ Id : 409
+ Name : Table Chemical 1 Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 409 (a position, not an identity)
+
+ Id : 410
+ Name : Table Chem 1 Related Cup Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 410 (a position, not an identity)
+
+ Id : 411
+ Name : Table Chem 1 Rel Drainer Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 411 (a position, not an identity)
+
+ Id : 412
+ Name : Table Chemical 2 Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 412 (a position, not an identity)
+
+ Id : 413
+ Name : Table Chem 2 Related Cup Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 413 (a position, not an identity)
+
+ Id : 414
+ Name : Table Chem 2 Rel Drainer Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 414 (a position, not an identity)
+
+ Id : 415
+ Name : Table Chemical 3 Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 415 (a position, not an identity)
+
+ Id : 416
+ Name : Table Chem 3 Related Cup Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 416 (a position, not an identity)
+
+ Id : 417
+ Name : Table Chem 3 Rel Drainer Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 417 (a position, not an identity)
+
+ Id : 418
+ Name : Table Chemical 4 Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 418 (a position, not an identity)
+
+ Id : 419
+ Name : Table Chem 4 Related Cup Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 419 (a position, not an identity)
+
+ Id : 420
+ Name : Table Chem 4 Rel Drainer Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 420 (a position, not an identity)
+
+ Id : 421
+ Name : Table Chemical 5 Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 421 (a position, not an identity)
+
+ Id : 422
+ Name : Table Chem 5 Related Cup Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 422 (a position, not an identity)
+
+ Id : 423
+ Name : Table Chem 5 Rel Drainer Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 423 (a position, not an identity)
+
+ Id : 424
+ Name : Table Chemical 6 Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 424 (a position, not an identity)
+
+ Id : 425
+ Name : Table Chem 6 Related Cup Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 425 (a position, not an identity)
+
+ Id : 426
+ Name : Table Chem 6 Rel Drainer Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 426 (a position, not an identity)
+
+ Id : 427
+ Name : Table Chemical 7 Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 427 (a position, not an identity)
+
+ Id : 428
+ Name : Table Chem 7 Related Cup Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 428 (a position, not an identity)
+
+ Id : 429
+ Name : Table Chem 7 Rel Drainer Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 429 (a position, not an identity)
+
+ Id : 430
+ Name : Table Chemical 8 Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 430 (a position, not an identity)
+
+ Id : 431
+ Name : Table Chem 8 Related Cup Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 431 (a position, not an identity)
+
+ Id : 432
+ Name : Table Chem 8 Rel Drainer Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 432 (a position, not an identity)
+
+ Id : 433
+ Name : Table Chemical 9 Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 433 (a position, not an identity)
+
+ Id : 434
+ Name : Table Chem 9 Related Cup Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 434 (a position, not an identity)
+
+ Id : 435
+ Name : Table Chem 9 Rel Drainer Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 435 (a position, not an identity)
+
+ Id : 436
+ Name : Table Chemical 10 Name (the metadata name, not the PLC variable)
+ DataType : String80
+ Unit :
+ RawValue :
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 436 (a position, not an identity)
+
+ Id : 437
+ Name : Table Chem 10 Related Cup Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 437 (a position, not an identity)
+
+ Id : 438
+ Name : Table Chem 10 Rel Drainer Idx (the metadata name, not the PLC variable)
+ DataType : Int32
+ Unit :
+ RawValue : 0
+ IsBound : True
+ HasLimits : False
+ LowerLimit : 0
+ UpperLimit : 0
+ SlotIndex : 438 (a position, not an identity)
+
+Press Enter to continue.
+
+
+== Lists and CSV recording (manual ch 11) ==
+
+Module : GVL_Module.Chamber_Control[1] id=1 client=Ready gen=1 state=Stopped mode=Unknown (at open)
+
+ [1] Alarms.AcquireCurrent and ReadAsync
+ [2] Alarms.Start, Raised, Cleared, Stop
+ [3] ModuleVariables.ReadAsync
+ [4] ModuleVariables.Start, Changed, Watch, Stop
+ [5] ModuleData.ReadAsync
+ [6] ModuleData.Start, Changed, Watch, Stop
+ [7] ModuleConfigParams.ReadAsync
+ [8] ModuleConfigParams.Start, Changed, Watch, Stop
+ [9] Recorder.Create and record to CSV
+
+ [B] Back
+
+Select:B
+
+== Top menu ==
+
+Module : GVL_Module.Chamber_Control[1] id=1 client=Ready gen=1 state=Stopped mode=Unknown (at open)
+
+ [6] Discovery and binding (manual ch 6)
+ [7] Connection and lifecycle (manual ch 7)
+ [8] Module commands (manual ch 8)
+ [9] Service operations (manual ch 9)
+ [A] Status and events (manual ch 10)
+ [B] Lists and CSV recording (manual ch 11)
+ [C] Diagnostics and logging (manual ch 12)
+ [D] Results versus exceptions (manual ch 13)
+
+ [Q] Quit
+
+Select:Q
+ > _module.DiagnosticsFaulted -= OnModuleDiagnosticsFaulted
+ > _module.Dispose()
+ > _transport.Dispose()
+ > _collector.Dispose()

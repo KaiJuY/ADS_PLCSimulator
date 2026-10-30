@@ -1,0 +1,15 @@
+expect Select:
+send B
+expect Select:
+send 3
+expect (Press Enter to continue|Select:)
+send 
+expect Select:
+send 7
+expect (Press Enter to continue|Select:)
+send 
+expect Select:
+send B
+expect Select:
+send Q
+sleep 500
