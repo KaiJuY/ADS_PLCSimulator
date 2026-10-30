@@ -7,6 +7,7 @@
 projects/<Project>/plc/*.st|*.TcDUT|*.TcGVL|*.TcPOU   ── Layer 1：資料結構（ST 宣告語法）
 projects/<Project>/workflows/*.flow.json              ── Layer 2：讀寫後的行為（節點圖）
 projects/<Project>/simulation/                        ── 等角模擬畫面（anatomy kit）
+projects/<Project>/config/module-config.json          ── 選用：Run 時發布 module 身分、SVID、ECID
 ```
 
 ## 執行
@@ -45,6 +46,8 @@ Host 啟動時預設**不載入任何專案**（Stopped，不註冊 ADS port）�
 ```powershell
 dotnet run --project src/AdsPlcSimulator.Host -- --Simulator:ProjectPath=../../projects/Polar2Chamber
 ```
+
+專案有 `config/module-config.json`（`schemaVersion` 4，格式同真 PLC 的 framework 設定檔）時，Run 會在載入 workflow 之前，把 `enabled` 為 true 的 module 的 `ModuleId`、`Enabled`、`ModuleType`、`ModuleVariableList`（SVID）、`ModuleConfigParamList`（ECID）寫入 `GVL_Module.Chamber_Control`；沒有這個檔案就不發布。設定檔無效、slot 超出陣列、清單超過陣列長度、名稱超過欄位長度時，Run 失敗並指出原因，不寫入任何東西。
 
 Polar2Chamber 的內容與維護方式見 [projects/Polar2Chamber/README.md](projects/Polar2Chamber/README.md)。
 

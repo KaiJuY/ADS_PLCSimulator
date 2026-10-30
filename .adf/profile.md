@@ -12,7 +12,7 @@ The scripts read `.adf/profile.json`. Keep both files in step.
 | Target frameworks | net9.0 (all three projects) |
 | Main framework (development gates) | net9.0 |
 | Release frameworks | net9.0 |
-| Expected test count | 470 on 2026-10-30 (net9.0; #6) |
+| Expected test count | 508 on 2026-10-30 (net9.0; #7) |
 | Full suite time | about 1 minute with coverage (net9.0) |
 
 ## Known load-dependent tests
@@ -46,6 +46,7 @@ The scripts read `.adf/profile.json`. Keep both files in step.
 - `projects/**` (sample PLC project data and the generated simulation page)
 
 ## Project traps
+- 2026-10-30: Polar2Chamber sets `MaxConfigParamPerModule` to 500 (real PLC: 300), so `Chamber_Control` is 12966720 bytes and offsets differ from 854; use symbol names, not fixed offsets. Run publishes `config/module-config.json` before the workflows start (64 SVIDs, 438 ECIDs for slot 1); an invalid config fails the Run (#7).
 - 2026-10-29: The local TwinCAT runtime answers on AMS 851 and 852 (another PLC). Run the simulator on 25860 for stage I; never send commands to 851/852.
 - 2026-10-30: Default `Ads:Port` is 25860 since #5. Still pass `--Ads:Port=25860` explicitly when starting the Host. The gate script's Stryker `since` filter can test 0 mutants (it reports PASS anyway); check the mutant count in stryker.log, and pass a branch name, not a short SHA, as the base. The CRAP baseline is from bda9b8a; PlcProgramBuilder type complexity is 208 since #1.
 - 2026-10-30: Deleting a handle-based ADS notification makes the .NET `AdsClient` release that handle too, and a raw `0xF006` release bypasses the client's handle cache. Use a fresh handle per case in ADS measurements and tests, or the result describes a released handle.
