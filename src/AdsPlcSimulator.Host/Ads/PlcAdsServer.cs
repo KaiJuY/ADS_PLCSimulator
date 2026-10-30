@@ -131,7 +131,7 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         if (!TryResolveHandle(handle, out int offset, out int size))
             return base.OnReadAsync(sender, invokeId, VariableHandleIndexGroup, handle, readLength, cancel);
 
-        return Task.FromResult(ResultReadBytes.CreateSuccess(_image.Read(offset, Math.Min(Math.Max(readLength, 0), size))));
+        return Task.FromResult(ResultReadBytes.CreateSuccess(_image.Read(offset, (int)Math.Min((uint)readLength, (uint)size))));
     }
 
     protected override Task<ResultWrite> OnWriteAsync(AmsAddress sender, uint invokeId, uint indexGroup, uint indexOffset, ReadOnlyMemory<byte> writeData, CancellationToken cancel)
@@ -238,6 +238,7 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
 
             lock (_subscriptionLock)
                 _subscriptions.Clear();
+            _notifyStop.Dispose();
         }
 
         base.Dispose(disposing);
