@@ -1,0 +1,20 @@
+time	stage	decision	why	evidence	result
+2026-10-30T21:18:18+0800	A	Q1 拆 2 個 issue、Q2 只做機制、Q3 兩個節點、Q4 A 設定檔 alarmList、R1 A 引擎放 service.host、R2 用 853、R3 A 不做 Editor 面板、R4 A 853 可寫 AlarmAckRequest/SetConfigParam/HeartbeatIndex、R5–R7 A	Allen 逐輪決定；Ack 原則由 Allen 說明	FB_ModuleAlarmManager.TcPOU；853 唯讀量測（slot 1 enabled、無 alarm）	issue #12
+2026-10-30T21:18:18+0800	A	concept check：need 3 major 反駁（Allen Q3/Q4 決定）、2 minor 修正；fit 5 major：lock、schema、截斷修正，reload/缺欄位/忽略 → R5–R7，交接型別留 stage C	-	-	-
+2026-10-30T21:20:26+0800	B	切 5 個 unit：U1 alarm 核心、U2 ServiceHost 接上、U3 節點、U4 設定檔 alarmList、U5 整合；[U1] 後 [U2→U3] 與 [U4] 平行	ServiceHost.cs 已 626 行，純邏輯獨立可照 framework 測試；U2/U3 共用 ServiceHost 公開方法	ServiceHost.cs、ModuleConfig.cs	Allen 核准
+2026-10-30T21:43:31+0800	C	P1 A 節點輸出 added/reason 取代 log；P2 A SetMode 參數錯誤 → addServiceError + Abort（MainErrorId 1 暫定），S11 改寫、S16 新增；issue 依 framework 修正 AC1 順序、AC13 STRING、AC16 Path	Core 無 logger；Polar2 無會產生 alarm 的 workflow；framework 原始碼	FB_ModuleBase.TcPOU:632-705；FB_ConfigValueSnapshotReader.TcPOU:114-152	Allen 同意，proposal 12.md 完成
+2026-10-30T21:52:36+0800	D+E	round 1 judge NOT READY（0 blocker、5 major）；5 major 全部 FIX，26 nit 修正	reviewer 5 角度全部完成	.adf/proposals/12.review.md	round 2
+2026-10-30T22:02:03+0800	D+E	round 2 judge NOT READY（0 blocker、1 major：message 有無連線無法分辨）；其餘 11 major 已解決；AC7 改為同一次 scan（較嚴格）	第二次 NOT READY，依流程交 Allen	.adf/proposals/12.review.md	等 Allen 決定
+2026-10-30T22:04:04+0800	D+E	P3 A：message 只當 param（NodeSettings.Text 原文），不開放連線	flow 引擎無法分辨連線；規格 message 皆固定文字	FlowRun.cs:71	Allen 決定；proposal READY
+2026-10-30T22:15:34+0800	F	U1 167b261（604）MERGE yes；U4 e2334c9（629）MERGE yes，severity null=Alarm（同 FW）	code-reviewer	worktree 測試	U2→U3 進行中
+2026-10-30T22:23:43+0800	F	U2/U3 3f58327、107ae1a、c870ff3（655）MERGE yes；SetMode 改回先 Complete 再寫 SVID（proposal 修正）	code-reviewer；SVID 在 Abort 後不應改變	Polar2WorkflowTests SetMode_aborted_before_complete_keeps_svid	stage F 完成
+2026-10-30T22:26:59+0800	G	cleanup：採用 _initialized 移除、PlcLayout.Find、上限常數單一來源、拆出 ModuleAlarmEngine 與 ServiceErrorResult 移到 Alarm/；不採用移除 Initialize 單參數多載（proposal 決定）、severity 合併、Observe 迴圈合併（對照 FW）。comment：刪 internal/private 的 ///、測試敘述、FW 常數尾註（改名為 FW 名稱）；保留 public 契約（Registry.ConfiguredAlarms、BeginCycle、SuppressHookAlarm）；PassedThroughClearing 改名去註解；ModuleAlarmManager 若有 InternalsVisibleTo 則改 internal	cleanup-reviewer、comment-reviewer	-	交 implementer
+2026-10-30T22:30:53+0800	G	套用 cleanup/comment：dbac55b，ServiceHost 844→742 行，681 全過	implementer	-	stage G 完成
+2026-10-30T22:31:58+0800	H	gate 2 失敗：5 個方法 complexity > 12（ParseDataType 106、TryCreate 26、ValidateAlarm 18、Observe* 14）；改查表、規則表、共用查找；Observe 共用查找改為採用（推翻 stage G 的保留）	gate 規則：complexity > 12 要移除分支	gate-20261030-223057/crap-net9.0.json	交 implementer
+2026-10-30T22:36:57+0800	H	complexity 修正 6121f14：ParseDataType 106→4、TryCreate 26→10、ValidateAlarm 18→6、Observe* 14→6；gate 1/2 PASS（覆蓋 99.5%），gate 3 since 0 mutant → 直接跑 Stryker	gate 規則	gate-20261030-223338	Stryker、correctness、structure、drift 進行中
+2026-10-30T22:38:04+0800	H	drift 12 項全部以程式碼為準，記於 proposal §11；correctness 0 finding；structure 4 nit 不改	drift-reviewer、correctness-reviewer、structure-reviewer	proposal 12.md §11	等 Stryker
+2026-10-30T22:50:04+0800	H	Stryker 直接跑：Core 92.84%、Host 94.09%；改動行存活 64 個 → 交 implementer 補測試或標記等價	gate 3 規則	scratchpad/surv12.txt	進行中
+2026-10-30T23:22:06+0800	I	853 實測（R4 寫入範圍）：920 EmptyBatch → Aborted；Ack 5 種結果 1/3/4/Accepted/2；Clear 後移除；還原確認 ack/ctrl restored=True、state Idle	R1、R2 情境	.adf/evidence/12/853-alarm.log	通過
+2026-10-30T23:25:01+0800	H	gate 3：改動行存活 0（Core 100%），等價標記附理由；708 測試；gate 全部通過	implementer	scratchpad/h12core3、h12host	stage H 完成
+2026-10-30T23:30:35+0800	I	整合：S16 移到 S11 之後（S15 module Stop 無法在 Aborted service 下完成）；S1–S16 全部至少一次通過，S11/S16/S15 兩輪皆過，S6/S7 輪流失敗為 #8；模擬器實測與 853 一致；AdsClientForPolarII 讀到並 Ack、Clear 後移除	.adf/scenarios/12.md	.adf/evidence/12；b225d4e	stage I 完成
+2026-10-30T23:37:06+0800	J	合併 633551c，main build 0 錯誤、708 測試通過；關閉 #12；移除 3 個 worktree 與 impl 分支，保留 int/12	Allen：合併並 push main	gh issue 12	完成
