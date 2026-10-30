@@ -1,0 +1,59 @@
+expect Select:
+send 7
+expect Select:
+send 4
+expect (Press Enter to continue|Select:)
+send 
+expect Select:
+send B
+expect Select:
+send 9
+expect Select:
+send 2
+expect (Press Enter to continue|Select:)
+send 
+expect Select:
+send B
+expect Select:
+send A
+expect Select:
+send 1
+expect (Press Enter to continue|Select:)
+send 
+expect Select:
+send B
+expect Select:
+send B
+expect Select:
+send 1
+expect (Press Enter to continue|Select:)
+send 
+expect Select:
+send B
+expect Select:
+send B
+expect Select:
+send 3
+expect (Press Enter to continue|Select:)
+send 
+expect Select:
+send B
+expect Select:
+send B
+expect Select:
+send 5
+expect (Press Enter to continue|Select:)
+send 
+expect Select:
+send B
+expect Select:
+send B
+expect Select:
+send 7
+expect (Press Enter to continue|Select:)
+send 
+expect Select:
+send B
+expect Select:
+send Q
+sleep 1500
