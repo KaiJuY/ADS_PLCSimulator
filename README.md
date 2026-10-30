@@ -18,11 +18,11 @@ dotnet run
 
 - Editor：http://localhost:5259/editor/
 - Simulation：http://localhost:5259/simulation/
-- ADS：AMS port 851（`appsettings.json` → `Ads:Port`）
+- ADS：AMS port 25860（`appsettings.json` → `Ads:Port`）。不用 851：851 是真 TwinCAT PLC 的第一個 runtime，本機有 TwinCAT 時會碰到真 PLC。
 
 | `Ads:Router` | 何時用 |
 |---|---|
-| `Local`（預設） | 機器上有 TwinCAT（XAE/XAR/ADS Setup），註冊到它的 router。若 TwinCAT runtime 已佔用 851，改用別的 port。 |
+| `Local`（預設） | 機器上有 TwinCAT（XAE/XAR/ADS Setup），註冊到它的 router。 |
 | `Embedded` | 機器上沒有 TwinCAT，啟動內建 `AmsTcpIpRouter`（佔 TCP 48898，與 TwinCAT router 互斥）。 |
 
 載入哪個專案由 `Simulator:ProjectPath` 決定（預設 `RobustSolutionDemo`）。要跑 Polar2Chamber：
@@ -95,7 +95,7 @@ dotnet test
 dotnet run --project src/AdsPlcSimulator.Host -- --Simulator:ProjectPath=../../projects/Polar2Chamber
 
 # 終端機 2：執行 driver
-dotnet run --project tests/AdsPlcSimulator.Integration -- [--port 851] [--only S10,S11]
+dotnet run --project tests/AdsPlcSimulator.Integration -- [--port 25860] [--only S10,S11]
 ```
 
 - 全部通過時 exit code 為 0，否則為 1；連不上 Host 時印出連線錯誤並回傳 1。
