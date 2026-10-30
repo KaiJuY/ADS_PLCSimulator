@@ -15,7 +15,6 @@ public class ModuleAlarmManagerTests
     private static AlarmAckRequest AckAll(uint requestId) =>
         new(requestId, (long)AlarmAckCommand.AcknowledgeAll, 0, 0, true);
 
-    /// <summary>One scan in the order of ServiceHost: begin, acknowledgement, sources, end, publish.</summary>
     private static IReadOnlyList<ExtAlarm?> Cycle(ModuleAlarmManager manager, Action? sources = null, AlarmAckRequest ack = default, uint moduleId = Module)
     {
         manager.BeginCycle(moduleId);
@@ -435,5 +434,25 @@ public class ModuleAlarmManagerTests
 
         Assert.True(again[0]!.Active);
         Assert.Equal(1u, again[0]!.OccurrenceCount);
+    }
+
+    [Fact]
+    [Trait("AC", "4")]
+    public void A_negative_publish_capacity_is_refused()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ModuleAlarmManager(-1));
+    }
+
+    [Fact]
+    [Trait("AC", "4")]
+    public void A_publish_capacity_of_zero_publishes_nothing_but_counts_and_overflows()
+    {
+        var manager = new ModuleAlarmManager(0);
+
+        var list = Cycle(manager, () => manager.ObserveServiceAlarm(Alarm(1, 10)));
+
+        Assert.Empty(list);
+        Assert.True(manager.Status.Overflow);
+        Assert.Equal(1, manager.Status.ServiceLatchedCount);
     }
 }

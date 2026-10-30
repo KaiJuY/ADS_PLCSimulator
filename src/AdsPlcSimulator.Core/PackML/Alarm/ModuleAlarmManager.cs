@@ -360,7 +360,7 @@ public sealed class ModuleAlarmManager
         return states;
     }
 
-    /// <summary>ST_AlarmLifecycleState.</summary>
+    // FW: ST_AlarmLifecycleState
     private sealed class Lifecycle
     {
         public bool Latched;
