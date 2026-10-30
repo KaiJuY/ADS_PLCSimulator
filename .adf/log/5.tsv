@@ -1,0 +1,12 @@
+time	stage	decision	why	evidence	result
+2026-10-30T13:01:21+0800	A	root symbol 數 0 就丟 PlcBuildException（兩種訊息），在 Core LoadDirectory；預設 Ads:Port 改 25860 併入	Allen Q1–Q3	Host 以空 plc/ 啟動：Loaded 0 PLC root symbols，並嘗試註冊 AMS 851（ClientPortNotOpen，未送指令）	issue #5
+2026-10-30T13:01:21+0800	A	跳過 concept check	bug，重現步驟明確	-	-
+2026-10-30T13:01:21+0800	B,C,D+E	跳過	小改動：LoadDirectory 一處檢查加預設 port 常數，測試明確	-	直接進 F
+2026-10-30T13:03:46+0800	F	U1 完成（impl/5-u1 802eb8b）	code-reviewer MERGE: yes；388 測試全過	git diff 8cbfbd9..802eb8b	-
+2026-10-30T13:03:46+0800	G	不派 cleanup/comment reviewer	diff 小（7 檔約 60 行），code-reviewer 已檢查註解規則與新增抽象	-	-
+2026-10-30T13:12:09+0800	H	Gate 1 388/388；gate 2 CRAP 與覆蓋率 11/11 通過，type 複雜度檢查失敗判為 baseline 過期，不阻擋	PlcProgramBuilder 204→208 來自 #1 fa4d03c 的 CollectEnumValues，baseline 取在 bda9b8a；本 diff 沒改 PlcProgramBuilder	.adf/out/gate-20261030-130352	建議之後 /adf:scan 更新 baseline
+2026-10-30T13:12:09+0800	H	Gate 3：腳本的 since 篩選測了 0 個 mutant，改對 PlcProgramBuilder.cs 整檔跑 Stryker；LoadDirectory 9 個 mutant 全殺、0 存活	腳本的「PASSED」沒測到任何 mutant，不能採信	.adf/out/mut-5b/reports/mutation-report.json	通過
+2026-10-30T13:12:09+0800	H	correctness：scenarios/1.md 第 3 行仍寫 851 → 補註記；外部 client 依賴舊預設 → 不處理（AdsClientForPolarII 一律帶 --port）。structure：3 個 nit 不處理	nit 只有一個呼叫者或屬於測試常數	-	-
+2026-10-30T13:12:09+0800	H	drift 跳過	stage C 已跳過，沒有 proposal	-	-
+2026-10-30T13:14:01+0800	I	S1–S4 全部符合：空 plc/ 與只有 DUT 都在啟動時停止並顯示完整路徑；不加參數註冊 AMS 25860，driver 不加 --port 13/13 PASS；RobustSolutionDemo 載入 5 個 root	.adf/scenarios/5.md	scratchpad p5/*.log；Host 已停止，無殘留	4/4
+2026-10-30T13:55:07+0800	J	合併 int/5 到 main（cdbfbe3），push main	Allen：合併並 push main	main 上 build 0 錯誤、388/388	issue #5 關閉；移除 _wt_5-u1、impl/5-u1；保留 int/5

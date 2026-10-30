@@ -12,7 +12,7 @@ The scripts read `.adf/profile.json`. Keep both files in step.
 | Target frameworks | net9.0 (all three projects) |
 | Main framework (development gates) | net9.0 |
 | Release frameworks | net9.0 |
-| Expected test count | 361 on 2026-10-30 (net9.0) |
+| Expected test count | 388 on 2026-10-30 (net9.0) |
 | Full suite time | about 1 minute with coverage (net9.0) |
 
 ## Known load-dependent tests
@@ -47,6 +47,7 @@ The scripts read `.adf/profile.json`. Keep both files in step.
 
 ## Project traps
 - 2026-10-29: The local TwinCAT runtime answers on AMS 851 and 852 (another PLC). Run the simulator on 25860 for stage I; never send commands to 851/852.
+- 2026-10-30: Default `Ads:Port` is 25860 since #5. Still pass `--Ads:Port=25860` explicitly when starting the Host. The gate script's Stryker `since` filter can test 0 mutants (it reports PASS anyway); check the mutant count in stryker.log, and pass a branch name, not a short SHA, as the base. The CRAP baseline is from bda9b8a; PlcProgramBuilder type complexity is 208 since #1.
 - 2026-10-30: Deleting a handle-based ADS notification makes the .NET `AdsClient` release that handle too, and a raw `0xF006` release bypasses the client's handle cache. Use a fresh handle per case in ADS measurements and tests, or the result describes a released handle.
 - 2026-10-30: Starting the integration driver right at `Now listening` makes S6/S7 fail (also on main). Wait about 3 s.
 - 2026-10-30: Windows PowerShell 5.1 `Add-Content`/`Set-Content` write the ANSI code page (Big5), and `String.Replace` can pick the char overload. Append to `.adf/log/*.tsv` from bash (`printf ... >>`) and edit UTF-8 text with Python or the Edit tool.
