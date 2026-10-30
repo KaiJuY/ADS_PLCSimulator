@@ -27,6 +27,9 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
 
     private const int FirstHandleAboveBaseClassRange = 0x4000_0000;
 
+    // Not measured on a real PLC (#4): caps the buffer a request header alone can make the server allocate.
+    internal const int MaxSumReadResponseLength = 16 * 1024 * 1024;
+
     private static readonly TimeSpan ScanPeriod = TimeSpan.FromMilliseconds(10);
     private static readonly TimeSpan MinimumInterval = TimeSpan.FromMilliseconds(10);
 
@@ -202,7 +205,7 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
     private async Task<ResultReadWriteBytes> SumReadAsync(AmsAddress sender, uint invokeId, SumItem[] items, int readLength, CancellationToken cancel)
     {
         long expected = items.Length * 4L + items.Sum(item => (long)item.ReadLength);
-        if (readLength != expected)
+        if (readLength != expected || expected > MaxSumReadResponseLength)
             return ResultReadWriteBytes.CreateError(AdsErrorCode.DeviceInvalidSize);
 
         byte[] response = new byte[readLength];

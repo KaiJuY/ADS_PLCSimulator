@@ -742,6 +742,16 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
     }
 
     [Fact]
+    public void Sum_read_larger_than_the_response_cap_is_refused_before_any_item_runs()
+    {
+        int length = PlcAdsServer.MaxSumReadResponseLength;
+        var (result, read, _) = SumRead([(DataGroup, 0, length)]);
+
+        Assert.Equal(AdsErrorCode.DeviceInvalidSize, result);
+        Assert.Equal(0, read);
+    }
+
+    [Fact]
     [Trait("AC", "4")]
     public async Task Sum_write_stores_valid_items_refuses_bad_ones_and_triggers_on_client_write()
     {
