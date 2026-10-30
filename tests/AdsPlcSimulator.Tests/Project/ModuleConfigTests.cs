@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using AdsPlcSimulator.Core.PackML.Alarm;
 using AdsPlcSimulator.Core.Plc;
 using AdsPlcSimulator.Host.Project;
 
@@ -8,14 +9,22 @@ public sealed partial class ModuleConfigTests : IDisposable
 {
     private const string Path = "module-config.json";
 
-    private const string SmallProgram = """
+    private static readonly string s_longMember = new('p', 240);
+
+    private static readonly string s_smallProgram = $$"""
         TYPE E_DescriptorType : (Integer_32bit := 1, Float_32bit, String_80byte, DateTime, Boolean); END_TYPE
         TYPE ST_ExtDescriptor : STRUCT Id : UDINT; Name : STRING(30); DataType : E_DescriptorType; Unit : STRING(10); Value : STRING(80); END_STRUCT END_TYPE
         TYPE ST_ConfigParamDescriptor EXTENDS ST_ExtDescriptor : STRUCT IsBound : BOOL; HasLimits : BOOL; LowerLimit : LREAL; UpperLimit : LREAL; END_STRUCT END_TYPE
         TYPE ST_VariableStatus : STRUCT PublishedCount : UINT; END_STRUCT END_TYPE
         TYPE ST_ModuleStatus : STRUCT ModuleId : UDINT; Enabled : BOOL; ModuleType : STRING(16); Variable : ST_VariableStatus; END_STRUCT END_TYPE
+        TYPE ST_ExtAlarm : STRUCT Message : STRING(80); Path : STRING(255); END_STRUCT END_TYPE
         TYPE ST_Module : STRUCT
             ModuleStatus : ST_ModuleStatus;
+            Level : REAL;
+            Flag : BOOL;
+            Text : STRING(20);
+            {{s_longMember}} : REAL;
+            ModuleAlarmList : ARRAY[1..2] OF ST_ExtAlarm;
             ModuleVariableList : ARRAY[1..3] OF ST_ExtDescriptor;
             ModuleConfigParamList : ARRAY[1..2] OF ST_ConfigParamDescriptor;
         END_STRUCT END_TYPE
@@ -26,7 +35,7 @@ public sealed partial class ModuleConfigTests : IDisposable
 
     private static readonly Lazy<PlcProgram> s_polar2 = new(() => PlcProgram.LoadDirectory(System.IO.Path.Combine(TestPaths.Polar2Project, "plc")));
 
-    private readonly PlcProgram _small = TestPaths.BuildFromText(SmallProgram, globalScope: "GVL_Module");
+    private readonly PlcProgram _small = TestPaths.BuildFromText(s_smallProgram, globalScope: "GVL_Module");
     private readonly string _directory = Directory.CreateTempSubdirectory("adsplc-config-").FullName;
 
     public void Dispose() => Directory.Delete(_directory, recursive: true);
@@ -54,6 +63,22 @@ public sealed partial class ModuleConfigTests : IDisposable
         { Module("""{"slot":1,"variableList":[{"id":1,"name":"Tempé","unit":"","dataType":"DINT"}]}"""), "non-ASCII" },
         { Module("""{"slot":1,"variableList":[{"id":1,"name":"a","unit":"°C","dataType":"DINT"}]}"""), "non-ASCII" },
         { Module("""{"slot":1,"moduleType":"Polaré"}"""), "moduleType contains non-ASCII" },
+        { Module("""{"slot":1,"alarmList":null}"""), "slot 1: alarmList is null." },
+        { Module("""{"slot":1,"alarmList":[null]}"""), "slot 1 alarmList contains a null element." },
+        { Module($$"""{"slot":1,"alarmList":[{{string.Join(",", Enumerable.Range(1, 31).Select(index => Alarm(index)))}}]}"""), "slot 1 alarmList has 31 entries, the limit is 30." },
+        { Module("""{"slot":1,"alarmList":[{"source":"Level","dataType":"REAL","mainErrorId":5}]}"""), "slot 1 alarmList: mainErrorId 5 has no condition." },
+        { Module($$"""{"slot":1,"alarmList":[{{Alarm(5, source: " ")}}]}"""), "mainErrorId 5 has an empty source." },
+        { Module("""{"slot":1,"alarmList":[{"dataType":"REAL","condition":{"operator":"gt"},"mainErrorId":5}]}"""), "mainErrorId 5 has an empty source." },
+        { Module($$"""{"slot":1,"alarmList":[{{Alarm(5, dataType: "LINT")}}]}"""), "mainErrorId 5: dataType 'LINT' is not supported." },
+        { Module("""{"slot":1,"alarmList":[{"source":"Level","condition":{"operator":"gt"},"mainErrorId":5}]}"""), "mainErrorId 5: dataType '' is not supported." },
+        { Module($$"""{"slot":1,"alarmList":[{{Alarm(5, op: "GT")}}]}"""), "mainErrorId 5: operator 'GT' is not one of gt, lt, ge, le, eq." },
+        { Module("""{"slot":1,"alarmList":[{"source":"Level","dataType":"REAL","condition":{},"mainErrorId":5}]}"""), "mainErrorId 5: operator '' is not one of gt, lt, ge, le, eq." },
+        { Module($$"""{"slot":1,"alarmList":[{{Alarm(5, severity: "Fatal")}}]}"""), "mainErrorId 5: severity 'Fatal' is not Alarm or Warning." },
+        { Module($$"""{"slot":1,"alarmList":[{{Alarm(0)}}]}"""), "mainErrorId 0 is outside 1..4294901759." },
+        { Module($$"""{"slot":1,"alarmList":[{{Alarm(4294901760)}}]}"""), "mainErrorId 4294901760 is outside 1..4294901759." },
+        { Module($$"""{"slot":1,"alarmList":[{{Alarm(5)}},{{Alarm(5)}}]}"""), "mainErrorId 5 appears more than once." },
+        { Module($$"""{"slot":1,"alarmList":[{{Alarm(-1)}}]}"""), "invalid JSON" },
+        { Module($$"""{"slot":1,"alarmList":[{{Alarm(4294967296)}}]}"""), "invalid JSON" },
     };
 
     public static TheoryData<string, string> PublishErrors => new()
@@ -64,6 +89,10 @@ public sealed partial class ModuleConfigTests : IDisposable
         { Module($$"""{"enabled":true,"slot":2,"variableList":[{"id":1,"name":"{{new string('a', 31)}}","unit":"","dataType":"DINT"}]}"""), "name 'aaaa" },
         { Module($$"""{"enabled":true,"slot":2,"configParamList":[{"id":1,"name":"a","unit":"{{new string('u', 11)}}","dataType":"DINT"}]}"""), "unit 'uuuu" },
         { Module($$"""{"enabled":true,"slot":2,"moduleType":"{{new string('t', 17)}}"}"""), "moduleType 'tttt" },
+        { Module($$"""{"enabled":true,"slot":2,"alarmList":[{{Alarm(5, source: "Missing")}}]}"""), "cannot resolve GVL_Module.Chamber_Control[2].Missing" },
+        { Module($$"""{"enabled":true,"slot":2,"alarmList":[{{Alarm(5, source: "Flag")}}]}"""), "GVL_Module.Chamber_Control[2].Flag is BOOL, not REAL." },
+        { Module($$"""{"enabled":true,"slot":2,"alarmList":[{{Alarm(5, message: new string('m', 81))}}]}"""), "mainErrorId 5: message is 81 characters, the limit is 80." },
+        { Module($$"""{"enabled":true,"slot":2,"alarmList":[{{Alarm(5, source: s_longMember)}}]}"""), "mainErrorId 5: source path is 270 characters, the limit is 255." },
     };
 
     [Fact]
@@ -77,9 +106,9 @@ public sealed partial class ModuleConfigTests : IDisposable
             """));
         ProcessImage image = _small.CreateProcessImage();
 
-        string? published = ModuleConfigPublisher.PublishIfPresent(_directory, _small.Symbols, image);
+        ModuleConfigResult? published = ModuleConfigPublisher.PublishIfPresent(_directory, _small.Symbols, image);
 
-        Assert.Equal(System.IO.Path.Combine(_directory, "config", "module-config.json"), published);
+        Assert.Equal(System.IO.Path.Combine(_directory, "config", "module-config.json"), published!.Path);
         const string module = "GVL_Module.Chamber_Control[2]";
         Assert.Equal(7L, Read(image, _small, $"{module}.ModuleStatus.ModuleId"));
         Assert.Equal(true, Read(image, _small, $"{module}.ModuleStatus.Enabled"));
@@ -134,7 +163,7 @@ public sealed partial class ModuleConfigTests : IDisposable
         ProcessImage image = _small.CreateProcessImage();
         byte[] before = image.Read(0, image.Size);
 
-        string? published = ModuleConfigPublisher.PublishIfPresent(_directory, _small.Symbols, image);
+        ModuleConfigResult? published = ModuleConfigPublisher.PublishIfPresent(_directory, _small.Symbols, image);
 
         Assert.Null(published);
         Assert.Equal(before, image.Read(0, image.Size));
@@ -192,6 +221,72 @@ public sealed partial class ModuleConfigTests : IDisposable
     }
 
     [Fact]
+    [Trait("AC", "12")]
+    public void Publish_builds_the_alarm_table_of_an_enabled_module()
+    {
+        ProcessImage image = _small.CreateProcessImage();
+        ModuleConfigFile config = ModuleConfigPublisher.Parse(Module($$"""
+            {"enabled":true,"slot":2,"alarmList":[
+              {"source":"Level","dataType":"REAL","condition":{"operator":"gt","value":80.5,"tolerance":0.5},
+               "mainErrorId":101,"sourceErrorId":7,"message":"Level high.","severity":"Warning"},
+              {"source":"Flag","dataType":"BOOL","condition":{"operator":"eq","value":1},"mainErrorId":102},
+              {"source":"Text","dataType":"STRING","condition":{"operator":"le","value":0},"mainErrorId":103,"message":"{{new string('m', 80)}}"}]}
+            """), Path);
+
+        ConfiguredAlarmTable table = ModuleConfigPublisher.Publish(config, Path, _small.Symbols, image);
+
+        IReadOnlyList<ConfiguredAlarm> alarms = table.For("GVL_Module.Chamber_Control[2]");
+        Assert.Equal(3, alarms.Count);
+        Assert.Equal(new ConfiguredAlarm("Level", AlarmSourceType.Real, AlarmOperator.GreaterThan, 80.5, 0.5, 101, 7, "Level high.", AlarmSeverity.Warning), alarms[0]);
+        Assert.Equal(new ConfiguredAlarm("Flag", AlarmSourceType.Boolean, AlarmOperator.Equal, 1, 0, 102, 0, "", AlarmSeverity.Alarm), alarms[1]);
+        Assert.Equal(AlarmSourceType.String80, alarms[2].SourceType);
+        Assert.Equal(80, alarms[2].Message.Length);
+        Assert.Empty(table.For("GVL_Module.Chamber_Control[1]"));
+    }
+
+    [Fact]
+    [Trait("AC", "12")]
+    public void Publish_leaves_a_disabled_module_out_of_the_alarm_table()
+    {
+        ModuleConfigFile config = ModuleConfigPublisher.Parse(Module($$"""{"enabled":false,"slot":2,"alarmList":[{{Alarm(5)}}]}"""), Path);
+
+        ConfiguredAlarmTable table = ModuleConfigPublisher.Publish(config, Path, _small.Symbols, _small.CreateProcessImage());
+
+        Assert.Empty(table.For("GVL_Module.Chamber_Control[2]"));
+    }
+
+    [Fact]
+    [Trait("AC", "12")]
+    public void Publish_gives_an_empty_table_for_a_module_without_alarm_list()
+    {
+        ModuleConfigFile config = ModuleConfigPublisher.Parse(Module("""{"enabled":true,"slot":2}"""), Path);
+
+        ConfiguredAlarmTable table = ModuleConfigPublisher.Publish(config, Path, _small.Symbols, _small.CreateProcessImage());
+
+        Assert.Empty(table.For("GVL_Module.Chamber_Control[2]"));
+    }
+
+    [Fact]
+    [Trait("AC", "12")]
+    public void PublishIfPresent_returns_the_alarm_table_with_the_path()
+    {
+        WriteConfig(Module($$"""{"enabled":true,"slot":1,"alarmList":[{{Alarm(9)}}]}"""));
+
+        ModuleConfigResult? result = ModuleConfigPublisher.PublishIfPresent(_directory, _small.Symbols, _small.CreateProcessImage());
+
+        Assert.Equal(9u, Assert.Single(result!.ConfiguredAlarms.For("GVL_Module.Chamber_Control[1]")).MainErrorId);
+    }
+
+    [Fact]
+    [Trait("AC", "12")]
+    public void Parse_accepts_the_upper_error_id_bound_and_a_missing_severity()
+    {
+        ModuleConfigFile config = ModuleConfigPublisher.Parse(Module($$"""{"slot":1,"alarmList":[{{Alarm(4294901759, severity: null)}}]}"""), Path);
+
+        Assert.Equal(4294901759u, Assert.Single(config.Modules![0]!.AlarmList!)!.MainErrorId);
+    }
+
+    [Fact]
     [Trait("AC", "1")]
     [Trait("AC", "2")]
     [Trait("AC", "3")]
@@ -235,6 +330,9 @@ public sealed partial class ModuleConfigTests : IDisposable
     private static partial Regex NozzleTwoOrThree();
 
     private static string Module(string modules) => $$"""{"schemaVersion":4,"modules":[{{modules}}]}""";
+
+    private static string Alarm(long id, string source = "Level", string dataType = "REAL", string op = "gt", string? severity = "Alarm", string message = "m") =>
+        $$"""{"source":"{{source}}","dataType":"{{dataType}}","condition":{"operator":"{{op}}","value":1},"mainErrorId":{{id}},"message":"{{message}}","severity":{{(severity is null ? "null" : "\"" + severity + "\"")}}}""";
 
     private static string Descriptors(int count) =>
         string.Join(",", Enumerable.Range(1, count).Select(index => $$"""{"id":{{index}},"name":"n{{index}}","unit":"","dataType":"DINT"}"""));
