@@ -261,8 +261,14 @@ public sealed class ProjectHost : IAsyncDisposable
     {
         Task release = Task.Run(() =>
         {
-            server.Disconnect();
-            server.Dispose();
+            try
+            {
+                server.Disconnect();
+            }
+            finally
+            {
+                server.Dispose();
+            }
         });
 
         try
