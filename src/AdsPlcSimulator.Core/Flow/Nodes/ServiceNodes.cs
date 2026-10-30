@@ -59,7 +59,8 @@ public sealed class ServiceHostNode : HostedNode
             ServiceIdentityTable identities = ServiceIdentityTable.Parse(
                 implementation,
                 name => settings.Symbols.TryGetEnumValue(name, out long value) ? value : null);
-            var host = new ServiceHost(settings.Symbols, root, identities, defaultDelay, path => node?._registry?.OverrideToken(path));
+            AliveSettings alive = AliveSettings.FromSymbols(settings.Symbols);
+            var host = new ServiceHost(settings.Symbols, root, identities, defaultDelay, path => node?._registry?.OverrideToken(path), alive: alive);
             node = new ServiceHostNode(host);
             return node;
         }

@@ -124,18 +124,21 @@ internal sealed class HostFixture
 
     public static readonly string AlarmDeclarationsWithoutModuleId = WithAlarmMembers(Declarations.Replace("ModuleId : UDINT;", "Spare : UDINT;"));
 
+    public static readonly string HeartbeatDeclarations = AlarmDeclarations
+        .Replace("TYPE ST_TestModule : STRUCT", "TYPE ST_TestModule : STRUCT HeartbeatIndex : UDINT;");
+
     public static readonly TimeSpan DefaultDelay = TimeSpan.FromSeconds(5);
 
     private readonly Dictionary<string, object?> _tokens = new(StringComparer.OrdinalIgnoreCase);
 
     public HostFixture(
         TimeSpan? defaultDelay = null, bool initialize = true, string? declarations = null,
-        ConfiguredAlarmTable? configuredAlarms = null, Func<DateTimeOffset>? utcNow = null)
+        ConfiguredAlarmTable? configuredAlarms = null, Func<DateTimeOffset>? utcNow = null, AliveSettings? alive = null)
     {
         Program = TestPaths.BuildFromText(declarations ?? Declarations);
         Image = Program.CreateProcessImage();
         ConfiguredAlarms = configuredAlarms ?? ConfiguredAlarmTable.Empty;
-        Host = CreateHost(Program, Image, defaultDelay ?? DefaultDelay, token => _tokens.GetValueOrDefault(token), utcNow);
+        Host = CreateHost(Program, Image, defaultDelay ?? DefaultDelay, token => _tokens.GetValueOrDefault(token), utcNow, alive);
         if (initialize)
             Host.Initialize(Image, ConfiguredAlarms);
     }
@@ -156,8 +159,9 @@ internal sealed class HostFixture
         ServiceIdentityTable.Parse(text, name => symbols.TryGetEnumValue(name, out long value) ? value : null);
 
     public static ServiceHost CreateHost(
-        PlcProgram program, ProcessImage image, TimeSpan defaultDelay, Func<string, object?> overrideToken, Func<DateTimeOffset>? utcNow = null) =>
-        new(program.Symbols, program.Symbols.Resolve("GVL_Test.Modules"), ParseIdentities(program.Symbols), defaultDelay, overrideToken, utcNow);
+        PlcProgram program, ProcessImage image, TimeSpan defaultDelay, Func<string, object?> overrideToken,
+        Func<DateTimeOffset>? utcNow = null, AliveSettings? alive = null) =>
+        new(program.Symbols, program.Symbols.Resolve("GVL_Test.Modules"), ParseIdentities(program.Symbols), defaultDelay, overrideToken, utcNow, alive);
 
     private static string WithAlarmMembers(string declarations) => AlarmTypes + Environment.NewLine + declarations
         .Replace("TYPE ST_ModuleCtrl : STRUCT", "TYPE ST_ModuleCtrl : STRUCT AlarmAckRequest : ST_AlarmAckRequest;")

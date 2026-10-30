@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using AdsPlcSimulator.Core.Flow;
+using AdsPlcSimulator.Core.PackML;
 using AdsPlcSimulator.Core.PackML.Alarm;
 using AdsPlcSimulator.Core.Plc;
 using AdsPlcSimulator.Host.Live;
@@ -30,6 +31,7 @@ public sealed partial class SimulatorSession : IAsyncDisposable
         Name = Path.GetFileName(ProjectDirectory);
         Program = PlcProgram.LoadDirectory(Path.Combine(ProjectDirectory, "plc"));
         Image = CreatePublishedImage();
+        _ = AliveSettings.FromSymbols(Program.Symbols);
         Live = new SessionLiveChannel(liveHub);
         Runtime = new FlowRuntime(Image, Program.Symbols, NodeCatalog.Default, Live, Live, ProjectDirectory);
         Runtime.Registry.ConfiguredAlarms = ConfiguredAlarms;
