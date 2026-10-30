@@ -1,0 +1,15 @@
+PASS S1 Symbol size and index offset | expected: Chamber_Control size=12966720; M1 size=2161120; Shutter.Open offset from M1=1974172; Shutte
+PASS S2 Initial states and identity | expected: M1 module state=Execute; M6 module state=Execute; Shutter.Open state=Idle; Shutter.Open Serv
+PASS S3 Unbound slot ignores a command | expected: ResponseId=0; state=Undefined | actual: ResponseId=0; state=Undefined
+PASS S4 Module variable list | expected: M1 Id=1; M1 Name=Module Mode; M1 DataType (Integer_32bit)=1; M1 Unit=; M1 Value=1; M1 PublishedCoun
+PASS S5 Shutter.Open handshake | expected: ResponseId echoes RequestId; bCommandAccepted=True; state=Execute; previous state=Starting; left 
+FAIL S6 MoveVelocityCW runs until Stop | expected: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop | actual: rea
+PASS S7 Start while Execute is rejected | expected: reaches Execute; ResponseId echoes the second RequestId; bCommandRejected=True; ErrorID 
+PASS S8 Abort, Clear, Reset chain | expected: Abort reaches Aborted; previous state after Abort=Aborting; Clear reaches Stopped; previous st
+PASS S9 Two services run in parallel | expected: Shutter.Open reaches Execute; Shutter.Close answers while Shutter.Open runs; Shutter.Open s
+PASS S10 SetMode TargetMode=2 writes SVID | expected: SetMode reaches Complete; SVID Value=2 | actual: SetMode reaches Complete state=Comple
+PASS S11 SetMode TargetMode=4 aborts with an alarm | expected: SetMode reaches Aborted; ModuleAlarmList[1] shows MainErrorId 1; ServiceId=1;
+PASS S16 Alarm Ack and removal | expected: starts from the Aborted SetMode and its alarm (S11); AckResponseId echoes RequestId; AckAccepted=
+PASS S12 Initial switches mode to 3 | expected: reaches Execute; left Execute before 4 s=False; Complete before 7 s; SVID Value=3 | actual: 
+PASS S15 Module Stop ignores later service commands | expected: module reaches Stopped; Shutter.Open ResponseId after Start=1028 | actual: m
+13/14 scenarios passed

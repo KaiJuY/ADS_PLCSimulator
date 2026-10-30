@@ -1,0 +1,100 @@
+== Beckhoff Controller SDK console demo ==
+    AmsNetId                 : 127.0.0.1.1.1
+    AdsPort                  : 25860
+    ContainerPath            : GVL_Module.Chamber_Control
+    ModuleId                 : 1
+    BindingModel             : discover by identity
+  > new DiagnosticCollector(new DiagnosticCollectorOptions { MinimumLevel = minimumLevel })
+  > new RollingFileDiagnosticSink(new RollingFileDiagnosticSinkOptions(LogDirectory, FileNamePrefix, minimumLevel, null, null), OnFaulted)
+  > _collector.Faulted += OnFaulted
+  > _collector.AddSink(_fileSink, ownsSink: true)
+  > _collector.AddSink(_consoleSink, ownsSink: false)
+  > _collector.RecordPublished += OnRecordPublished
+  - The demo opens this connection once, for every feature area. MinimalModuleConnection is the same sequence without the demo's own needs, and that file copies whole.
+  > new TwinCatAdsTransport()
+  > transport.ConnectAsync(amsNetId, port, cancellationToken)
+  - ADS connected. IsConnected=True
+  > ModuleDirectory.ScanAsync(transport, containerPath, cancellationToken)
+  - Container GVL_Module.Chamber_Control has 6 slots (SizeDivision) and 1 live.
+  > ModuleTypeMap.ScanAsync(transport, rootSymbol, cancellationToken, diagnostics)
+  - Type ST_PolarIIChamber_CtrlStatus declares 165 Services.
+  > ModuleClientBuilder.Create(transport)
+  > .UseScannedDefinition(typeMap, DemoServices.All)
+  > .WithLogicalName("GC1")
+  > .WithSessionId(sessionId)
+  > .WithDiagnostics(diagnostics.Collector)
+  > .WithModuleId(1)
+  > .WithContainerPath("GVL_Module.Chamber_Control")
+  > .BuildAsync(cancellationToken)
+  - Bound GVL_Module.Chamber_Control[1]. The PLC confirms ModuleId=1.
+  > ModuleStatusSnapshot status = await module.ReadStatusAsync(cancellationToken)
+  - Module reports state=Execute mode=Unknown.
+  > _module.DiagnosticsFaulted += OnModuleDiagnosticsFaulted
+    SessionId                : d58f4dde-cc60-4acb-ae01-5cef8fe0348a
+    LogDirectory             : C:\Users\AllenY\AppData\Local\Beckhoff.Controller.ConsoleDemo\Logs
+    LogFilePrefix            : console-demo-14456== Top menu ==Module : GVL_Module.Chamber_Control[1]  id=1  client=Ready  gen=1  state=Execute  mode=Unknown  (at open) [6] Discovery and binding (manual ch 6)
+ [7] Connection and lifecycle (manual ch 7)
+ [8] Module commands (manual ch 8)
+ [9] Service operations (manual ch 9)
+ [A] Status and events (manual ch 10)
+ [B] Lists and CSV recording (manual ch 11)
+ [C] Diagnostics and logging (manual ch 12)
+ [D] Results versus exceptions (manual ch 13)
+
+ [Q] Quit
+
+Select:B
+
+== Lists and CSV recording (manual ch 11) ==
+
+Module : GVL_Module.Chamber_Control[1]  id=1  client=Ready  gen=1  state=Execute  mode=Unknown  (at open)
+
+ [1] Alarms.AcquireCurrent and ReadAsync
+ [2] Alarms.Start, Raised, Cleared, Stop
+ [3] ModuleVariables.ReadAsync
+ [4] ModuleVariables.Start, Changed, Watch, Stop
+ [5] ModuleData.ReadAsync
+ [6] ModuleData.Start, Changed, Watch, Stop
+ [7] ModuleConfigParams.ReadAsync
+ [8] ModuleConfigParams.Start, Changed, Watch, Stop
+ [9] Recorder.Create and record to CSV
+
+ [B] Back
+
+Select:1
+  Purpose: Read the alarm list once to see the active alarms of this moment. This read writes to
+           the PLC: it acknowledges every unacknowledged active alarm, and no switch stops that.
+  > AlarmListSource source = module.Alarms
+  > AlarmListSnapshot before = source.AcquireCurrent()
+    Before                   : (null)
+  - A read of the alarm list acknowledges every unacknowledged active alarm (manual 11.4).
+  - Up to 20 alarms are acknowledged each cycle. The rest wait (manual 11.4).
+  > AlarmListSnapshot alarms = await source.ReadAsync(cancellationToken)
+    Revision                 : 1
+    ReadAtUtc                : 2026-10-30T15:29:44.9414825+00:00
+    ReadAtTicks              : 549397764930
+    IsEmpty                  : False
+    Active.Count             : 1
+    ConfiguredLatchedCount   : 0
+    ServiceLatchedCount      : 1
+    Overflow                 : False
+    IsTruncated              : False
+
+  > module.ServiceIds.TryGetServiceName(serviceId, out name)
+    ServiceId                : 1  Chamber.SetMode
+    MainErrorId              : 1
+    SourceErrorId            : 4
+    Severity                 : Alarm
+    Message                  : TargetMode out of range (0~3).
+    IsActive                 : True
+    IsAcknowledged           : False
+    OccurrenceCount          : 1
+    RawDateTime              : 20261030152941914
+    FirstObservedAt          : 10/30/2026 15:29:44 +00:00
+    SlotIndex                : 1  (a position, not an identity)
+  > alarm.TryGetRaisedAt(out raisedAt)
+    TryGetRaisedAt           : 10/30/2026 15:29:41 +00:00
+  > snapshot.TryGet(serviceId, mainErrorId, out entry)
+    TryGet                   : True
+
+Press Enter to continue.

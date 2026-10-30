@@ -9,7 +9,7 @@ namespace AdsPlcSimulator.Integration;
 
 internal sealed record Scenario(string Id, string Title, Func<PlcSession, Task<Checks>> Run);
 
-/// <summary>Scenarios S1 to S12 and S15 of .adf/scenarios/1.md; S13 and S14 are browser steps and are not here.</summary>
+/// <summary>Scenarios S1 to S12, S15 and S16 of .adf/scenarios/1.md; S13 and S14 are browser steps and are not here. S16 runs right after S11 and continues from the Aborted SetMode it leaves; a module Stop (S15) cannot finish while a service stays Aborted.</summary>
 internal static class Scenarios
 {
     private const string Gvl = "GVL_Module.Chamber_Control";
@@ -17,6 +17,13 @@ internal static class Scenarios
     private const string Svid = Module1 + ".ModuleVariableList[1].Value";
     private const string SetModeTarget = Module1 + ".ServiceParam.Chamber.SetMode.TargetMode";
     private const string InitialSwitchMode = Module1 + ".ServiceParam.Chamber.Initial.SwitchModeAfterFinish";
+    private const string AlarmEntry = Module1 + ".ModuleAlarmList[1]";
+    private const string AlarmStatus = Module1 + ".ModuleStatus.Alarm";
+    private const string AckRequest = Module1 + ".ModuleCtrl.AlarmAckRequest";
+    private const string SetModeServiceId = Module1 + ".ServiceStatus.Chamber.SetMode.ServiceId";
+    private const uint SetModeAlarmId = 1;
+    private const short AcknowledgeOne = 1;
+    private const short DuplicateRequest = 2;
 
     private static readonly TimeSpan NaturalEarly = TimeSpan.FromSeconds(4);
     private static readonly TimeSpan NaturalLate = TimeSpan.FromSeconds(7);
@@ -42,7 +49,8 @@ internal static class Scenarios
         new("S8", "Abort, Clear, Reset chain", AbortChainAsync),
         new("S9", "Two services run in parallel", ParallelServicesAsync),
         new("S10", "SetMode TargetMode=2 writes SVID", session => SetModeAsync(session, 2, expectChange: true)),
-        new("S11", "SetMode TargetMode=4 keeps SVID", session => SetModeAsync(session, 4, expectChange: false)),
+        new("S11", "SetMode TargetMode=4 aborts with an alarm", SetModeAbortsAsync),
+        new("S16", "Alarm Ack and removal", AlarmAckAsync),
         new("S12", "Initial switches mode to 3", InitialAsync),
         new("S15", "Module Stop ignores later service commands", ModuleStopAsync),
     ];
@@ -261,7 +269,6 @@ internal static class Scenarios
         return checks;
     }
 
-    // The SetMode workflow writes SVID only for TargetMode 0..3 (Polar2_Chamber_SetMode.flow.json); with 4 the value stays.
     private static async Task<Checks> SetModeAsync(PlcSession session, ushort targetMode, bool expectChange)
     {
         var checks = new Checks();
@@ -280,6 +287,75 @@ internal static class Scenarios
 
         await session.EnsureIdleAsync(SetMode);
         return checks;
+    }
+
+    private static async Task<Checks> SetModeAbortsAsync(PlcSession session)
+    {
+        var checks = new Checks();
+        if (!await RequireIdleAsync(checks, session, SetMode))
+            return checks;
+
+        string before = session.Read<string>(Svid);
+        session.Write(SetModeTarget, (ushort)4);
+        session.Send(SetMode, PackMLCommand.Start, session.NextRequestId());
+        bool aborted = await session.WaitForStateAsync(SetMode, PackMLState.Aborted, NaturalLate);
+        session.Release(SetMode);
+        checks.True("SetMode reaches Aborted", aborted, $"state={session.State(SetMode)}");
+
+        bool listed = await session.WaitForAsync(() => session.Read<uint>($"{AlarmEntry}.MainErrorId") == SetModeAlarmId, Reaction);
+        checks.True("ModuleAlarmList[1] shows MainErrorId 1", listed);
+        checks.Equal("ServiceId", session.Read<uint>(SetModeServiceId), session.Read<uint>($"{AlarmEntry}.ServiceId"));
+        checks.Equal("SourceErrorId", 4u, session.Read<uint>($"{AlarmEntry}.SourceErrorId"));
+        checks.Equal("Active", true, session.Read<bool>($"{AlarmEntry}.Active"));
+        checks.Equal("Acknowledged", false, session.Read<bool>($"{AlarmEntry}.Acknowledged"));
+        checks.Equal("OccurrenceCount", 1u, session.Read<uint>($"{AlarmEntry}.OccurrenceCount"));
+        checks.Equal("SVID Value", before, session.Read<string>(Svid));
+        return checks;
+    }
+
+    private static async Task<Checks> AlarmAckAsync(PlcSession session)
+    {
+        var checks = new Checks();
+        bool ready = session.State(SetMode) == PackMLState.Aborted && session.Read<uint>($"{AlarmEntry}.MainErrorId") == SetModeAlarmId;
+        checks.True("starts from the Aborted SetMode and its alarm (S11)", ready, $"state={session.State(SetMode)}");
+        if (!ready)
+            return checks;
+
+        uint serviceId = session.Read<uint>(SetModeServiceId);
+        uint requestId = session.NextRequestId();
+        SendAck(session, requestId, serviceId);
+        bool answered = await session.WaitForAsync(() => session.Read<uint>($"{AlarmStatus}.AckResponseId") == requestId, Reaction);
+        checks.True("AckResponseId echoes RequestId", answered);
+        checks.Equal("AckAccepted", true, session.Read<bool>($"{AlarmStatus}.AckAccepted"));
+        checks.Equal("AckError", (short)0, session.Read<short>($"{AlarmStatus}.AckError"));
+        checks.Equal("Acknowledged", true, session.Read<bool>($"{AlarmEntry}.Acknowledged"));
+        checks.Equal("still listed", SetModeAlarmId, session.Read<uint>($"{AlarmEntry}.MainErrorId"));
+
+        session.Write($"{AckRequest}.bChangeRequest", false);
+        await session.ObserveNegativeAsync();
+        SendAck(session, requestId, serviceId);
+        bool duplicate = await session.WaitForAsync(() => session.Read<short>($"{AlarmStatus}.AckError") == DuplicateRequest, Reaction);
+        checks.True("the same RequestId gives DuplicateRequest", duplicate);
+        session.Write($"{AckRequest}.bChangeRequest", false);
+
+        bool stopped = await session.RunSettledAsync(SetMode, PackMLCommand.Clear, PackMLState.Stopped);
+        checks.True("Clear reaches Stopped", stopped, $"state={session.State(SetMode)}");
+        bool removed = await session.WaitForAsync(() => session.Read<uint>($"{AlarmEntry}.MainErrorId") == 0, Reaction);
+        checks.True("ModuleAlarmList[1] is zero after Clear", removed);
+
+        bool idle = await session.EnsureIdleAsync(SetMode);
+        checks.True("SetMode back to Idle", idle);
+        return checks;
+    }
+
+    private static void SendAck(PlcSession session, uint requestId, uint serviceId)
+    {
+        session.Write($"{AckRequest}.bChangeRequest", false);
+        session.Write($"{AckRequest}.RequestId", requestId);
+        session.Write($"{AckRequest}.Command", AcknowledgeOne);
+        session.Write($"{AckRequest}.MainErrorId", SetModeAlarmId);
+        session.Write($"{AckRequest}.ServiceId", serviceId);
+        session.Write($"{AckRequest}.bChangeRequest", true);
     }
 
     private static async Task<Checks> InitialAsync(PlcSession session)

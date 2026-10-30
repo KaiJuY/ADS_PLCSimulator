@@ -1,3 +1,5 @@
+using AdsPlcSimulator.Core.PackML.Alarm;
+
 namespace AdsPlcSimulator.Core.PackML;
 
 /// <summary>Shared by every workflow of one runtime: running hosts and the services that a workflow overrides.</summary>
@@ -50,10 +52,19 @@ public sealed class ServiceHostRegistry
         }
     }
 
+    /// <summary>Set by SimulatorSession after new FlowRuntime, before workflows load; read only afterwards.</summary>
+    public ConfiguredAlarmTable ConfiguredAlarms { get; set; } = ConfiguredAlarmTable.Empty;
+
     public ServiceHost? FindByService(string ctrlPath)
     {
         lock (_lock)
             return _hostsByRoot.Values.Select(registration => registration.Host).FirstOrDefault(host => host.Contains(ctrlPath));
+    }
+
+    public ServiceHost? FindByModule(string modulePath)
+    {
+        lock (_lock)
+            return _hostsByRoot.Values.Select(registration => registration.Host).FirstOrDefault(host => host.ContainsModule(modulePath));
     }
 
     public void SetOverrides(string workflow, IReadOnlyCollection<string> ctrlPaths)

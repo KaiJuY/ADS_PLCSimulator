@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using AdsPlcSimulator.Core.Flow;
+using AdsPlcSimulator.Core.PackML.Alarm;
 using AdsPlcSimulator.Core.Plc;
 using AdsPlcSimulator.Host.Live;
 using Microsoft.Extensions.FileProviders;
@@ -31,6 +32,7 @@ public sealed partial class SimulatorSession : IAsyncDisposable
         Image = CreatePublishedImage();
         Live = new SessionLiveChannel(liveHub);
         Runtime = new FlowRuntime(Image, Program.Symbols, NodeCatalog.Default, Live, Live, ProjectDirectory);
+        Runtime.Registry.ConfiguredAlarms = ConfiguredAlarms;
 
         try
         {
@@ -64,6 +66,8 @@ public sealed partial class SimulatorSession : IAsyncDisposable
     public IFileProvider SimulationFiles { get; private set; } = new NullFileProvider();
 
     internal SessionLiveChannel Live { get; }
+
+    internal ConfiguredAlarmTable ConfiguredAlarms { get; private set; } = ConfiguredAlarmTable.Empty;
 
     private string WorkflowDirectory => Path.Combine(ProjectDirectory, "workflows");
 
@@ -111,15 +115,16 @@ public sealed partial class SimulatorSession : IAsyncDisposable
     private ProcessImage CreatePublishedImage()
     {
         ProcessImage image = Program.CreateProcessImage();
-        string? configPath = ModuleConfigPublisher.PublishIfPresent(ProjectDirectory, Program.Symbols, image);
-        if (configPath is null)
+        ModuleConfigResult? result = ModuleConfigPublisher.PublishIfPresent(ProjectDirectory, Program.Symbols, image);
+        if (result is null)
         {
             _logger.LogInformation("No module config in {Directory}.", ProjectDirectory);
             return image;
         }
 
         // Stryker disable once Statement,String: a log line has no test value
-        _logger.LogInformation("Published module config {Path}.", configPath);
+        _logger.LogInformation("Published module config {Path}.", result.Path);
+        ConfiguredAlarms = result.ConfiguredAlarms;
         return image;
     }
 
