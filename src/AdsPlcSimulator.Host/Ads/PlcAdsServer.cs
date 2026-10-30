@@ -243,15 +243,6 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         base.Dispose(disposing);
     }
 
-    internal int SubscriptionCount
-    {
-        get
-        {
-            lock (_subscriptionLock)
-                return _subscriptions.Count;
-        }
-    }
-
     internal bool TryLocate(ISymbol symbol, int length, out int offset)
     {
         if (!TryResolvePath(symbol.InstancePath, out offset, out int size))

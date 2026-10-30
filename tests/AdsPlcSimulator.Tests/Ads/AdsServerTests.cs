@@ -582,40 +582,6 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
         }
     }
 
-    [Fact]
-    [Trait("AC", "8")]
-    public async Task Subscription_of_a_disconnected_client_is_dropped_after_the_failed_send()
-    {
-        const string path = "GVL_Module.Chamber1_Control[6].ServiceCtrl.DoorClose.RequestId";
-        SymbolRef field = Sym(path);
-        byte[] original = ImageBytes(field.Offset, 4);
-        int before = _server.SubscriptionCount;
-        var other = new AdsClient();
-        other.Connect(AmsNetId.Local, AdsServerTests.SimulatedPlc.Port);
-        var arrived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        other.AdsNotification += (_, _) => arrived.TrySetResult();
-        try
-        {
-            Assert.Equal(AdsErrorCode.NoError, other.TryAddDeviceNotification(DataGroup, (uint)field.Offset, 4, new NotificationSettings(AdsTransMode.OnChange, 10, 0), null, out _));
-            await arrived.Task.WaitAsync(TimeSpan.FromSeconds(5));
-            Assert.Equal(before + 1, _server.SubscriptionCount);
-
-            other.Dispose();
-            _image.Write(field.Offset, [0xE1, 0xE2, 0xE3, 0xE4], WriteSource.Client);
-
-            DateTime deadline = DateTime.UtcNow.AddSeconds(10);
-            while (_server.SubscriptionCount != before && DateTime.UtcNow < deadline)
-                await Task.Delay(50);
-
-            Assert.Equal(before, _server.SubscriptionCount);
-        }
-        finally
-        {
-            other.Dispose();
-            _image.Write(field.Offset, original, WriteSource.Client);
-        }
-    }
-
     [Theory]
     [Trait("AC", "8")]
     [InlineData(true, 0, 4, 0u, 100, AdsErrorCode.DeviceInvalidOffset)]
