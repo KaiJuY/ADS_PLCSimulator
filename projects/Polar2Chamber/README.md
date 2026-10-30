@@ -41,7 +41,7 @@ Polar2 Chamber 的 PLC 宣告檔。模擬器載入這個專案，就有和真 PL
 
 ### 設定檔 `config/module-config.json`
 
-SVID（`ModuleVariableList_SVID`）與 ECID（`ModuleConfigParamList_ECID`）的內容由腳本從規格書產生，格式與真 PLC 的 framework 設定檔相同（`schemaVersion` 4）。目前是 slot 1 的 Polar2：63 個 SVID、438 個 ECID。ID 暫定，依輸出順序從 1 編號；規格書加入或刪除列時會位移。
+SVID（`ModuleVariableList_SVID`）與 ECID（`ModuleConfigParamList_ECID`）的內容由腳本從規格書產生，格式與真 PLC 的 framework 設定檔相同（`schemaVersion` 4）。目前是 slot 1 的 Polar2：64 個 SVID、438 個 ECID。ID 暫定，依輸出順序從 1 編號；規格書加入或刪除列時會位移。
 
 ```
 python projects/Polar2Chamber/spec/spec-to-config.py "projects/Polar2Chamber/spec/Polar 二代機 測試 Chamber 規格_20261007.xlsx" projects/Polar2Chamber/config/module-config.json
@@ -71,13 +71,13 @@ dotnet run --project src/AdsPlcSimulator.Host -- --Simulator:ProjectPath=../../p
 
 - Editor 的符號路徑選單不會列出含 `[#]` 的路徑，要在 Editor 手動輸入。
 - 重新載入 `Polar2_ServiceHost` workflow 會把所有 service 重設為 Idle，所有 module 重設為 Execute。
-- 重新載入 `Polar2_ModuleModeInit` workflow 會把 SVID 1 寫回 `'1'`。
+- 重新載入 `Polar2_ModuleModeInit` workflow 會把 slot 1 的 SVID 1（`Module Mode`）寫回 `'1'`。
 - 重新載入有 `trigger.onServiceExecute` 的 workflow 時，若它的 service 正在 Execute，這次 Execute 會退回預設行為：NaturalCompletion 在 `defaultDelayMs` 後完成，ExecuteUntilExternalStop 等到 Stop 或 Abort。
 
 ## Workflow
 
 - `Polar2_ServiceHost`：執行 `GVL_Module.Chamber_Control` 底下所有 module 的 PackML 交握，ServiceId 與 CompletionBehavior 來自 `plc/ServiceIdentity/` 的 identity 檔。
-- `Polar2_ModuleModeInit`：啟動時把 6 個 module 的 SVID 1 寫回 `'1'`；另外把 slot 1 的 identity 寫成 `ModuleId=1`、`Enabled=TRUE`、`ModuleType=Polar2`，其餘 slot 保持 0、FALSE、空字串。
+- `Polar2_ModuleModeInit`：啟動時把 slot 1 的 SVID 1（`Module Mode`）寫成 `'1'`。slot 1 的 identity（`ModuleId=1`、`Enabled=TRUE`、`ModuleType=Polar2`）與 SVID、ECID 內容由 `config/module-config.json` 在 Run 時發布；其餘 slot 保持 0、FALSE、空字串。
 - `Polar2_Chamber_SetMode`：Chamber.SetMode 進入 Execute 時，依 `TargetMode`（0 到 3）寫入 SVID 1，超出範圍則保持原值，然後完成 service。
 - `Polar2_Chamber_Initial`：Chamber.Initial 進入 Execute 後等待 5000 ms 再完成；依 `SwitchModeAfterFinish` 把 SVID 1 寫成 `'2'`（1）或 `'3'`（2），其他值保持原值。
 

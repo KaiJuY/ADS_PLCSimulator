@@ -137,4 +137,19 @@ public sealed class SessionPartsTests
         Assert.Equal("wf", status.Name);
         Assert.True(status.Loaded);
     }
+
+    [Fact]
+    [Trait("AC", "10")]
+    public void Session_construction_rejects_an_invalid_module_config()
+    {
+        using var root = new ProjectTestRoot();
+        string config = Path.Combine(root.ProjectPath("Alpha"), "config");
+        Directory.CreateDirectory(config);
+        File.WriteAllText(Path.Combine(config, "module-config.json"), "{ not json");
+        var hub = new LiveHub(NullLogger<LiveHub>.Instance);
+
+        var exception = Assert.Throws<ModuleConfigException>(() => new SimulatorSession(root.ProjectPath("Alpha"), hub, NullLogger<SimulatorSession>.Instance));
+
+        Assert.Contains("module-config.json", exception.Message);
+    }
 }

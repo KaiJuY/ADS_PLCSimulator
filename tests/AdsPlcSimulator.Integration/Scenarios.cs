@@ -98,7 +98,7 @@ internal static class Scenarios
         return checks;
     }
 
-    // Expected values: projects/Polar2Chamber/config/module-config.json (63 SVIDs for slot 1) and Polar2_ModuleModeInit.flow.json (Value '1'). They hold on a fresh Host only; S10, S12 change SVID 1 of M1.
+    // Expected values: projects/Polar2Chamber/config/module-config.json (64 SVIDs for slot 1) and Polar2_ModuleModeInit.flow.json (Value '1'). They hold on a fresh Host only; S10, S12 change SVID 1 of M1.
     private static Task<Checks> ModuleVariableAsync(PlcSession session)
     {
         var checks = new Checks();
@@ -108,7 +108,7 @@ internal static class Scenarios
         checks.Equal("M1 DataType (Integer_32bit)", (short)1, session.Read<short>(variable + ".DataType"));
         checks.Equal("M1 Unit", "", session.Read<string>(variable + ".Unit"));
         checks.Equal("M1 Value", "1", session.Read<string>(variable + ".Value"));
-        checks.Equal("M1 PublishedCount", (ushort)63, session.Read<ushort>($"{Gvl}[1].ModuleStatus.Variable.PublishedCount"));
+        checks.Equal("M1 PublishedCount", (ushort)64, session.Read<ushort>($"{Gvl}[1].ModuleStatus.Variable.PublishedCount"));
 
         checks.Equal("M6 Id", 0u, session.Read<uint>($"{Gvl}[6].ModuleVariableList[1].Id"));
         checks.Equal("M6 PublishedCount", (ushort)0, session.Read<ushort>($"{Gvl}[6].ModuleStatus.Variable.PublishedCount"));

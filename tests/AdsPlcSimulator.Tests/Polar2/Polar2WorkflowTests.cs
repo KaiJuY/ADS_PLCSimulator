@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using AdsPlcSimulator.Core.Flow;
 using AdsPlcSimulator.Core.PackML;
 using AdsPlcSimulator.Core.Plc;
+using AdsPlcSimulator.Host.Project;
 using static AdsPlcSimulator.Tests.TestWait;
 
 namespace AdsPlcSimulator.Tests.Polar2;
@@ -26,6 +27,7 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
     {
         _program = s_program.Value;
         _image = _program.CreateProcessImage();
+        ModuleConfigPublisher.PublishIfPresent(TestPaths.Polar2Project, _program.Symbols, _image);
         _runtime = new FlowRuntime(_image, _program.Symbols, NodeCatalog.Default, _monitor, new NoSimulation(), TestPaths.Polar2Project);
         return Task.CompletedTask;
     }
@@ -161,31 +163,26 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
 
     [Fact]
     [Trait("AC", "3")]
-    public async Task ModuleModeInit_writes_svid_1_of_every_module()
+    public async Task ModuleModeInit_sets_module_mode_of_slot_1()
     {
+        Assert.Equal("0", Read(SvidValue));
+
         Load("modeinit", LoadDocument("Polar2_ModuleModeInit"));
         await WaitForRunAsync("modeinit", FlowEventKind.RunCompleted);
 
-        for (int module = 1; module <= 6; module++)
-        {
-            string svid = $"{Root}[{module}].ModuleVariableList[1]";
-            Assert.Equal(1, ReadNumber($"{svid}.Id"));
-            Assert.Equal("Module Mode", Read($"{svid}.Name"));
-            Assert.Equal(1, ReadNumber($"{svid}.DataType"));
-            Assert.Equal("1", Read($"{svid}.Value"));
-            Assert.Equal("", Read($"{svid}.Unit"));
-            Assert.Equal(1, ReadNumber($"{Root}[{module}].ModuleStatus.Variable.PublishedCount"));
-            Assert.Equal(0, ReadNumber($"{Root}[{module}].ModuleVariableList[2].Id"));
-        }
+        string svid = $"{Module1}.ModuleVariableList[1]";
+        Assert.Equal("1", Read($"{svid}.Value"));
+        Assert.Equal(1, ReadNumber($"{svid}.Id"));
+        Assert.Equal("Module Mode", Read($"{svid}.Name"));
+        Assert.Equal(1, ReadNumber($"{svid}.DataType"));
+        Assert.Equal(0, ReadNumber($"{Root}[6].ModuleVariableList[1].Id"));
+        Assert.Equal(0, ReadNumber($"{Root}[6].ModuleStatus.Variable.PublishedCount"));
     }
 
     [Fact]
     [Trait("AC", "11")]
-    public async Task ModuleModeInit_publishes_identity_of_slot_1_only()
+    public void Module_config_publishes_identity_of_slot_1_only()
     {
-        Load("modeinit", LoadDocument("Polar2_ModuleModeInit"));
-        await WaitForRunAsync("modeinit", FlowEventKind.RunCompleted);
-
         Assert.Equal(1, ReadNumber($"{Root}[1].ModuleStatus.ModuleId"));
         Assert.True((bool)Read($"{Root}[1].ModuleStatus.Enabled"));
         Assert.Equal("Polar2", Read($"{Root}[1].ModuleStatus.ModuleType"));

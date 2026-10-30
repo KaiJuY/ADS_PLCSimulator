@@ -29,6 +29,7 @@ public sealed partial class SimulatorSession : IAsyncDisposable
         Name = Path.GetFileName(ProjectDirectory);
         Program = PlcProgram.LoadDirectory(Path.Combine(ProjectDirectory, "plc"));
         Image = Program.CreateProcessImage();
+        PublishModuleConfig();
         Live = new SessionLiveChannel(liveHub);
         Runtime = new FlowRuntime(Image, Program.Symbols, NodeCatalog.Default, Live, Live, ProjectDirectory);
 
@@ -107,6 +108,19 @@ public sealed partial class SimulatorSession : IAsyncDisposable
         (SimulationFiles as IDisposable)?.Dispose();
     }
     // Stryker restore all
+
+    // Runs before the FlowRuntime exists, so no workflow trigger sees these writes and a failure leaves nothing to clean up.
+    private void PublishModuleConfig()
+    {
+        string? configPath = ModuleConfigPublisher.PublishIfPresent(ProjectDirectory, Program.Symbols, Image);
+        if (configPath is null)
+        {
+            _logger.LogInformation("No module config in {Directory}.", ProjectDirectory);
+            return;
+        }
+
+        _logger.LogInformation("Published module config {Path}.", configPath);
+    }
 
     private void LoadWorkflowFile(string name)
     {

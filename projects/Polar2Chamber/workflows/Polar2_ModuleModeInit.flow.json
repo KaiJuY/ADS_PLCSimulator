@@ -8,92 +8,12 @@
       "params": {}
     },
     {
-      "id": "idModuleId",
-      "type": "action.writeSymbol",
-      "x": 40,
-      "y": 200,
-      "params": {
-        "symbol": "GVL_Module.Chamber_Control[1].ModuleStatus.ModuleId",
-        "value": "1"
-      }
-    },
-    {
-      "id": "idEnabled",
-      "type": "action.writeSymbol",
-      "x": 300,
-      "y": 200,
-      "params": {
-        "symbol": "GVL_Module.Chamber_Control[1].ModuleStatus.Enabled",
-        "value": "TRUE"
-      }
-    },
-    {
-      "id": "idModuleType",
-      "type": "action.writeSymbol",
-      "x": 560,
-      "y": 200,
-      "params": {
-        "symbol": "GVL_Module.Chamber_Control[1].ModuleStatus.ModuleType",
-        "value": "Polar2"
-      }
-    },
-    {
-      "id": "loop",
-      "type": "flow.forLoop",
-      "x": 300,
-      "y": 60,
-      "params": {
-        "from": "1",
-        "to": "6"
-      }
-    },
-    {
-      "id": "svId",
-      "type": "action.writeSymbol",
-      "x": 560,
-      "y": 60,
-      "params": {
-        "symbol": "GVL_Module.Chamber_Control[#].ModuleVariableList[1].Id",
-        "value": "1"
-      }
-    },
-    {
-      "id": "svName",
-      "type": "action.writeSymbol",
-      "x": 860,
-      "y": 60,
-      "params": {
-        "symbol": "GVL_Module.Chamber_Control[#].ModuleVariableList[1].Name",
-        "value": "Module Mode"
-      }
-    },
-    {
-      "id": "svType",
-      "type": "action.writeSymbol",
-      "x": 1160,
-      "y": 60,
-      "params": {
-        "symbol": "GVL_Module.Chamber_Control[#].ModuleVariableList[1].DataType",
-        "value": "Integer_32bit"
-      }
-    },
-    {
       "id": "svValue",
       "type": "action.writeSymbol",
-      "x": 1460,
+      "x": 300,
       "y": 60,
       "params": {
-        "symbol": "GVL_Module.Chamber_Control[#].ModuleVariableList[1].Value",
-        "value": "1"
-      }
-    },
-    {
-      "id": "published",
-      "type": "action.writeSymbol",
-      "x": 1760,
-      "y": 60,
-      "params": {
-        "symbol": "GVL_Module.Chamber_Control[#].ModuleStatus.Variable.PublishedCount",
+        "symbol": "GVL_Module.Chamber_Control[1].ModuleVariableList[1].Value",
         "value": "1"
       }
     }
@@ -102,86 +22,8 @@
     {
       "fromNode": "start",
       "fromPort": "then",
-      "toNode": "idModuleId",
-      "toPort": "exec"
-    },
-    {
-      "fromNode": "idModuleId",
-      "fromPort": "then",
-      "toNode": "idEnabled",
-      "toPort": "exec"
-    },
-    {
-      "fromNode": "idEnabled",
-      "fromPort": "then",
-      "toNode": "idModuleType",
-      "toPort": "exec"
-    },
-    {
-      "fromNode": "idModuleType",
-      "fromPort": "then",
-      "toNode": "loop",
-      "toPort": "exec"
-    },
-    {
-      "fromNode": "loop",
-      "fromPort": "body",
-      "toNode": "svId",
-      "toPort": "exec"
-    },
-    {
-      "fromNode": "loop",
-      "fromPort": "index",
-      "toNode": "svId",
-      "toPort": "index"
-    },
-    {
-      "fromNode": "svId",
-      "fromPort": "then",
-      "toNode": "svName",
-      "toPort": "exec"
-    },
-    {
-      "fromNode": "loop",
-      "fromPort": "index",
-      "toNode": "svName",
-      "toPort": "index"
-    },
-    {
-      "fromNode": "svName",
-      "fromPort": "then",
-      "toNode": "svType",
-      "toPort": "exec"
-    },
-    {
-      "fromNode": "loop",
-      "fromPort": "index",
-      "toNode": "svType",
-      "toPort": "index"
-    },
-    {
-      "fromNode": "svType",
-      "fromPort": "then",
       "toNode": "svValue",
       "toPort": "exec"
-    },
-    {
-      "fromNode": "loop",
-      "fromPort": "index",
-      "toNode": "svValue",
-      "toPort": "index"
-    },
-    {
-      "fromNode": "svValue",
-      "fromPort": "then",
-      "toNode": "published",
-      "toPort": "exec"
-    },
-    {
-      "fromNode": "loop",
-      "fromPort": "index",
-      "toNode": "published",
-      "toPort": "index"
     }
   ]
 }
