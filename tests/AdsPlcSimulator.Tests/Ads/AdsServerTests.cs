@@ -169,10 +169,9 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
 
     private AdsErrorCode TryReadBytes(uint indexGroup, uint indexOffset, int length, out byte[] data)
     {
-        data = new byte[length];
-        AdsErrorCode result = _client.TryRead(indexGroup, indexOffset, data.AsMemory(), out int read);
-        data = data[..read];
-        return result;
+        var result = _client.ReadAsync(indexGroup, indexOffset, length, CancellationToken.None).GetAwaiter().GetResult();
+        data = result.Data.ToArray();
+        return result.ErrorCode;
     }
 
     private AdsErrorCode TryWriteBytes(uint indexGroup, uint indexOffset, byte[] data) =>
@@ -470,8 +469,8 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
     [Trait("AC", "10")]
     public void Releasing_a_handle_with_its_own_number_as_offset_succeeds_and_invalidates_it()
     {
-        // Own symbol on purpose: the base class keeps the name-to-handle mapping after this kind of release,
-        // so a later CreateVariableHandle of the same name would return the dead handle.
+        // Own symbol on purpose: a raw 0xF006 release bypasses AdsClient's handle cache, so a later
+        // CreateVariableHandle of the same name on this client would return the released handle.
         uint handle = _client.CreateVariableHandle("GVL_Module.Chamber1_Control[6].ServiceCtrl.DoorOpen.RequestId");
         Assert.Equal(AdsErrorCode.NoError, TryWriteBytes(ReleaseGroup, handle, BitConverter.GetBytes(handle)));
         Assert.NotEqual(AdsErrorCode.NoError, TryReadBytes(HandleGroup, handle, 4, out _));
