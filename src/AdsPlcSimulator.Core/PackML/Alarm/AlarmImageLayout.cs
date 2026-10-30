@@ -2,7 +2,6 @@ using AdsPlcSimulator.Core.Plc;
 
 namespace AdsPlcSimulator.Core.PackML.Alarm;
 
-/// <summary>Byte layout of ST_ExtAlarm, found by member name in the symbol table.</summary>
 internal sealed class ExtAlarmCodec
 {
     private static readonly string[] MemberNames =
@@ -27,7 +26,6 @@ internal sealed class ExtAlarmCodec
 
     public int Size { get; }
 
-    /// <summary>Null when one of the 11 members is missing, or Message, Path or DateTime is not a narrow STRING.</summary>
     public static ExtAlarmCodec? TryCreate(PlcType extAlarmType)
     {
         Slot[]? slots = AlarmLayout.Locate(extAlarmType, MemberNames);
@@ -37,7 +35,6 @@ internal sealed class ExtAlarmCodec
         return new ExtAlarmCodec(slots, extAlarmType.Size);
     }
 
-    /// <summary>Null writes zeros; never throws: Message, Path and DateTime are cut to the declared STRING length.</summary>
     public void Encode(ExtAlarm? alarm, Span<byte> destination)
     {
         destination = destination[..Size];
@@ -63,7 +60,6 @@ internal sealed class ExtAlarmCodec
     private static string Cut(string text, int length) => text.Length <= length ? text : text[..length];
 }
 
-/// <summary>Offset lookups that return null, not an exception, when a member is missing.</summary>
 internal static class AlarmLayout
 {
     public static Slot[]? Locate(PlcType type, string[] names)
@@ -71,7 +67,7 @@ internal static class AlarmLayout
         var slots = new Slot[names.Length];
         for (int i = 0; i < names.Length; i++)
         {
-            StructMember? member = (type.Unaliased as StructType)?.Find(names[i]);
+            StructMember? member = PlcLayout.Find(type, names[i]);
             if (member is null)
                 return null;
             slots[i] = new Slot(member.Offset, member.Type);
@@ -80,7 +76,7 @@ internal static class AlarmLayout
         return slots;
     }
 
-    public static StructMember? Member(PlcType type, string name) => (type.Unaliased as StructType)?.Find(name);
+    public static StructMember? Member(PlcType type, string name) => PlcLayout.Find(type, name);
 
     public static (StructMember Member, ArrayType Array)? ArrayMember(PlcType type, string name)
     {
@@ -98,10 +94,6 @@ internal static class AlarmLayout
         image.Write(offset, new byte[length], WriteSource.Workflow);
 }
 
-/// <summary>
-/// Per module: ModuleAlarmList, ModuleStatus.Alarm and ModuleCtrl.AlarmAckRequest. Keeps the last written list;
-/// writes only the entries whose ExtAlarm differs (one image.Write per changed entry), and the status struct only when it differs.
-/// </summary>
 internal sealed class ModuleAlarmBlock
 {
     private static readonly string[] StatusNames =
@@ -149,7 +141,6 @@ internal sealed class ModuleAlarmBlock
 
     public int ListCapacity { get; }
 
-    /// <summary>Null when ModuleAlarmList, ModuleStatus.Alarm, ModuleStatus.ModuleId or ModuleCtrl.AlarmAckRequest is missing, or ExtAlarmCodec.TryCreate fails.</summary>
     public static ModuleAlarmBlock? TryCreate(SymbolRef module)
     {
         var list = AlarmLayout.ArrayMember(module.Type, "ModuleAlarmList");
@@ -195,7 +186,6 @@ internal sealed class ModuleAlarmBlock
     public uint ReadModuleId(ProcessImage image) =>
         (uint)PlcValue.ToInt64(ValueCodec.Decode(_moduleIdType, image.Read(_moduleIdOffset, _moduleIdType.Size)));
 
-    /// <param name="list">Count must equal ListCapacity.</param>
     public void Write(ProcessImage image, IReadOnlyList<ExtAlarm?> list, AlarmStatus status)
     {
         byte[] entry = new byte[_codec.Size];
@@ -216,7 +206,6 @@ internal sealed class ModuleAlarmBlock
         _lastStatus = status;
     }
 
-    /// <summary>Reads the block; writes zeros only to the part that is not already zero; then sets the cache to all-null entries and a zero status, matching the image.</summary>
     public void Clear(ProcessImage image)
     {
         int listBytes = ListCapacity * _codec.Size;
@@ -244,7 +233,6 @@ internal sealed class ModuleAlarmBlock
     }
 }
 
-/// <summary>One ServiceStatus.&lt;svc&gt;.ErrorList. The in-memory list is the source of truth; the image copy is rewritten when it changes.</summary>
 internal sealed class ServiceErrorList
 {
     private readonly ExtAlarmCodec _codec;
@@ -260,10 +248,8 @@ internal sealed class ServiceErrorList
         _lastWritten = new ExtAlarm?[capacity];
     }
 
-    /// <summary>The non-empty entries in slot order.</summary>
     public IEnumerable<ExtAlarm> Entries => _slots.OfType<ExtAlarm>();
 
-    /// <summary>Null when ErrorList is missing or its element is not an ST_ExtAlarm shape.</summary>
     public static ServiceErrorList? TryCreate(SymbolRef serviceStatus)
     {
         var list = AlarmLayout.ArrayMember(serviceStatus.Type, "ErrorList");
@@ -276,8 +262,7 @@ internal sealed class ServiceErrorList
             : new ServiceErrorList(codec, serviceStatus.Offset + list.Value.Member.Offset, list.Value.Array.ElementCount);
     }
 
-    /// <summary>First-empty fill, duplicate and full rules of FB_ServiceBase.M_AddError.</summary>
-    public ServiceHost.ServiceErrorResult Add(ExtAlarm entry)
+    public ServiceErrorResult Add(ExtAlarm entry)
     {
         int firstEmpty = -1;
         for (int index = 0; index < _slots.Length && firstEmpty < 0; index++)
@@ -286,17 +271,16 @@ internal sealed class ServiceErrorList
             if (current is null)
                 firstEmpty = index;
             else if (current.MainErrorId == entry.MainErrorId)
-                return new ServiceHost.ServiceErrorResult(false, $"duplicate MainErrorId {entry.MainErrorId}");
+                return new ServiceErrorResult(false, $"duplicate MainErrorId {entry.MainErrorId}");
         }
 
         if (firstEmpty < 0)
-            return new ServiceHost.ServiceErrorResult(false, $"ErrorList is full ({_slots.Length})");
+            return new ServiceErrorResult(false, $"ErrorList is full ({_slots.Length})");
 
         _slots[firstEmpty] = entry;
-        return new ServiceHost.ServiceErrorResult(true, "");
+        return new ServiceErrorResult(true, "");
     }
 
-    /// <summary>Empties the in-memory list.</summary>
     public void Clear() => Array.Clear(_slots);
 
     public void WriteIfChanged(ProcessImage image)
@@ -313,7 +297,6 @@ internal sealed class ServiceErrorList
         }
     }
 
-    /// <summary>Empties the list, writes zeros if the image block is not zero, sets the last-written cache to empty.</summary>
     public void ResetImage(ProcessImage image)
     {
         Clear();

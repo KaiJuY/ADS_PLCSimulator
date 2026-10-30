@@ -33,7 +33,6 @@ public sealed class ServiceHost
     private readonly Dictionary<string, ModuleUnit> _moduleByPath = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ModuleUnit> _moduleByService = new(StringComparer.OrdinalIgnoreCase);
     private bool _retired;
-    private bool _initialized;
     private ProcessImage? _image;
 
     /// <param name="utcNow">The clock of alarm DateTime; null = DateTimeOffset.UtcNow.</param>
@@ -70,8 +69,6 @@ public sealed class ServiceHost
 
     public IReadOnlyList<string> BoundServices => _boundPaths;
 
-    public sealed record ServiceErrorResult(bool Added, string Reason);
-
     /// <summary>The same as Initialize(image, ConfiguredAlarmTable.Empty).</summary>
     public void Initialize(ProcessImage image) => Initialize(image, ConfiguredAlarmTable.Empty);
 
@@ -85,7 +82,6 @@ public sealed class ServiceHost
             foreach (ModuleUnit module in _modules)
                 InitializeModule(image, module, configuredAlarms.For(module.Path));
             _image = image;
-            _initialized = true;
         }
     }
 
@@ -149,7 +145,7 @@ public sealed class ServiceHost
     {
         if (_retired)
             throw new InvalidOperationException($"{RootPath} is retired; the workflow was reloaded.");
-        return _image is { } image && _initialized
+        return _image is { } image
             ? image
             : throw new InvalidOperationException($"{RootPath} is not initialized yet.");
     }
@@ -304,14 +300,13 @@ public sealed class ServiceHost
         service.LastState = service.Machine.State;
         if (before != PackMLState.Execute && service.Machine.State == PackMLState.Execute)
             EnterExecute(service, now);
-        if (PassedThroughClearing(before, service.Machine))
+        if (PassedThroughClearingThisScan(before, service.Machine))
             service.ClearErrors(image);
 
         service.Status.Write(image, service.Machine);
     }
 
-    /// <summary>A service enters Clearing and leaves it in the same Machine.Scan, so the entry or the exit marks the pass (FW: H_OnClearing calls M_ClearAllError).</summary>
-    private static bool PassedThroughClearing(PackMLState before, PackMLMachine machine) =>
+    private static bool PassedThroughClearingThisScan(PackMLState before, PackMLMachine machine) =>
         (machine.State == PackMLState.Clearing && before != PackMLState.Clearing)
         || (machine.State != before && machine.PreviousState == PackMLState.Clearing);
 
@@ -354,10 +349,6 @@ public sealed class ServiceHost
     }
 
     private readonly record struct RawInput(long RequestId, PackMLInput PackML);
-
-    private sealed record HookSubmission(uint MainErrorId, uint SourceErrorId, string Message, AlarmSeverity Severity, string Path);
-
-    private sealed record ConfiguredBinding(ConfiguredAlarm Alarm, SymbolRef Source);
 
     private sealed class InputLayout
     {
@@ -520,10 +511,8 @@ public sealed class ServiceHost
 
         public string CtrlPath { get; }
 
-        /// <summary>The ServiceStatus symbol of this service; the simulator has no FB instance path.</summary>
         public string StatusPath { get; }
 
-        /// <summary>Null when the ServiceStatus has no ErrorList.</summary>
         public ServiceErrorList? Errors { get; }
 
         public ServiceIdentity? Identity { get; }
@@ -631,9 +620,7 @@ public sealed class ServiceHost
         private readonly int _serviceCtrlOffset;
         private readonly byte[] _ctrlBuffer;
         private readonly byte[] _serviceCtrlBuffer;
-        private readonly List<HookSubmission> _hooks = [];
-        private List<ConfiguredBinding> _configured = [];
-        private ModuleAlarmManager _manager = new(0);
+        private readonly ModuleAlarmEngine _alarms;
 
         private ModuleUnit(
             InputLayout input,
@@ -655,12 +642,13 @@ public sealed class ServiceHost
             Status = status;
             Services = services;
             BoundServices = services.Where(service => service.IsBound).ToList();
+            _alarms = new ModuleAlarmEngine(
+                path, alarm, services.Select(service => service.Errors).ToList(), BoundServices.Select(service => service.Errors).ToList());
             Machine = new PackMLMachine(PackMLState.Execute, PackMLState.Starting);
         }
 
         public string Path { get; }
 
-        /// <summary>Null when the module lacks one of the alarm members; its PackML runs, its alarms do not.</summary>
         public ModuleAlarmBlock? Alarm { get; }
 
         public StatusBlock Status { get; }
@@ -708,106 +696,17 @@ public sealed class ServiceHost
 
         public RawInput ReadModuleInput() => _input.Decode(_ctrlBuffer);
 
-        public void ResetAlarms(ProcessImage image, List<ConfiguredBinding> configured)
-        {
-            _configured = configured;
-            _hooks.Clear();
-            foreach (ServiceUnit service in Services)
-                service.Errors?.ResetImage(image);
+        public void ResetAlarms(ProcessImage image, List<ConfiguredBinding> configured) => _alarms.Reset(image, configured);
 
-            if (Alarm is null)
-                return;
+        public void SetHook(HookSubmission submission, bool active) => _alarms.SetHook(submission, active);
 
-            _manager = new ModuleAlarmManager(Alarm.ListCapacity);
-            Alarm.Clear(image);
-        }
-
-        public void SetHook(HookSubmission submission, bool active)
-        {
-            int index = _hooks.FindIndex(hook => hook.MainErrorId == submission.MainErrorId);
-            if (!active)
-            {
-                if (index >= 0)
-                    _hooks.RemoveAt(index);
-                return;
-            }
-
-            if (index >= 0)
-                _hooks[index] = submission;
-            else if (_hooks.Count >= ModuleAlarmManager.HookCapacity)
-                throw new InvalidOperationException($"{Path} already has {ModuleAlarmManager.HookCapacity} hook alarms.");
-            else
-                _hooks.Add(submission);
-        }
-
-        /// <summary>The steps of FB_ModuleBase.M_UpdateAlarmState, in its order.</summary>
-        public void ScanAlarms(ProcessImage image, string utc)
-        {
-            if (Alarm is null)
-                return;
-
-            uint moduleId = Alarm.ReadModuleId(image);
-            _manager.BeginCycle(moduleId);
-            foreach (ConfiguredBinding binding in _configured)
-                _manager.SuppressHookAlarm(binding.Alarm.MainErrorId);
-            _manager.ProcessAcknowledgement(Alarm.ReadAckRequest(image));
-            ObserveConfigured(image, moduleId, utc);
-            ObserveHooks(utc);
-            ObserveServices();
-            _manager.EndCycle();
-            Alarm.Write(image, _manager.Publish(), _manager.Status);
-        }
-
-        private void ObserveConfigured(ProcessImage image, uint moduleId, string utc)
-        {
-            for (int index = 0; index < _configured.Count; index++)
-            {
-                ConfiguredAlarm alarm = _configured[index].Alarm;
-                bool valid = TrySample(image, _configured[index], out double value);
-                bool met = valid && AlarmCondition.IsMet(value, alarm.Operator, alarm.Threshold, alarm.Tolerance);
-                var snapshot = new ExtAlarm(
-                    moduleId, 0, alarm.MainErrorId, alarm.SourceErrorId, alarm.Message, $"{Path}.{alarm.Source}",
-                    alarm.Severity, "", false, false, 0);
-                _manager.UpdateConfiguredAlarm(index + 1, valid, met, snapshot, utc);
-            }
-        }
-
-        private static bool TrySample(ProcessImage image, ConfiguredBinding binding, out double value)
-        {
-            value = 0;
-            if (binding.Alarm.SourceType == AlarmSourceType.String80)
-                return false;
-
-            value = PlcValue.ToDouble(image.ReadValue(binding.Source));
-            return true;
-        }
-
-        private void ObserveHooks(string utc)
-        {
-            foreach (HookSubmission hook in _hooks)
-            {
-                if (_configured.Any(binding => binding.Alarm.MainErrorId == hook.MainErrorId))
-                    continue;
-
-                string path = hook.Path.Length == 0 ? Path : hook.Path;
-                _manager.ObserveHookAlarm(new ExtAlarm(0, 0, hook.MainErrorId, hook.SourceErrorId, hook.Message, path, hook.Severity, utc, false, false, 0));
-            }
-        }
-
-        private void ObserveServices()
-        {
-            foreach (ServiceUnit service in BoundServices)
-            {
-                foreach (ExtAlarm entry in service.Errors?.Entries ?? [])
-                    _manager.ObserveServiceAlarm(entry);
-            }
-        }
+        public void ScanAlarms(ProcessImage image, string utc) => _alarms.Scan(image, utc);
 
         public RawInput ReadServiceInput(ServiceUnit service) => service.ReadInput(_serviceCtrlBuffer);
 
         private static StructMember RequireMember(SymbolRef module, string name, string? typeName)
         {
-            StructMember? member = (module.Type.Unaliased as StructType)?.Find(name);
+            StructMember? member = Find(module.Type, name);
             if (member is null)
                 throw new ServiceHostException($"Module {module.Path} has no member '{name}'.");
             if (typeName is not null)
@@ -822,7 +721,6 @@ public sealed class ServiceHost
             return ChildrenOf(node).SelectMany(FindServiceCtrls);
         }
 
-        /// <summary>Members of a struct, or elements of a one-dimensional array of structs or arrays; empty otherwise.</summary>
         private static IEnumerable<SymbolRef> ChildrenOf(SymbolRef node) => node.Type.Unaliased switch
         {
             StructType structure => structure.Members.Select(member =>

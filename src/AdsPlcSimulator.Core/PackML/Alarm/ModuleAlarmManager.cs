@@ -3,14 +3,14 @@ namespace AdsPlcSimulator.Core.PackML.Alarm;
 /// <summary>C# copy of FB_ModuleAlarmManager. Not thread-safe; ServiceHost calls it under its lock.</summary>
 public sealed class ModuleAlarmManager
 {
-    public const int ConfiguredCapacity = 30;   // Param_Config.MaxConfiguredAlarmsPerModule
-    public const int HookCapacity = 30;         // MaxHookAlarmsPerModule
-    public const int ServiceCapacity = 40;      // MaxServiceAlarmsPerModule
+    public const int MaxConfiguredAlarmsPerModule = 30;
+    public const int MaxHookAlarmsPerModule = 30;
+    public const int MaxServiceAlarmsPerModule = 40;
 
     private readonly int _publishCapacity;
-    private readonly Lifecycle[] _configured = NewStates(ConfiguredCapacity);
-    private readonly Lifecycle[] _service = NewStates(ServiceCapacity);
-    private readonly Lifecycle[] _hook = NewStates(HookCapacity);
+    private readonly Lifecycle[] _configured = NewStates(MaxConfiguredAlarmsPerModule);
+    private readonly Lifecycle[] _service = NewStates(MaxServiceAlarmsPerModule);
+    private readonly Lifecycle[] _hook = NewStates(MaxHookAlarmsPerModule);
 
     private uint _moduleId;
     private bool _previousChangeRequest;
@@ -86,7 +86,7 @@ public sealed class ModuleAlarmManager
     /// <param name="index">1..30, the position in the module's alarmList (1-based).</param>
     public void UpdateConfiguredAlarm(int index, bool sampleValid, bool conditionMet, ExtAlarm snapshot, string utcDateTime)
     {
-        if (index < 1 || index > ConfiguredCapacity || !sampleValid)
+        if (index < 1 || index > MaxConfiguredAlarmsPerModule || !sampleValid)
             return;
 
         Lifecycle state = _configured[index - 1];
@@ -360,7 +360,6 @@ public sealed class ModuleAlarmManager
         return states;
     }
 
-    // FW: ST_AlarmLifecycleState
     private sealed class Lifecycle
     {
         public bool Latched;

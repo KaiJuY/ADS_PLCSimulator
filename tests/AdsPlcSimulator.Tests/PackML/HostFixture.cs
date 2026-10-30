@@ -120,10 +120,8 @@ internal sealed class HostFixture
         TYPE ST_TestSources : STRUCT Pressure : REAL; Flag : BOOL; Text : STRING(80); END_STRUCT END_TYPE
         """;
 
-    /// <summary>The declarations of <see cref="Declarations"/> plus the alarm members of the framework: ErrorList, ModuleAlarmList, ModuleStatus.Alarm, ModuleCtrl.AlarmAckRequest and a Sources struct for configured alarms.</summary>
     public static readonly string AlarmDeclarations = WithAlarmMembers(Declarations);
 
-    /// <summary>Like <see cref="AlarmDeclarations"/> but ModuleStatus has no ModuleId.</summary>
     public static readonly string AlarmDeclarationsWithoutModuleId = WithAlarmMembers(Declarations.Replace("ModuleId : UDINT;", "Spare : UDINT;"));
 
     public static readonly TimeSpan DefaultDelay = TimeSpan.FromSeconds(5);

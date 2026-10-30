@@ -269,7 +269,6 @@ internal static class Scenarios
         return checks;
     }
 
-    // The SetMode workflow writes SVID and completes for TargetMode 0..3 (Polar2_Chamber_SetMode.flow.json).
     private static async Task<Checks> SetModeAsync(PlcSession session, ushort targetMode, bool expectChange)
     {
         var checks = new Checks();
@@ -290,7 +289,6 @@ internal static class Scenarios
         return checks;
     }
 
-    // With TargetMode 4 the workflow adds MainErrorId 1 to ErrorList and aborts. The service stays Aborted for S16.
     private static async Task<Checks> SetModeAbortsAsync(PlcSession session)
     {
         var checks = new Checks();

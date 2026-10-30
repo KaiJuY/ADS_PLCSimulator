@@ -11,7 +11,6 @@ public enum AlarmOperator { GreaterThan, LessThan, Equal, GreaterOrEqual, LessOr
 /// <summary>The dataType families the framework samples (FW: FB_ConfigValueSnapshotReader.M_GetLReal). String80 passes the load but every sample is invalid.</summary>
 public enum AlarmSourceType { Boolean, SInt, USInt, Int, UInt, DInt, UDInt, Real, LReal, String80 }
 
-/// <summary>One ST_ExtAlarm.</summary>
 public sealed record ExtAlarm(
     uint ModuleId, uint ServiceId, uint MainErrorId, uint SourceErrorId,
     string Message, string Path, AlarmSeverity Severity, string DateTime,
@@ -20,7 +19,6 @@ public sealed record ExtAlarm(
 /// <summary>ST_AlarmAckRequest as read from ModuleCtrl. Command stays a raw number so an undefined value reaches InvalidCommand.</summary>
 public readonly record struct AlarmAckRequest(uint RequestId, long Command, uint MainErrorId, uint ServiceId, bool ChangeRequest);
 
-/// <summary>ST_ModuleAlarmStatus.</summary>
 public sealed record AlarmStatus(
     uint AckResponseId, bool AckAccepted, AlarmAckError AckError,
     ushort ConfiguredLatchedCount, ushort ServiceLatchedCount, bool Overflow,
@@ -30,3 +28,5 @@ public sealed record AlarmStatus(
 public sealed record ConfiguredAlarm(
     string Source, AlarmSourceType SourceType, AlarmOperator Operator, double Threshold, double Tolerance,
     uint MainErrorId, uint SourceErrorId, string Message, AlarmSeverity Severity);
+
+public sealed record ServiceErrorResult(bool Added, string Reason);

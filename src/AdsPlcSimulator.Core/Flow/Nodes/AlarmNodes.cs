@@ -4,10 +4,8 @@ using AdsPlcSimulator.Core.Plc;
 
 namespace AdsPlcSimulator.Core.Flow.Nodes;
 
-/// <summary>The value rules both alarm nodes share.</summary>
 internal static class AlarmInputs
 {
-    /// <exception cref="InvalidOperationException">The input is missing or outside the uint range.</exception>
     public static uint ErrorId(object? value, string name, long minimum)
     {
         if (value is null)
@@ -54,7 +52,7 @@ public sealed class AddServiceErrorNode(IndexedSymbol service, string message) :
         ServiceHost host = execution.Registry.FindByService(path)
             ?? throw new InvalidOperationException($"No service.host runs {path}.");
 
-        ServiceHost.ServiceErrorResult result = host.AddServiceError(path, mainErrorId, sourceErrorId, message);
+        ServiceErrorResult result = host.AddServiceError(path, mainErrorId, sourceErrorId, message);
         execution.Output("added", result.Added);
         execution.Output("reason", result.Reason);
         return Task.FromResult<string?>("then");

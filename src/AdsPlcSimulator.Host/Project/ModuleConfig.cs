@@ -75,7 +75,6 @@ internal static class ModuleConfigPublisher
     internal const string ModulesRoot = "GVL_Module.Chamber_Control";
 
     private const int SupportedSchemaVersion = 4;
-    private const int MaxConfiguredAlarms = 30;
     private const uint ReservedErrorIdStart = 0xFFFF0000;
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
@@ -160,8 +159,8 @@ internal static class ModuleConfigPublisher
         string where = $"slot {slot} alarmList";
         if (list.Contains(null))
             throw Fail(path, $"{where} contains a null element.");
-        if (list.Count > MaxConfiguredAlarms)
-            throw Fail(path, $"{where} has {list.Count} entries, the limit is {MaxConfiguredAlarms}.");
+        if (list.Count > ModuleAlarmManager.MaxConfiguredAlarmsPerModule)
+            throw Fail(path, $"{where} has {list.Count} entries, the limit is {ModuleAlarmManager.MaxConfiguredAlarmsPerModule}.");
 
         var ids = new HashSet<uint>();
         foreach (AlarmConfig? alarm in list)

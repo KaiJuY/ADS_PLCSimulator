@@ -54,7 +54,6 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
         return document;
     }
 
-    /// <summary>The real SetMode graph with a delay between the trigger and Complete Service, so a client can abort first.</summary>
     private static WorkflowDocument SetModeWithHoldBeforeComplete(string delayMs)
     {
         WorkflowDocument document = LoadDocument("Polar2_Chamber_SetMode");
@@ -82,7 +81,6 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
 
     private void Load(string name, WorkflowDocument document) => Assert.Empty(_runtime.Load(name, document));
 
-    /// <summary>Loads the host and the SVID init, and waits until module 1 accepts service requests.</summary>
     private async Task StartPlcAsync()
     {
         Load("host", HostDocument());

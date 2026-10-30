@@ -56,7 +56,7 @@ public class ServiceHostAlarmTests
 
         var result = fixture.Host.AddServiceError(ServiceA, 7, 9, "boom");
 
-        Assert.Equal(new ServiceHost.ServiceErrorResult(true, ""), result);
+        Assert.Equal(new ServiceErrorResult(true, ""), result);
         Assert.Equal(3, ErrorNum(fixture, 1, "ModuleId"));
         Assert.Equal(101, ErrorNum(fixture, 1, "ServiceId"));
         Assert.Equal(7, ErrorNum(fixture, 1, "MainErrorId"));
