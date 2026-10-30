@@ -233,7 +233,7 @@ public sealed class ProjectHost : IAsyncDisposable
         else
             _pendingRelease = connect.ContinueWith(_ => server.Dispose(), TaskScheduler.Default);
 
-        await DisposeSessionBoundedAsync(session, "Workflows of {Project} did not stop within 5 s; releasing anyway.");
+        await DisposeSessionBoundedAsync(session);
         _liveHub.ClearSimulationState();
     }
 
@@ -248,7 +248,7 @@ public sealed class ProjectHost : IAsyncDisposable
         bool released = await ReleasePortAsync(server, session.Name);
         _server = null;
 
-        await DisposeSessionBoundedAsync(session, "Workflows of {Project} did not stop within 5 s; releasing anyway.");
+        await DisposeSessionBoundedAsync(session);
         _liveHub.ClearSimulationState();
 
         if (released)
@@ -283,7 +283,7 @@ public sealed class ProjectHost : IAsyncDisposable
         return false;
     }
 
-    private async Task DisposeSessionBoundedAsync(SimulatorSession session, string timeoutMessage)
+    private async Task DisposeSessionBoundedAsync(SimulatorSession session)
     {
         try
         {
@@ -291,7 +291,7 @@ public sealed class ProjectHost : IAsyncDisposable
         }
         catch (TimeoutException)
         {
-            _logger.LogWarning(timeoutMessage, session.Name);
+            _logger.LogWarning("Workflows of {Project} did not stop within {Seconds} s; releasing anyway.", session.Name, StopTimeout.TotalSeconds);
         }
         catch (Exception exception)
         {

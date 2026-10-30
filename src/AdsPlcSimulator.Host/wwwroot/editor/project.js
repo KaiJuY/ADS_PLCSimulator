@@ -1,7 +1,5 @@
-// Project toolbar for Host executor mode: lists projects, runs one, stops it, and shows the running state.
-// Run and Stop reload the page so the editor picks up the new project.
-
 const $ = (id) => document.getElementById(id);
+const reloadToAttachProject = () => location.reload();
 
 async function api(path, options = {}) {
   const response = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...options });
@@ -49,7 +47,7 @@ async function run() {
   $('projectError').hidden = true;
   try {
     await api('/api/project/run', { method: 'POST', body: JSON.stringify({ name: $('projectSelect').value }) });
-    location.reload();
+    reloadToAttachProject();
   } catch (error) {
     showError(error.message);
     button.disabled = false;
@@ -63,7 +61,7 @@ async function stop(isDirty) {
   $('projectError').hidden = true;
   try {
     await api('/api/project/stop', { method: 'POST' });
-    location.reload();
+    reloadToAttachProject();
   } catch (error) {
     showError(error.message);
     button.disabled = false;

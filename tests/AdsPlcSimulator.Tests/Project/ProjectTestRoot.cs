@@ -12,7 +12,7 @@ using TwinCAT.Ads;
 
 namespace AdsPlcSimulator.Tests.Project;
 
-/// <summary>AMS port 25855 belongs to these tests. Needs the AMS router of a local TwinCAT installation.</summary>
+// Needs the AMS router of a local TwinCAT installation.
 [CollectionDefinition("AdsPort25855", DisableParallelization = true)]
 public sealed class AdsPort25855Collection;
 
@@ -50,7 +50,6 @@ internal sealed class CapturingLoggerProvider : ILoggerProvider
     }
 }
 
-/// <summary>A temporary ProjectsRoot with Alpha, Beta, Broken and NoPlc, plus factories for hosts that use it.</summary>
 internal sealed class ProjectTestRoot : IDisposable
 {
     public const ushort Port = 25855;
