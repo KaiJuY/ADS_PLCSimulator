@@ -1,8 +1,8 @@
 using AdsPlcSimulator.Integration;
 using TwinCAT.Ads;
 
-const int DefaultPort = 851;
-const string Usage = "Usage: dotnet run --project tests/AdsPlcSimulator.Integration -- [--port 851] [--only S10,S11]";
+const int DefaultPort = 25860;
+const string Usage = "Usage: dotnet run --project tests/AdsPlcSimulator.Integration -- [--port 25860] [--only S10,S11]";
 
 if (!TryParseArguments(args, out int port, out HashSet<string>? only, out string? error))
 {
