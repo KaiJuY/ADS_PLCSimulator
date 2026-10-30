@@ -274,7 +274,6 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         return true;
     }
 
-    /// <summary>By handle the watched length is capped at <paramref name="size"/>; otherwise <paramref name="offset"/> is the raw image offset.</summary>
     internal static AdsErrorCode CheckNotificationRange(bool byHandle, int dataLength, int size, uint indexOffset, int imageSize, out int offset, out int watchLength)
     {
         offset = 0;
