@@ -1,6 +1,6 @@
 # Polar2Chamber 專案
 
-Polar2 Chamber 的 PLC 宣告檔。模擬器載入這個專案，就有和真 PLC 相同的 `GVL_Module.Chamber_Control`（6 個 module，共 12678720 bytes）。本專案的 `plc/` 全部從下列來源原樣複製，不改內容。
+Polar2 Chamber 的 PLC 宣告檔。模擬器載入這個專案，就有和真 PLC 相同的 `GVL_Module.Chamber_Control`（6 個 module，共 12966720 bytes）。本專案的 `plc/` 從下列來源原樣複製，只有一處不同：`Param_Config.TcGVL` 的 `MaxConfigParamPerModule` 由 300 改為 500（規格書的 ECID 有 438 筆，300 放不下）。真 PLC 的 `Chamber_Control` 是 12678720 bytes，所以模擬器的 offset 與真 PLC 不同（用 symbol 名稱存取的 client 不受影響，用固定 offset 的工具會讀錯位置）。
 
 ## 來源
 
@@ -16,7 +16,18 @@ Polar2 Chamber 的 PLC 宣告檔。模擬器載入這個專案，就有和真 PL
 | `POUs/F_InitializePolarIIChamberServiceStatus.TcPOU` | `plc/ServiceIdentity/`（已複製；TSMC repo 中是 untracked） | `6f290791e8af800a9e15f3f0e234ca87f12ec85fd65f1ca5209a41e1d8222a5e` | 2026-10-24 13:35 +0800 |
 | `Polar_II_ChamberDemo.tmc` | 不複製（TSMC 的 `.gitignore:20` 忽略 `*.tmc`） | `a07033683a3ee2772ce81485ba26211012d0a21aad045d765b282e428784cf49` | 2026-10-24 11:31 +0800 |
 
-`Polar2LayoutTests` 的預期值取自這個 `.tmc`（`BitOffs`、`BitSize` 除以 8）。
+`Polar2LayoutTests` 的預期值取自這個 `.tmc`（`BitOffs`、`BitSize` 除以 8），再依 `MaxConfigParamPerModule` 300 → 500 調整。`plc/Framework/GVLs/Param_Config.TcGVL` 這一行與來源 commit 不同。調整後的位移（byte，offset / size）：
+
+| symbol | 300（`.tmc`） | 500（本專案） |
+|---|---|---|
+| `Chamber_Control` | 0 / 12678720 | 0 / 12966720 |
+| `Chamber_Control[1]` | 0 / 2113120 | 0 / 2161120 |
+| `[1].ModuleConfigParamList` | 58672 / 45600 | 58672 / 76000 |
+| `[1].ServiceCtrl` | 104272 / 3300 | 134672 / 3300 |
+| `[1].ServiceParam` | 107576 / 77680 | 137976 / 95280 |
+| `[1].ServiceStatus` | 185256 / 1927860 | 233256 / 1927860 |
+
+`ServiceParam` 變大是因為 `T_SetConfigParamList` 也用這個上限。
 
 ### 規格書
 
@@ -28,11 +39,21 @@ Polar2 Chamber 的 PLC 宣告檔。模擬器載入這個專案，就有和真 PL
 
 工作表：`Service`（70 列）、`Object Quantity`、`Recipe Map`、`ModuleConfigParamList_ECID`（198 列）、`ModuleVariableList_SVID`（22 列）、`ModuleAlarmList_ALID`（68 列）、`ModuleDataList_DVID`（2 列）、`Material Context`、`Nozzle_Cup_Drainer Table`、`Verification Data`。規格書更新時，重新複製並更新上表。
 
+### 設定檔 `config/module-config.json`
+
+SVID（`ModuleVariableList_SVID`）與 ECID（`ModuleConfigParamList_ECID`）的內容由腳本從規格書產生，格式與真 PLC 的 framework 設定檔相同（`schemaVersion` 4）。目前是 slot 1 的 Polar2：63 個 SVID、438 個 ECID。ID 暫定，依輸出順序從 1 編號；規格書加入或刪除列時會位移。
+
+```
+python projects/Polar2Chamber/spec/spec-to-config.py "projects/Polar2Chamber/spec/Polar 二代機 測試 Chamber 規格_20261007.xlsx" projects/Polar2Chamber/config/module-config.json
+```
+
+腳本只用 Python 3 標準函式庫。遇到不支援的型別、非 ASCII 名稱、名稱縮寫後仍超過 30 byte、重複名稱時，印出原因並以 exit code 1 結束，不寫輸出檔。名稱超過 30 byte 時依固定順序縮寫（例如 `Position` → `Pos`），並在該筆加 `comment` 記錄原名稱。輸出檔為 UTF-8、LF。
+
 ## Framework 升級時重新複製
 
 1. 在 TSMC repo 取得新版本，記下新的 commit SHA。
 2. 刪除 `plc/Framework/`。
-3. 從 `RobustSolutionFramework/` 用原樣複製（`cp`，不轉碼、不改換行）所有 `.TcDUT`，保留子資料夾；再複製 `GVLs/Param_Config.TcGVL`。不複製 `.TcPOU`。
+3. 從 `RobustSolutionFramework/` 用原樣複製（`cp`，不轉碼、不改換行）所有 `.TcDUT`，保留子資料夾；再複製 `GVLs/Param_Config.TcGVL`，並重新套用 `MaxConfigParamPerModule := 500`。不複製 `.TcPOU`。
 4. 如果 Polar2 的 DUT 也有變，用同樣方式重新複製 `plc/Polar2/`。
 5. 重新取得 `.tmc` 與 `F_InitializePolarIIChamberServiceStatus.TcPOU`，更新上表的 SHA-256 與修改時間，並更新 `plc/ServiceIdentity/` 的檔案。
 6. 更新本檔的 commit SHA，執行 `dotnet test`。`Polar2LayoutTests` 失敗表示版面和新 `.tmc` 不同，要更新測試的預期值。

@@ -1,0 +1,3124 @@
+{
+  "schemaVersion": 4,
+  "modules": [
+    {
+      "enabled": true,
+      "moduleType": "Polar2",
+      "slot": 1,
+      "id": 1,
+      "variableList": [
+        {
+          "id": 1,
+          "name": "Arm1 Lift Position",
+          "unit": "mm",
+          "dataType": "REAL"
+        },
+        {
+          "id": 2,
+          "name": "Arm1 Rotate Position",
+          "unit": "deg",
+          "dataType": "REAL"
+        },
+        {
+          "id": 3,
+          "name": "Arm1 Lift Speed",
+          "unit": "mm/s",
+          "dataType": "REAL"
+        },
+        {
+          "id": 4,
+          "name": "Arm1 Rotate Speed",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 5,
+          "name": "Arm1 Noz1 Temperature",
+          "unit": "degC",
+          "dataType": "REAL"
+        },
+        {
+          "id": 6,
+          "name": "Arm1 Noz2 Temperature",
+          "unit": "degC",
+          "dataType": "REAL"
+        },
+        {
+          "id": 7,
+          "name": "Arm1 Noz3 Temperature",
+          "unit": "degC",
+          "dataType": "REAL"
+        },
+        {
+          "id": 8,
+          "name": "Arm1 Noz1 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 9,
+          "name": "Arm1 Noz2 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 10,
+          "name": "Arm1 Noz3 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 11,
+          "name": "Arm1 NP Noz1 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 12,
+          "name": "Arm1 NP Noz2 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 13,
+          "name": "Arm1 NP Noz3 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 14,
+          "name": "Arm2 Lift Position",
+          "unit": "mm",
+          "dataType": "REAL"
+        },
+        {
+          "id": 15,
+          "name": "Arm2 Rotate Position",
+          "unit": "deg",
+          "dataType": "REAL"
+        },
+        {
+          "id": 16,
+          "name": "Arm2 Lift Speed",
+          "unit": "mm/s",
+          "dataType": "REAL"
+        },
+        {
+          "id": 17,
+          "name": "Arm2 Rotate Speed",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 18,
+          "name": "Arm2 Noz1 Temperature",
+          "unit": "degC",
+          "dataType": "REAL"
+        },
+        {
+          "id": 19,
+          "name": "Arm2 Noz2 Temperature",
+          "unit": "degC",
+          "dataType": "REAL"
+        },
+        {
+          "id": 20,
+          "name": "Arm2 Noz3 Temperature",
+          "unit": "degC",
+          "dataType": "REAL"
+        },
+        {
+          "id": 21,
+          "name": "Arm2 Noz1 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 22,
+          "name": "Arm2 Noz2 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 23,
+          "name": "Arm2 Noz3 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 24,
+          "name": "Arm2 NP Noz1 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 25,
+          "name": "Arm2 NP Noz2 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 26,
+          "name": "Arm2 NP Noz3 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 27,
+          "name": "Arm3 Lift Position",
+          "unit": "mm",
+          "dataType": "REAL"
+        },
+        {
+          "id": 28,
+          "name": "Arm3 Rotate Position",
+          "unit": "deg",
+          "dataType": "REAL"
+        },
+        {
+          "id": 29,
+          "name": "Arm3 Lift Speed",
+          "unit": "mm/s",
+          "dataType": "REAL"
+        },
+        {
+          "id": 30,
+          "name": "Arm3 Rotate Speed",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 31,
+          "name": "Arm3 Noz1 Temperature",
+          "unit": "degC",
+          "dataType": "REAL"
+        },
+        {
+          "id": 32,
+          "name": "Arm3 Noz2 Temperature",
+          "unit": "degC",
+          "dataType": "REAL"
+        },
+        {
+          "id": 33,
+          "name": "Arm3 Noz1 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 34,
+          "name": "Arm3 Noz2 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 35,
+          "name": "Arm3 NP Noz1 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 36,
+          "name": "Arm3 NP Noz2 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 37,
+          "name": "Arm4 Lift Position",
+          "unit": "mm",
+          "dataType": "REAL"
+        },
+        {
+          "id": 38,
+          "name": "Arm4 Rotate Position",
+          "unit": "deg",
+          "dataType": "REAL"
+        },
+        {
+          "id": 39,
+          "name": "Arm4 Lift Speed",
+          "unit": "mm/s",
+          "dataType": "REAL"
+        },
+        {
+          "id": 40,
+          "name": "Arm4 Rotate Speed",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 41,
+          "name": "Arm4 Noz1 Temperature",
+          "unit": "degC",
+          "dataType": "REAL"
+        },
+        {
+          "id": 42,
+          "name": "Arm4 Noz1 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 43,
+          "name": "Arm4 NP Noz1 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 44,
+          "name": "Cup1 Master Lift Position",
+          "unit": "mm",
+          "dataType": "REAL"
+        },
+        {
+          "id": 45,
+          "name": "Cup1 Slave Lift Position",
+          "unit": "mm",
+          "dataType": "REAL"
+        },
+        {
+          "id": 46,
+          "name": "Cup2 Master Lift Position",
+          "unit": "mm",
+          "dataType": "REAL"
+        },
+        {
+          "id": 47,
+          "name": "Cup2 Slave Lift Position",
+          "unit": "mm",
+          "dataType": "REAL"
+        },
+        {
+          "id": 48,
+          "name": "Cup3 Master Lift Position",
+          "unit": "mm",
+          "dataType": "REAL"
+        },
+        {
+          "id": 49,
+          "name": "Cup3 Slave Lift Position",
+          "unit": "mm",
+          "dataType": "REAL"
+        },
+        {
+          "id": 50,
+          "name": "Cup4 Master Lift Position",
+          "unit": "mm",
+          "dataType": "REAL"
+        },
+        {
+          "id": 51,
+          "name": "Cup4 Slave Lift Position",
+          "unit": "mm",
+          "dataType": "REAL"
+        },
+        {
+          "id": 52,
+          "name": "Holder Rotate Speed",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 53,
+          "name": "FixNozzle1 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 54,
+          "name": "FixNozzle2 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 55,
+          "name": "FixNozzle3 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 56,
+          "name": "FixNozzle4 Flow/Pressure",
+          "unit": "ml/s / Pa",
+          "dataType": "DINT",
+          "comment": "unit: ml/sec / Pa"
+        },
+        {
+          "id": 57,
+          "name": "Outside Ring Rotate Speed",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 58,
+          "name": "ExhaustFan1 Pressure",
+          "unit": "Pa",
+          "dataType": "REAL"
+        },
+        {
+          "id": 59,
+          "name": "ExhaustFan2 Pressure",
+          "unit": "Pa",
+          "dataType": "REAL"
+        },
+        {
+          "id": 60,
+          "name": "ExhaustFan3 Pressure",
+          "unit": "Pa",
+          "dataType": "REAL"
+        },
+        {
+          "id": 61,
+          "name": "ExhaustFan4 Pressure",
+          "unit": "Pa",
+          "dataType": "REAL"
+        },
+        {
+          "id": 62,
+          "name": "FFU Speed",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 63,
+          "name": "FFU Pressure",
+          "unit": "Pa",
+          "dataType": "REAL"
+        }
+      ],
+      "configParamList": [
+        {
+          "id": 1,
+          "name": "Module Disable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 2,
+          "name": "Door Interlock Disable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 3,
+          "name": "Initial Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 4,
+          "name": "Single Process Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 5,
+          "name": "EMGS Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 6,
+          "name": "Arm1 Lift Speed (Normal)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 7,
+          "name": "Arm1 Lift Speed (Jog)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 8,
+          "name": "Arm1 Lift Acc",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 9,
+          "name": "Arm1 Lift Dec",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 10,
+          "name": "Arm1 Lift Positive Limit Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 11,
+          "name": "Arm1 Lift Negative Limit Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 12,
+          "name": "Arm1 Lift Top Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 13,
+          "name": "Arm1 Lift Down Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 14,
+          "name": "Arm1 Lift Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 15,
+          "name": "Arm1 Rotate Speed (Normal)",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 16,
+          "name": "Arm1 Rotate Speed (Jog)",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 17,
+          "name": "Arm1 Rotate Feedrate",
+          "unit": "%",
+          "dataType": "REAL"
+        },
+        {
+          "id": 18,
+          "name": "Arm1 Rotate Acc",
+          "unit": "deg/s^2",
+          "dataType": "DINT"
+        },
+        {
+          "id": 19,
+          "name": "Arm1 Rotate Dec",
+          "unit": "deg/s^2",
+          "dataType": "DINT"
+        },
+        {
+          "id": 20,
+          "name": "Arm1 Rotate Pos Limit Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 21,
+          "name": "Arm1 Rotate Neg Limit Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 22,
+          "name": "Arm1 Rotate Nozzle Port Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 23,
+          "name": "Arm1 Rotate Noz1 Center Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 24,
+          "name": "Arm1 Rotate Noz2 Center Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 25,
+          "name": "Arm1 Rotate Noz3 Center Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 26,
+          "name": "Arm1 Rotate Timeout (Normal)",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 27,
+          "name": "Arm1 Nozzle1 Chemical Idx",
+          "unit": "",
+          "dataType": "DINT"
+        },
+        {
+          "id": 28,
+          "name": "Arm1 Nozzle1 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 29,
+          "name": "Arm1 Nozzle1 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 30,
+          "name": "Arm1 Nozzle1 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 31,
+          "name": "Arm1 Nozzle1 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 32,
+          "name": "Arm1 Nozzle1 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 33,
+          "name": "Arm1 Nozzle1 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 34,
+          "name": "Arm1 Nozzle2 Chemical Idx",
+          "unit": "",
+          "dataType": "DINT"
+        },
+        {
+          "id": 35,
+          "name": "Arm1 Nozzle2 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 36,
+          "name": "Arm1 Nozzle2 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 37,
+          "name": "Arm1 Nozzle2 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 38,
+          "name": "Arm1 Nozzle2 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 39,
+          "name": "Arm1 Nozzle2 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 40,
+          "name": "Arm1 Nozzle2 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 41,
+          "name": "Arm1 Nozzle3 Chemical Idx",
+          "unit": "",
+          "dataType": "DINT"
+        },
+        {
+          "id": 42,
+          "name": "Arm1 Nozzle3 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 43,
+          "name": "Arm1 Nozzle3 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 44,
+          "name": "Arm1 Nozzle3 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 45,
+          "name": "Arm1 Nozzle3 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 46,
+          "name": "Arm1 Nozzle3 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 47,
+          "name": "Arm1 Nozzle3 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 48,
+          "name": "Arm1 NP Noz1 Chemical Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 49,
+          "name": "Arm1 NP Noz1 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 50,
+          "name": "Arm1 NP Noz1 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 51,
+          "name": "Arm1 NP Noz1 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 52,
+          "name": "Arm1 NP Noz1 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 53,
+          "name": "Arm1 NP Noz1 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 54,
+          "name": "Arm1 NP Noz1 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 55,
+          "name": "Arm1 NP Noz2 Chemical Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 56,
+          "name": "Arm1 NP Noz2 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 57,
+          "name": "Arm1 NP Noz2 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 58,
+          "name": "Arm1 NP Noz2 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 59,
+          "name": "Arm1 NP Noz2 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 60,
+          "name": "Arm1 NP Noz2 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 61,
+          "name": "Arm1 NP Noz2 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 62,
+          "name": "Arm1 NP Noz3 Chemical Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 63,
+          "name": "Arm1 NP Noz3 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 64,
+          "name": "Arm1 NP Noz3 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 65,
+          "name": "Arm1 NP Noz3 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 66,
+          "name": "Arm1 NP Noz3 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 67,
+          "name": "Arm1 NP Noz3 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 68,
+          "name": "Arm1 NP Noz3 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 69,
+          "name": "Arm1 NP Drain Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 70,
+          "name": "Arm1 Nozzle Preflush Enable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 71,
+          "name": "Arm1 Nozzle Preflush Idle Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 72,
+          "name": "Arm1 Noz Preflush Flush Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "Arm1 Nozzle Preflush Flush Time"
+        },
+        {
+          "id": 73,
+          "name": "Arm1 Nozzle Preflush Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 74,
+          "name": "Arm1 Nozzle Clean Idle Enable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 75,
+          "name": "Arm1 Nozzle Clean Idle Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 76,
+          "name": "Arm1 Noz Clean Wafer Count En",
+          "unit": "",
+          "dataType": "BOOL",
+          "comment": "Arm1 Nozzle Clean Wafer Count Enable"
+        },
+        {
+          "id": 77,
+          "name": "Arm1 Nozzle Clean Wafer Count",
+          "unit": "",
+          "dataType": "DINT"
+        },
+        {
+          "id": 78,
+          "name": "Arm1 Noz Clean Noz1 Sup Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "Arm1 Nozzle Clean Noz1 Supply Time"
+        },
+        {
+          "id": 79,
+          "name": "Arm1 Noz Clean Noz2 Sup Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "Arm1 Nozzle Clean Noz2 Supply Time"
+        },
+        {
+          "id": 80,
+          "name": "Arm1 Noz Clean Noz3 Sup Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "Arm1 Nozzle Clean Noz3 Supply Time"
+        },
+        {
+          "id": 81,
+          "name": "Arm1 Nozzle Clean Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 82,
+          "name": "Arm1 Arm Test Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 83,
+          "name": "Arm1 Arm Align Test Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 84,
+          "name": "Arm2 Lift Speed (Normal)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 85,
+          "name": "Arm2 Lift Speed (Jog)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 86,
+          "name": "Arm2 Lift Acc",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 87,
+          "name": "Arm2 Lift Dec",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 88,
+          "name": "Arm2 Lift Positive Limit Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 89,
+          "name": "Arm2 Lift Negative Limit Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 90,
+          "name": "Arm2 Lift Top Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 91,
+          "name": "Arm2 Lift Down Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 92,
+          "name": "Arm2 Lift Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 93,
+          "name": "Arm2 Rotate Speed (Normal)",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 94,
+          "name": "Arm2 Rotate Speed (Jog)",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 95,
+          "name": "Arm2 Rotate Feedrate",
+          "unit": "%",
+          "dataType": "REAL"
+        },
+        {
+          "id": 96,
+          "name": "Arm2 Rotate Acc",
+          "unit": "deg/s^2",
+          "dataType": "DINT"
+        },
+        {
+          "id": 97,
+          "name": "Arm2 Rotate Dec",
+          "unit": "deg/s^2",
+          "dataType": "DINT"
+        },
+        {
+          "id": 98,
+          "name": "Arm2 Rotate Pos Limit Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 99,
+          "name": "Arm2 Rotate Neg Limit Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 100,
+          "name": "Arm2 Rotate Nozzle Port Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 101,
+          "name": "Arm2 Rotate Noz1 Center Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 102,
+          "name": "Arm2 Rotate Noz2 Center Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 103,
+          "name": "Arm2 Rotate Noz3 Center Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 104,
+          "name": "Arm2 Rotate Timeout (Normal)",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 105,
+          "name": "Arm2 Nozzle1 Chemical Idx",
+          "unit": "",
+          "dataType": "DINT"
+        },
+        {
+          "id": 106,
+          "name": "Arm2 Nozzle1 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 107,
+          "name": "Arm2 Nozzle1 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 108,
+          "name": "Arm2 Nozzle1 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 109,
+          "name": "Arm2 Nozzle1 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 110,
+          "name": "Arm2 Nozzle1 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 111,
+          "name": "Arm2 Nozzle1 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 112,
+          "name": "Arm2 Nozzle2 Chemical Idx",
+          "unit": "",
+          "dataType": "DINT"
+        },
+        {
+          "id": 113,
+          "name": "Arm2 Nozzle2 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 114,
+          "name": "Arm2 Nozzle2 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 115,
+          "name": "Arm2 Nozzle2 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 116,
+          "name": "Arm2 Nozzle2 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 117,
+          "name": "Arm2 Nozzle2 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 118,
+          "name": "Arm2 Nozzle2 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 119,
+          "name": "Arm2 Nozzle3 Chemical Idx",
+          "unit": "",
+          "dataType": "DINT"
+        },
+        {
+          "id": 120,
+          "name": "Arm2 Nozzle3 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 121,
+          "name": "Arm2 Nozzle3 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 122,
+          "name": "Arm2 Nozzle3 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 123,
+          "name": "Arm2 Nozzle3 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 124,
+          "name": "Arm2 Nozzle3 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 125,
+          "name": "Arm2 Nozzle3 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 126,
+          "name": "Arm2 NP Noz1 Chemical Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 127,
+          "name": "Arm2 NP Noz1 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 128,
+          "name": "Arm2 NP Noz1 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 129,
+          "name": "Arm2 NP Noz1 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 130,
+          "name": "Arm2 NP Noz1 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 131,
+          "name": "Arm2 NP Noz1 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 132,
+          "name": "Arm2 NP Noz1 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 133,
+          "name": "Arm2 NP Noz2 Chemical Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 134,
+          "name": "Arm2 NP Noz2 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 135,
+          "name": "Arm2 NP Noz2 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 136,
+          "name": "Arm2 NP Noz2 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 137,
+          "name": "Arm2 NP Noz2 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 138,
+          "name": "Arm2 NP Noz2 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 139,
+          "name": "Arm2 NP Noz2 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 140,
+          "name": "Arm2 NP Noz3 Chemical Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 141,
+          "name": "Arm2 NP Noz3 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 142,
+          "name": "Arm2 NP Noz3 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 143,
+          "name": "Arm2 NP Noz3 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 144,
+          "name": "Arm2 NP Noz3 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 145,
+          "name": "Arm2 NP Noz3 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 146,
+          "name": "Arm2 NP Noz3 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 147,
+          "name": "Arm2 NP Drain Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 148,
+          "name": "Arm2 Nozzle Preflush Enable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 149,
+          "name": "Arm2 Nozzle Preflush Idle Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 150,
+          "name": "Arm2 Noz Preflush Flush Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "Arm2 Nozzle Preflush Flush Time"
+        },
+        {
+          "id": 151,
+          "name": "Arm2 Nozzle Preflush Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 152,
+          "name": "Arm2 Nozzle Clean Idle Enable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 153,
+          "name": "Arm2 Nozzle Clean Idle Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 154,
+          "name": "Arm2 Noz Clean Wafer Count En",
+          "unit": "",
+          "dataType": "BOOL",
+          "comment": "Arm2 Nozzle Clean Wafer Count Enable"
+        },
+        {
+          "id": 155,
+          "name": "Arm2 Nozzle Clean Wafer Count",
+          "unit": "",
+          "dataType": "DINT"
+        },
+        {
+          "id": 156,
+          "name": "Arm2 Noz Clean Noz1 Sup Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "Arm2 Nozzle Clean Noz1 Supply Time"
+        },
+        {
+          "id": 157,
+          "name": "Arm2 Noz Clean Noz2 Sup Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "Arm2 Nozzle Clean Noz2 Supply Time"
+        },
+        {
+          "id": 158,
+          "name": "Arm2 Noz Clean Noz3 Sup Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "Arm2 Nozzle Clean Noz3 Supply Time"
+        },
+        {
+          "id": 159,
+          "name": "Arm2 Nozzle Clean Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 160,
+          "name": "Arm2 Arm Test Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 161,
+          "name": "Arm2 Arm Align Test Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 162,
+          "name": "Arm3 Lift Speed (Normal)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 163,
+          "name": "Arm3 Lift Speed (Jog)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 164,
+          "name": "Arm3 Lift Acc",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 165,
+          "name": "Arm3 Lift Dec",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 166,
+          "name": "Arm3 Lift Positive Limit Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 167,
+          "name": "Arm3 Lift Negative Limit Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 168,
+          "name": "Arm3 Lift Top Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 169,
+          "name": "Arm3 Lift Down Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 170,
+          "name": "Arm3 Lift Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 171,
+          "name": "Arm3 Rotate Speed (Normal)",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 172,
+          "name": "Arm3 Rotate Speed (Jog)",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 173,
+          "name": "Arm3 Rotate Feedrate",
+          "unit": "%",
+          "dataType": "REAL"
+        },
+        {
+          "id": 174,
+          "name": "Arm3 Rotate Acc",
+          "unit": "deg/s^2",
+          "dataType": "DINT"
+        },
+        {
+          "id": 175,
+          "name": "Arm3 Rotate Dec",
+          "unit": "deg/s^2",
+          "dataType": "DINT"
+        },
+        {
+          "id": 176,
+          "name": "Arm3 Rotate Pos Limit Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 177,
+          "name": "Arm3 Rotate Neg Limit Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 178,
+          "name": "Arm3 Rotate Nozzle Port Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 179,
+          "name": "Arm3 Rotate Noz1 Center Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 180,
+          "name": "Arm3 Rotate Noz2 Center Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 181,
+          "name": "Arm3 Rotate Timeout (Normal)",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 182,
+          "name": "Arm3 Nozzle1 Chemical Idx",
+          "unit": "",
+          "dataType": "DINT"
+        },
+        {
+          "id": 183,
+          "name": "Arm3 Nozzle1 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 184,
+          "name": "Arm3 Nozzle1 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 185,
+          "name": "Arm3 Nozzle1 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 186,
+          "name": "Arm3 Nozzle1 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 187,
+          "name": "Arm3 Nozzle1 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 188,
+          "name": "Arm3 Nozzle1 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 189,
+          "name": "Arm3 Nozzle2 Chemical Idx",
+          "unit": "",
+          "dataType": "DINT"
+        },
+        {
+          "id": 190,
+          "name": "Arm3 Nozzle2 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 191,
+          "name": "Arm3 Nozzle2 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 192,
+          "name": "Arm3 Nozzle2 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 193,
+          "name": "Arm3 Nozzle2 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 194,
+          "name": "Arm3 Nozzle2 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 195,
+          "name": "Arm3 Nozzle2 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 196,
+          "name": "Arm3 NP Noz1 Chemical Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 197,
+          "name": "Arm3 NP Noz1 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 198,
+          "name": "Arm3 NP Noz1 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 199,
+          "name": "Arm3 NP Noz1 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 200,
+          "name": "Arm3 NP Noz1 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 201,
+          "name": "Arm3 NP Noz1 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 202,
+          "name": "Arm3 NP Noz1 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 203,
+          "name": "Arm3 NP Noz2 Chemical Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 204,
+          "name": "Arm3 NP Noz2 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 205,
+          "name": "Arm3 NP Noz2 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 206,
+          "name": "Arm3 NP Noz2 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 207,
+          "name": "Arm3 NP Noz2 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 208,
+          "name": "Arm3 NP Noz2 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 209,
+          "name": "Arm3 NP Noz2 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 210,
+          "name": "Arm3 NP Drain Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 211,
+          "name": "Arm3 Nozzle Preflush Enable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 212,
+          "name": "Arm3 Nozzle Preflush Idle Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 213,
+          "name": "Arm3 Noz Preflush Flush Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "Arm3 Nozzle Preflush Flush Time"
+        },
+        {
+          "id": 214,
+          "name": "Arm3 Nozzle Preflush Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 215,
+          "name": "Arm3 Nozzle Clean Idle Enable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 216,
+          "name": "Arm3 Nozzle Clean Idle Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 217,
+          "name": "Arm3 Noz Clean Wafer Count En",
+          "unit": "",
+          "dataType": "BOOL",
+          "comment": "Arm3 Nozzle Clean Wafer Count Enable"
+        },
+        {
+          "id": 218,
+          "name": "Arm3 Nozzle Clean Wafer Count",
+          "unit": "",
+          "dataType": "DINT"
+        },
+        {
+          "id": 219,
+          "name": "Arm3 Noz Clean Noz1 Sup Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "Arm3 Nozzle Clean Noz1 Supply Time"
+        },
+        {
+          "id": 220,
+          "name": "Arm3 Noz Clean Noz2 Sup Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "Arm3 Nozzle Clean Noz2 Supply Time"
+        },
+        {
+          "id": 221,
+          "name": "Arm3 Nozzle Clean Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 222,
+          "name": "Arm3 Arm Test Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 223,
+          "name": "Arm3 Arm Align Test Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 224,
+          "name": "Arm4 Lift Speed (Normal)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 225,
+          "name": "Arm4 Lift Speed (Jog)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 226,
+          "name": "Arm4 Lift Acc",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 227,
+          "name": "Arm4 Lift Dec",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 228,
+          "name": "Arm4 Lift Positive Limit Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 229,
+          "name": "Arm4 Lift Negative Limit Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 230,
+          "name": "Arm4 Lift Top Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 231,
+          "name": "Arm4 Lift Down Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 232,
+          "name": "Arm4 Lift Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 233,
+          "name": "Arm4 Rotate Speed (Normal)",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 234,
+          "name": "Arm4 Rotate Speed (Jog)",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 235,
+          "name": "Arm4 Rotate Feedrate",
+          "unit": "%",
+          "dataType": "REAL"
+        },
+        {
+          "id": 236,
+          "name": "Arm4 Rotate Acc",
+          "unit": "deg/s^2",
+          "dataType": "DINT"
+        },
+        {
+          "id": 237,
+          "name": "Arm4 Rotate Dec",
+          "unit": "deg/s^2",
+          "dataType": "DINT"
+        },
+        {
+          "id": 238,
+          "name": "Arm4 Rotate Pos Limit Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 239,
+          "name": "Arm4 Rotate Neg Limit Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 240,
+          "name": "Arm4 Rotate Nozzle Port Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 241,
+          "name": "Arm4 Rotate Noz1 Center Pos",
+          "unit": "deg",
+          "dataType": "DINT"
+        },
+        {
+          "id": 242,
+          "name": "Arm4 Rotate Timeout (Normal)",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 243,
+          "name": "Arm4 Nozzle1 Chemical Idx",
+          "unit": "",
+          "dataType": "DINT"
+        },
+        {
+          "id": 244,
+          "name": "Arm4 Nozzle1 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 245,
+          "name": "Arm4 Nozzle1 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 246,
+          "name": "Arm4 Nozzle1 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 247,
+          "name": "Arm4 Nozzle1 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 248,
+          "name": "Arm4 Nozzle1 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 249,
+          "name": "Arm4 Nozzle1 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 250,
+          "name": "Arm4 NP Noz1 Chemical Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 251,
+          "name": "Arm4 NP Noz1 Flow Offset",
+          "unit": "%",
+          "dataType": "DINT"
+        },
+        {
+          "id": 252,
+          "name": "Arm4 NP Noz1 Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 253,
+          "name": "Arm4 NP Noz1 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 254,
+          "name": "Arm4 NP Noz1 Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 255,
+          "name": "Arm4 NP Noz1 Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 256,
+          "name": "Arm4 NP Noz1 Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT"
+        },
+        {
+          "id": 257,
+          "name": "Arm4 NP Drain Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 258,
+          "name": "Arm4 Nozzle Preflush Enable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 259,
+          "name": "Arm4 Nozzle Preflush Idle Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 260,
+          "name": "Arm4 Noz Preflush Flush Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "Arm4 Nozzle Preflush Flush Time"
+        },
+        {
+          "id": 261,
+          "name": "Arm4 Nozzle Preflush Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 262,
+          "name": "Arm4 Nozzle Clean Idle Enable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 263,
+          "name": "Arm4 Nozzle Clean Idle Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 264,
+          "name": "Arm4 Noz Clean Wafer Count En",
+          "unit": "",
+          "dataType": "BOOL",
+          "comment": "Arm4 Nozzle Clean Wafer Count Enable"
+        },
+        {
+          "id": 265,
+          "name": "Arm4 Nozzle Clean Wafer Count",
+          "unit": "",
+          "dataType": "DINT"
+        },
+        {
+          "id": 266,
+          "name": "Arm4 Noz Clean Noz1 Sup Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "Arm4 Nozzle Clean Noz1 Supply Time"
+        },
+        {
+          "id": 267,
+          "name": "Arm4 Nozzle Clean Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 268,
+          "name": "Arm4 Arm Test Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 269,
+          "name": "Arm4 Arm Align Test Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 270,
+          "name": "Cup1 Speed (Jog)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 271,
+          "name": "Cup1 Speed (Normal)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 272,
+          "name": "Cup1 Acc",
+          "unit": "mm/s^2",
+          "dataType": "DINT"
+        },
+        {
+          "id": 273,
+          "name": "Cup1 Dec",
+          "unit": "mm/s^3",
+          "dataType": "DINT"
+        },
+        {
+          "id": 274,
+          "name": "Cup1 Positive Limit Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 275,
+          "name": "Cup1 Negative Limit Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 276,
+          "name": "Cup1 Top Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 277,
+          "name": "Cup1 Down Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 278,
+          "name": "Cup1 Middle Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 279,
+          "name": "Cup1 Timeout Alarm",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 280,
+          "name": "Cup1 Timeout Warning",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 281,
+          "name": "Cup1 Drain Select Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 282,
+          "name": "Cup2 Speed (Jog)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 283,
+          "name": "Cup2 Speed (Normal)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 284,
+          "name": "Cup2 Acc",
+          "unit": "mm/s^2",
+          "dataType": "DINT"
+        },
+        {
+          "id": 285,
+          "name": "Cup2 Dec",
+          "unit": "mm/s^3",
+          "dataType": "DINT"
+        },
+        {
+          "id": 286,
+          "name": "Cup2 Positive Limit Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 287,
+          "name": "Cup2 Negative Limit Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 288,
+          "name": "Cup2 Top Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 289,
+          "name": "Cup2 Down Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 290,
+          "name": "Cup2 Middle Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 291,
+          "name": "Cup2 Timeout Alarm",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 292,
+          "name": "Cup2 Timeout Warning",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 293,
+          "name": "Cup2 Drain Select Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 294,
+          "name": "Cup3 Speed (Jog)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 295,
+          "name": "Cup3 Speed (Normal)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 296,
+          "name": "Cup3 Acc",
+          "unit": "mm/s^2",
+          "dataType": "DINT"
+        },
+        {
+          "id": 297,
+          "name": "Cup3 Dec",
+          "unit": "mm/s^3",
+          "dataType": "DINT"
+        },
+        {
+          "id": 298,
+          "name": "Cup3 Positive Limit Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 299,
+          "name": "Cup3 Negative Limit Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 300,
+          "name": "Cup3 Top Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 301,
+          "name": "Cup3 Down Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 302,
+          "name": "Cup3 Middle Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 303,
+          "name": "Cup3 Timeout Alarm",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 304,
+          "name": "Cup3 Timeout Warning",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 305,
+          "name": "Cup3 Drain Select Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 306,
+          "name": "Cup4 Speed (Jog)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 307,
+          "name": "Cup4 Speed (Normal)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 308,
+          "name": "Cup4 Acc",
+          "unit": "mm/s^2",
+          "dataType": "DINT"
+        },
+        {
+          "id": 309,
+          "name": "Cup4 Dec",
+          "unit": "mm/s^3",
+          "dataType": "DINT"
+        },
+        {
+          "id": 310,
+          "name": "Cup4 Positive Limit Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 311,
+          "name": "Cup4 Negative Limit Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 312,
+          "name": "Cup4 Top Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 313,
+          "name": "Cup4 Down Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 314,
+          "name": "Cup4 Middle Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 315,
+          "name": "Cup4 Timeout Alarm",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 316,
+          "name": "Cup4 Timeout Warning",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 317,
+          "name": "Cup4 Drain Select Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 318,
+          "name": "Holder Rotate Speed (Normal)",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 319,
+          "name": "Holder Rotate Acc",
+          "unit": "deg/s^2",
+          "dataType": "DINT"
+        },
+        {
+          "id": 320,
+          "name": "Holder Rotate Dec",
+          "unit": "deg/s^2",
+          "dataType": "DINT"
+        },
+        {
+          "id": 321,
+          "name": "Holder Rotate Timeout (OPR)",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 322,
+          "name": "Holder Rotate Timeout (Normal)",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 323,
+          "name": "Holder Rotate Stable Time",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 324,
+          "name": "Holder Rotate Speed +Dev Limit",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 325,
+          "name": "Holder Rotate Speed -Dev Limit",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 326,
+          "name": "Holder Lift Speed (Jog)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 327,
+          "name": "Holder Lift Speed (Normal)",
+          "unit": "mm/s",
+          "dataType": "DINT"
+        },
+        {
+          "id": 328,
+          "name": "Holder Lift Top Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 329,
+          "name": "Holder Lift Down Pos",
+          "unit": "mm",
+          "dataType": "DINT"
+        },
+        {
+          "id": 330,
+          "name": "Holder Lift Timeout (Normal)",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 331,
+          "name": "Holder Gripper Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 332,
+          "name": "FixNozzle1 Chemical Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 333,
+          "name": "FixNozzle1 Chem Flow Offset",
+          "unit": "%",
+          "dataType": "DINT",
+          "comment": "FixNozzle1 Chemical Flow Offset"
+        },
+        {
+          "id": 334,
+          "name": "FixNozzle1 Chem Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "FixNozzle1 Chemical Suckback Time"
+        },
+        {
+          "id": 335,
+          "name": "FixNozzle1 Chemical Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 336,
+          "name": "FixNozzle1 Chem Stable Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "FixNozzle1 Chemical Stable Time"
+        },
+        {
+          "id": 337,
+          "name": "FixNoz1 Chem Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "comment": "FixNozzle1 Chemical Flow +Dev Limit"
+        },
+        {
+          "id": 338,
+          "name": "FixNoz1 Chem Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "comment": "FixNozzle1 Chemical Flow -Dev Limit"
+        },
+        {
+          "id": 339,
+          "name": "FixNozzle2 Chemical Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 340,
+          "name": "FixNozzle2 Chem Flow Offset",
+          "unit": "%",
+          "dataType": "DINT",
+          "comment": "FixNozzle2 Chemical Flow Offset"
+        },
+        {
+          "id": 341,
+          "name": "FixNozzle2 Chem Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "FixNozzle2 Chemical Suckback Time"
+        },
+        {
+          "id": 342,
+          "name": "FixNozzle2 Chemical Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 343,
+          "name": "FixNozzle2 Chem Stable Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "FixNozzle2 Chemical Stable Time"
+        },
+        {
+          "id": 344,
+          "name": "FixNoz2 Chem Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "comment": "FixNozzle2 Chemical Flow +Dev Limit"
+        },
+        {
+          "id": 345,
+          "name": "FixNoz2 Chem Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "comment": "FixNozzle2 Chemical Flow -Dev Limit"
+        },
+        {
+          "id": 346,
+          "name": "FixNozzle3 Chemical Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 347,
+          "name": "FixNozzle3 Chem Flow Offset",
+          "unit": "%",
+          "dataType": "DINT",
+          "comment": "FixNozzle3 Chemical Flow Offset"
+        },
+        {
+          "id": 348,
+          "name": "FixNozzle3 Chem Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "FixNozzle3 Chemical Suckback Time"
+        },
+        {
+          "id": 349,
+          "name": "FixNozzle3 Chemical Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 350,
+          "name": "FixNozzle3 Chem Stable Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "FixNozzle3 Chemical Stable Time"
+        },
+        {
+          "id": 351,
+          "name": "FixNoz3 Chem Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "comment": "FixNozzle3 Chemical Flow +Dev Limit"
+        },
+        {
+          "id": 352,
+          "name": "FixNoz3 Chem Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "comment": "FixNozzle3 Chemical Flow -Dev Limit"
+        },
+        {
+          "id": 353,
+          "name": "FixNozzle4 Chemical Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 354,
+          "name": "FixNozzle4 Chem Flow Offset",
+          "unit": "%",
+          "dataType": "DINT",
+          "comment": "FixNozzle4 Chemical Flow Offset"
+        },
+        {
+          "id": 355,
+          "name": "FixNozzle4 Chem Suckback Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "FixNozzle4 Chemical Suckback Time"
+        },
+        {
+          "id": 356,
+          "name": "FixNozzle4 Chemical Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 357,
+          "name": "FixNozzle4 Chem Stable Time",
+          "unit": "ms",
+          "dataType": "DINT",
+          "comment": "FixNozzle4 Chemical Stable Time"
+        },
+        {
+          "id": 358,
+          "name": "FixNoz4 Chem Flow +Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "comment": "FixNozzle4 Chemical Flow +Dev Limit"
+        },
+        {
+          "id": 359,
+          "name": "FixNoz4 Chem Flow -Dev Limit",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "comment": "FixNozzle4 Chemical Flow -Dev Limit"
+        },
+        {
+          "id": 360,
+          "name": "Outside Ring Lift Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 361,
+          "name": "Outside Ring Rotate Speed",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 362,
+          "name": "Outside Ring Rotate Acc",
+          "unit": "deg/s^2",
+          "dataType": "DINT"
+        },
+        {
+          "id": 363,
+          "name": "Outside Ring Rotate Dec",
+          "unit": "deg/s^2",
+          "dataType": "DINT"
+        },
+        {
+          "id": 364,
+          "name": "Shutter Timeout",
+          "unit": "ms",
+          "dataType": "REAL"
+        },
+        {
+          "id": 365,
+          "name": "ExhaustFan1 Target Pressure",
+          "unit": "Pa",
+          "dataType": "DINT"
+        },
+        {
+          "id": 366,
+          "name": "ExhFan1 Rotate Max Speed Limit",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "comment": "ExhaustFan1 Rotate Max Speed Limit"
+        },
+        {
+          "id": 367,
+          "name": "ExhaustFan1 Tolerance",
+          "unit": "Pa",
+          "dataType": "DINT"
+        },
+        {
+          "id": 368,
+          "name": "ExhaustFan1 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 369,
+          "name": "ExhaustFan2 Target Pressure",
+          "unit": "Pa",
+          "dataType": "DINT"
+        },
+        {
+          "id": 370,
+          "name": "ExhFan2 Rotate Max Speed Limit",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "comment": "ExhaustFan2 Rotate Max Speed Limit"
+        },
+        {
+          "id": 371,
+          "name": "ExhaustFan2 Tolerance",
+          "unit": "Pa",
+          "dataType": "DINT"
+        },
+        {
+          "id": 372,
+          "name": "ExhaustFan2 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 373,
+          "name": "ExhaustFan3 Target Pressure",
+          "unit": "Pa",
+          "dataType": "DINT"
+        },
+        {
+          "id": 374,
+          "name": "ExhFan3 Rotate Max Speed Limit",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "comment": "ExhaustFan3 Rotate Max Speed Limit"
+        },
+        {
+          "id": 375,
+          "name": "ExhaustFan3 Tolerance",
+          "unit": "Pa",
+          "dataType": "DINT"
+        },
+        {
+          "id": 376,
+          "name": "ExhaustFan3 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 377,
+          "name": "ExhaustFan4 Target Pressure",
+          "unit": "Pa",
+          "dataType": "DINT"
+        },
+        {
+          "id": 378,
+          "name": "ExhFan4 Rotate Max Speed Limit",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "comment": "ExhaustFan4 Rotate Max Speed Limit"
+        },
+        {
+          "id": 379,
+          "name": "ExhaustFan4 Tolerance",
+          "unit": "Pa",
+          "dataType": "DINT"
+        },
+        {
+          "id": 380,
+          "name": "ExhaustFan4 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 381,
+          "name": "Exhaust Damper Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 382,
+          "name": "SideVent1 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 383,
+          "name": "SideVent2 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 384,
+          "name": "SideVent3 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 385,
+          "name": "SideVent4 Timeout",
+          "unit": "ms",
+          "dataType": "DINT"
+        },
+        {
+          "id": 386,
+          "name": "FFU Speed",
+          "unit": "RPM",
+          "dataType": "DINT"
+        },
+        {
+          "id": 387,
+          "name": "FFU Pressure +Limit",
+          "unit": "Pa",
+          "dataType": "REAL"
+        },
+        {
+          "id": 388,
+          "name": "FFU Pressure -Limit",
+          "unit": "Pa",
+          "dataType": "REAL"
+        },
+        {
+          "id": 389,
+          "name": "Table Drainer 1 ToFac SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 1 ToFacility ServiceId"
+        },
+        {
+          "id": 390,
+          "name": "Table Drainer 1 Return SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 1 Return ServiceId"
+        },
+        {
+          "id": 391,
+          "name": "Table Drainer 2 ToFac SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 2 ToFacility ServiceId"
+        },
+        {
+          "id": 392,
+          "name": "Table Drainer 2 Return SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 2 Return ServiceId"
+        },
+        {
+          "id": 393,
+          "name": "Table Drainer 3 ToFac SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 3 ToFacility ServiceId"
+        },
+        {
+          "id": 394,
+          "name": "Table Drainer 3 Return SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 3 Return ServiceId"
+        },
+        {
+          "id": 395,
+          "name": "Table Drainer 4 ToFac SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 4 ToFacility ServiceId"
+        },
+        {
+          "id": 396,
+          "name": "Table Drainer 4 Return SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 4 Return ServiceId"
+        },
+        {
+          "id": 397,
+          "name": "Table Drainer 5 ToFac SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 5 ToFacility ServiceId"
+        },
+        {
+          "id": 398,
+          "name": "Table Drainer 5 Return SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 5 Return ServiceId"
+        },
+        {
+          "id": 399,
+          "name": "Table Drainer 6 ToFac SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 6 ToFacility ServiceId"
+        },
+        {
+          "id": 400,
+          "name": "Table Drainer 6 Return SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 6 Return ServiceId"
+        },
+        {
+          "id": 401,
+          "name": "Table Drainer 7 ToFac SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 7 ToFacility ServiceId"
+        },
+        {
+          "id": 402,
+          "name": "Table Drainer 7 Return SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 7 Return ServiceId"
+        },
+        {
+          "id": 403,
+          "name": "Table Drainer 8 ToFac SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 8 ToFacility ServiceId"
+        },
+        {
+          "id": 404,
+          "name": "Table Drainer 8 Return SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 8 Return ServiceId"
+        },
+        {
+          "id": 405,
+          "name": "Table Drainer 9 ToFac SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 9 ToFacility ServiceId"
+        },
+        {
+          "id": 406,
+          "name": "Table Drainer 9 Return SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 9 Return ServiceId"
+        },
+        {
+          "id": 407,
+          "name": "Table Drainer 10 ToFac SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 10 ToFacility ServiceId"
+        },
+        {
+          "id": 408,
+          "name": "Table Drainer 10 Return SvcId",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Drainer 10 Return ServiceId"
+        },
+        {
+          "id": 409,
+          "name": "Table Chemical 1 Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 410,
+          "name": "Table Chem 1 Related Cup Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 1 Related Cup Idx"
+        },
+        {
+          "id": 411,
+          "name": "Table Chem 1 Rel Drainer Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 1 Related Drainer Idx"
+        },
+        {
+          "id": 412,
+          "name": "Table Chemical 2 Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 413,
+          "name": "Table Chem 2 Related Cup Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 2 Related Cup Idx"
+        },
+        {
+          "id": 414,
+          "name": "Table Chem 2 Rel Drainer Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 2 Related Drainer Idx"
+        },
+        {
+          "id": 415,
+          "name": "Table Chemical 3 Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 416,
+          "name": "Table Chem 3 Related Cup Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 3 Related Cup Idx"
+        },
+        {
+          "id": 417,
+          "name": "Table Chem 3 Rel Drainer Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 3 Related Drainer Idx"
+        },
+        {
+          "id": 418,
+          "name": "Table Chemical 4 Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 419,
+          "name": "Table Chem 4 Related Cup Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 4 Related Cup Idx"
+        },
+        {
+          "id": 420,
+          "name": "Table Chem 4 Rel Drainer Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 4 Related Drainer Idx"
+        },
+        {
+          "id": 421,
+          "name": "Table Chemical 5 Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 422,
+          "name": "Table Chem 5 Related Cup Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 5 Related Cup Idx"
+        },
+        {
+          "id": 423,
+          "name": "Table Chem 5 Rel Drainer Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 5 Related Drainer Idx"
+        },
+        {
+          "id": 424,
+          "name": "Table Chemical 6 Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 425,
+          "name": "Table Chem 6 Related Cup Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 6 Related Cup Idx"
+        },
+        {
+          "id": 426,
+          "name": "Table Chem 6 Rel Drainer Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 6 Related Drainer Idx"
+        },
+        {
+          "id": 427,
+          "name": "Table Chemical 7 Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 428,
+          "name": "Table Chem 7 Related Cup Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 7 Related Cup Idx"
+        },
+        {
+          "id": 429,
+          "name": "Table Chem 7 Rel Drainer Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 7 Related Drainer Idx"
+        },
+        {
+          "id": 430,
+          "name": "Table Chemical 8 Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 431,
+          "name": "Table Chem 8 Related Cup Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 8 Related Cup Idx"
+        },
+        {
+          "id": 432,
+          "name": "Table Chem 8 Rel Drainer Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 8 Related Drainer Idx"
+        },
+        {
+          "id": 433,
+          "name": "Table Chemical 9 Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 434,
+          "name": "Table Chem 9 Related Cup Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 9 Related Cup Idx"
+        },
+        {
+          "id": 435,
+          "name": "Table Chem 9 Rel Drainer Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 9 Related Drainer Idx"
+        },
+        {
+          "id": 436,
+          "name": "Table Chemical 10 Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 437,
+          "name": "Table Chem 10 Related Cup Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 10 Related Cup Idx"
+        },
+        {
+          "id": 438,
+          "name": "Table Chem 10 Rel Drainer Idx",
+          "unit": "",
+          "dataType": "DINT",
+          "comment": "Table Chemical 10 Related Drainer Idx"
+        }
+      ]
+    }
+  ]
+}
