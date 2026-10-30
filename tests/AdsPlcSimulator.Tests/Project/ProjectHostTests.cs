@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using AdsPlcSimulator.Host.Project;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using TwinCAT.Ads;
 
 namespace AdsPlcSimulator.Tests.Project;
@@ -339,5 +340,17 @@ public sealed class ProjectHostTests : IAsyncLifetime
         RunResult result = await host.RunAsync("Alpha");
         Assert.Equal(RunOutcome.Failed, result.Outcome);
         Assert.Contains("shutting down", result.Error);
+    }
+
+    [Fact]
+    [Trait("AC", "14")]
+    public void New_host_reports_the_project_remembered_by_an_earlier_host()
+    {
+        new ProjectStateStore(_root.StatePath, NullLogger<ProjectStateStore>.Instance).WriteLastProject("Beta");
+
+        ProjectStatus status = NewHost().GetStatus();
+
+        Assert.Equal(ProjectState.Stopped, status.State);
+        Assert.Equal("Beta", status.Last);
     }
 }

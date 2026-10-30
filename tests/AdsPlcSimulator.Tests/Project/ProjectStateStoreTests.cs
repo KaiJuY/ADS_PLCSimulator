@@ -87,4 +87,16 @@ public sealed class ProjectStateStoreTests : IDisposable
 
         Assert.Null(store.ReadLastProject());
     }
+
+    [Fact]
+    [Trait("AC", "13")]
+    public void Failed_write_leaves_no_temporary_file()
+    {
+        string path = Path.Combine(_directory, "state.json");
+        Directory.CreateDirectory(path);
+
+        Store(path).WriteLastProject("Alpha");
+
+        Assert.Empty(Directory.GetFiles(_directory, "*.tmp"));
+    }
 }

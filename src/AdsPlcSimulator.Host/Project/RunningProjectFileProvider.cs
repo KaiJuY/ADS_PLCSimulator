@@ -5,31 +5,13 @@ namespace AdsPlcSimulator.Host.Project;
 
 internal sealed class RunningProjectFileProvider(ProjectHost host) : IFileProvider
 {
-    public IFileInfo GetFileInfo(string subpath)
-    {
-        try
-        {
-            return Current.GetFileInfo(subpath);
-        }
-        catch (ObjectDisposedException)
-        {
-            return new NotFoundFileInfo(subpath);
-        }
-    }
+    private static readonly NullFileProvider Empty = new();
 
-    public IDirectoryContents GetDirectoryContents(string subpath)
-    {
-        try
-        {
-            return Current.GetDirectoryContents(subpath);
-        }
-        catch (ObjectDisposedException)
-        {
-            return NotFoundDirectoryContents.Singleton;
-        }
-    }
+    public IFileInfo GetFileInfo(string subpath) => Current.GetFileInfo(subpath);
+
+    public IDirectoryContents GetDirectoryContents(string subpath) => Current.GetDirectoryContents(subpath);
 
     public IChangeToken Watch(string filter) => NullChangeToken.Singleton;
 
-    private IFileProvider Current => host.Current?.SimulationFiles ?? new NullFileProvider();
+    private IFileProvider Current => host.Current?.SimulationFiles ?? Empty;
 }

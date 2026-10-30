@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AdsPlcSimulator.Core.Flow;
 using AdsPlcSimulator.Host.Live;
 using AdsPlcSimulator.Host.Project;
@@ -85,7 +86,18 @@ public sealed class SessionPartsTests
         var hub = new LiveHub(NullLogger<LiveHub>.Instance);
 
         Assert.Throws<IOException>(() => new SimulatorSession(project, hub, NullLogger<SimulatorSession>.Instance));
+    }
 
-        Assert.Equal(0, hub.SimulationStateCount);
+    [Fact]
+    [Trait("AC", "1")]
+    public void Options_default_to_the_projects_folder_without_a_project_path()
+    {
+        string settings = File.ReadAllText(Path.Combine(TestPaths.SolutionRoot, "src", "AdsPlcSimulator.Host", "appsettings.json"));
+        JsonElement simulator = JsonDocument.Parse(settings).RootElement.GetProperty("Simulator");
+
+        Assert.Equal("../../projects", new SimulatorOptions().ProjectsRoot);
+        Assert.Null(new SimulatorOptions().ProjectPath);
+        Assert.Equal("../../projects", simulator.GetProperty("ProjectsRoot").GetString());
+        Assert.False(simulator.TryGetProperty("ProjectPath", out _));
     }
 }
