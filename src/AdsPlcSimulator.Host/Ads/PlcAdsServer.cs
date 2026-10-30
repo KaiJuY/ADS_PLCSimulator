@@ -343,25 +343,32 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
 
     protected override Task<ResultHandle> OnAddDeviceNotificationAsync(AmsAddress sender, uint invokeId, uint indexGroup, uint indexOffset, int dataLength, AmsAddress receiver, NotificationSettings settings, CancellationToken cancel)
     {
-        if (indexGroup == SymbolVersionIndexGroup)
-            return Task.FromResult(AddSymbolVersionNotification(dataLength, receiver, settings));
+        return indexGroup switch
+        {
+            SymbolVersionIndexGroup => Task.FromResult(AddSymbolVersionNotification(dataLength, receiver, settings)),
+            VariableHandleIndexGroup => Task.FromResult(AddHandleNotification(indexOffset, dataLength, receiver, settings)),
+            PlcDataIndexGroup => Task.FromResult(AddRawNotification(indexOffset, dataLength, receiver, settings)),
+            _ => base.OnAddDeviceNotificationAsync(sender, invokeId, indexGroup, indexOffset, dataLength, receiver, settings, cancel),
+        };
+    }
 
-        bool byHandle = indexGroup == VariableHandleIndexGroup;
-        if (!byHandle && indexGroup != PlcDataIndexGroup)
-            return base.OnAddDeviceNotificationAsync(sender, invokeId, indexGroup, indexOffset, dataLength, receiver, settings, cancel);
+    private ResultHandle AddHandleNotification(uint handle, int dataLength, AmsAddress receiver, NotificationSettings settings)
+    {
+        if (!TryResolveHandle(handle, out int offset, out int size))
+            return ResultHandle.CreateError(AdsErrorCode.DeviceInvalidOffset);
 
-        int handleOffset = 0;
-        int size = 0;
-        if (byHandle && !TryResolveHandle(indexOffset, out handleOffset, out size))
-            return Task.FromResult(ResultHandle.CreateError(AdsErrorCode.DeviceInvalidOffset));
+        AdsErrorCode rangeError = CheckNotificationRange(true, dataLength, size, handle, _image.Size, out _, out int watchLength);
+        return rangeError == AdsErrorCode.NoError
+            ? Register(receiver, settings, offset, watchLength, null)
+            : ResultHandle.CreateError(rangeError);
+    }
 
-        AdsErrorCode rangeError = CheckNotificationRange(byHandle, dataLength, size, indexOffset, _image.Size, out int rawOffset, out int watchLength);
-        if (rangeError != AdsErrorCode.NoError)
-            return Task.FromResult(ResultHandle.CreateError(rangeError));
-
-        int offset = byHandle ? handleOffset : rawOffset;
-
-        return Task.FromResult(Register(receiver, settings, offset, watchLength, null));
+    private ResultHandle AddRawNotification(uint indexOffset, int dataLength, AmsAddress receiver, NotificationSettings settings)
+    {
+        AdsErrorCode rangeError = CheckNotificationRange(false, dataLength, 0, indexOffset, _image.Size, out int offset, out int watchLength);
+        return rangeError == AdsErrorCode.NoError
+            ? Register(receiver, settings, offset, watchLength, null)
+            : ResultHandle.CreateError(rangeError);
     }
 
     private ResultHandle AddSymbolVersionNotification(int dataLength, AmsAddress receiver, NotificationSettings settings)
