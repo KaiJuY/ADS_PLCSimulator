@@ -1,0 +1,16 @@
+time	stage	decision	why	evidence	result
+2026-10-30T16:34:09+0800	A	Q1–Q5（暫定 ID、framework schema 設定檔、只做 SVID/ECID、只發布 enabled slot、初值 0）、R1 上限 500、R2 縮寫、R3 nozzle 3/3/2/1、R4 設定檔接手 identity 與 SVID 描述、R5 腳本暫定、R6 改本 repo 副本、R8 slot 2–6 留空	Allen 逐輪決定	規格書 ID 欄全空；854 slot 1 四個清單全空（.adf/evidence/7/lists）	issue #7
+2026-10-30T16:34:09+0800	A	concept check：need 1 major（反駁：無 Host 既有機制可用）、fit 1 blocker（slot 2–6 Module Mode → R8）＋5 major 全部修正	-	-	-
+2026-10-30T16:44:24+0800	B	[U1 資料面 → U2 載入與發布] 同一實作者依序，worktree _wt_7-u1 from 9a077c3	U2 的 Polar2 測試與 S4 需要 U1 的設定檔與 500 配置	-	Allen 核准
+2026-10-30T16:44:24+0800	C	P1：String(80)→STRING、單位縮寫 ml/sec→ml/s，更新 issue AC 5、8	Allen Yes	規格 ECID 14 列 String(80)；SVID 單位 11 byte；framework FB_ModuleConfigurationManager.TcPOU:365 接受 STRING	issue #7 已更新
+2026-10-30T16:46:41+0800	C	proposal 7.md：Python 腳本（展開、縮寫 16 條、型別 4 種）、ModuleConfigPublisher 在 FlowRuntime 前發布、上限取自 symbol 表、500 新配置實測	原型驗證 63/438 筆、名稱全 ≤30 byte	scratchpad/layout7、/tmp/expand.py	與 issue 無衝突
+2026-10-30T16:52:00+0800	D	第 1 輪：3 個 reviewer，0 blocker，17 項全部 FIX	-	.adf/proposals/7.review.md	派 judge
+2026-10-30T16:52:44+0800	E	judge READY（0/0/0）	-	.adf/proposals/7.review.md	進 F
+2026-10-30T17:01:56+0800	F	實作完成（21c5af2、05423bf、f084472），506 測試；SVID 實為 64（Module Mode 列只有 B 欄，proposal 規則漏掉），實作改為以 B 欄命名的無群組項目，issue 已更新	issue 要求 Module Mode 為 SVID 1	impl/7-u1	派 code review
+2026-10-30T17:02:05+0800	F	實作完成（21c5af2、05423bf、f084472），506 測試；SVID 實為 64（Module Mode 列只有 B 欄，proposal 規則漏掉），實作改為以 B 欄命名的無群組項目，issue 已更新	issue 要求 Module Mode 為 SVID 1	impl/7-u1	派 code review
+2026-10-30T17:02:41+0800	F	code review MERGE: yes（2 minor：layout 測試註解交 stage G；__pycache__ 已被忽略）	-	-	-
+2026-10-30T17:05:26+0800	G	cleanup：接受 RelativePath 單一來源，拒絕 ModulesRoot 改 private。comment：接受刪除 13 條、reshape 4（Row NamedTuple、DataTypes 命名、CreatePublishedImage、layout 測試改名）、encode 1（layout 斷言讀 Param_Config 的 500）；拒絕 S10/S12 前置條件 encode（陣列順序與 profile 已保證）	-	int/7	派實作者
+2026-10-30T17:07:22+0800	G	清理完成 6bf2d8e，506 測試，腳本輸出 byte 相同；RelativePath 以 Replace 轉分隔字元（保持原路徑）	-	int/7	進 H
+2026-10-30T17:15:37+0800	H	Gate 1 506→508、gate 2 覆蓋率 96.8%；gate 3 腳本 since 篩選不可信，直接 Stryker ModuleConfig.cs、SimulatorSession.cs：152 tested、95.6%、改動行 0 存活（補 2 測試、2 處 disable 註明原因）。correctness 5 low：接受空白名稱檢查，其餘不改。structure 7 nit 不改。drift 7 項記入 proposal §11	-	.adf/out/mut-7	進 I
+2026-10-30T17:27:00+0800	I	4/4 符合：driver 13/13（全新 Host）、25860 slot 1 SVID 64／ECID 438、slot 2–6 空、AdsClientForPolarII 讀到 64／438	S6/S7 在反覆 Stop/Run 後不穩定，main 同樣重現（既有問題，另開 issue）	.adf/scenarios/7.md、.adf/evidence/7/	進 J
+2026-10-30T17:37:18+0800	J	合併 int/7 到 main（f58a84c），push main	Allen：合併並 push main	main 上 build 0 錯誤、508/508	issue #7 關閉、epic #2 勾選；移除 _wt_7-u1、impl/7-u1；保留 int/7
