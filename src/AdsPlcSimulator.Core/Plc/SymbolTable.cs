@@ -43,7 +43,7 @@ public sealed class SymbolTable
     public bool TryGetEnumValue(string qualifiedName, out long value) => _enumValues.TryGetValue(qualifiedName, out value);
 
     /// <summary>Value of a VAR_GLOBAL CONSTANT, e.g. "Param_Config.ModuleHeartbeat_Timeout"; case-insensitive.
-    /// TIME constants are TimeSpan, integers long, reals double, strings string, booleans bool.</summary>
+    /// The value has the natural type of the literal or expression: a T# literal is TimeSpan, an integer expression long, a real literal double.</summary>
     public bool TryGetConstant(string qualifiedName, out object value) => _constants.TryGetValue(qualifiedName, out value!);
 
     public SymbolRef Resolve(string path) =>

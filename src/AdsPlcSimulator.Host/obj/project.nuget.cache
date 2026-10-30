@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "dgSpecHash": "MTj8l0CFpQQ=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\AllenY\\Desktop\\WorkSpace\\Git\\_wt_13-int\\src\\AdsPlcSimulator.Host\\AdsPlcSimulator.Host.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\AllenY\\.nuget\\packages\\beckhoff.twincat.ads\\7.0.389\\beckhoff.twincat.ads.7.0.389.nupkg.sha512",
+    "C:\\Users\\AllenY\\.nuget\\packages\\beckhoff.twincat.ads.abstractions\\7.0.389\\beckhoff.twincat.ads.abstractions.7.0.389.nupkg.sha512",
+    "C:\\Users\\AllenY\\.nuget\\packages\\beckhoff.twincat.ads.configurationproviders\\7.0.389\\beckhoff.twincat.ads.configurationproviders.7.0.389.nupkg.sha512",
+    "C:\\Users\\AllenY\\.nuget\\packages\\beckhoff.twincat.ads.server\\7.0.389\\beckhoff.twincat.ads.server.7.0.389.nupkg.sha512",
+    "C:\\Users\\AllenY\\.nuget\\packages\\beckhoff.twincat.ads.symbolicserver\\7.0.389\\beckhoff.twincat.ads.symbolicserver.7.0.389.nupkg.sha512",
+    "C:\\Users\\AllenY\\.nuget\\packages\\beckhoff.twincat.ads.tcprouter\\7.0.389\\beckhoff.twincat.ads.tcprouter.7.0.389.nupkg.sha512",
+    "C:\\Users\\AllenY\\.nuget\\packages\\microsoft.extensions.configuration\\8.0.0\\microsoft.extensions.configuration.8.0.0.nupkg.sha512",
+    "C:\\Users\\AllenY\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\8.0.0\\microsoft.extensions.configuration.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\AllenY\\.nuget\\packages\\microsoft.extensions.configuration.binder\\8.0.2\\microsoft.extensions.configuration.binder.8.0.2.nupkg.sha512",
+    "C:\\Users\\AllenY\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
+    "C:\\Users\\AllenY\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.3\\microsoft.extensions.logging.abstractions.8.0.3.nupkg.sha512",
+    "C:\\Users\\AllenY\\.nuget\\packages\\microsoft.extensions.primitives\\8.0.0\\microsoft.extensions.primitives.8.0.0.nupkg.sha512",
+    "C:\\Users\\AllenY\\.nuget\\packages\\system.componentmodel.composition\\8.0.0\\system.componentmodel.composition.8.0.0.nupkg.sha512",
+    "C:\\Users\\AllenY\\.nuget\\packages\\system.diagnostics.eventlog\\8.0.1\\system.diagnostics.eventlog.8.0.1.nupkg.sha512",
+    "C:\\Users\\AllenY\\.nuget\\packages\\system.reactive\\6.1.0\\system.reactive.6.1.0.nupkg.sha512",
+    "C:\\Users\\AllenY\\.nuget\\packages\\system.serviceprocess.servicecontroller\\8.0.1\\system.serviceprocess.servicecontroller.8.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}

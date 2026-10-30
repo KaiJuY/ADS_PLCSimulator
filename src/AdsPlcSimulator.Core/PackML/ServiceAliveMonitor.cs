@@ -85,7 +85,7 @@ internal sealed class ServiceAliveMonitor
         if (_timedOut || now - _unchangedSince < _timeout)
             return null;
 
-        // Stryker disable once Boolean: the Abort queued by the timeout leaves Execute in the same scan, and EnterExecute clears _timedOut when the service returns
+        // Stryker disable once Boolean: only Abort is ever queued internally, so the timeout Abort leaves Execute in the same scan, and EnterExecute clears _timedOut when the service returns
         _timedOut = true;
         AbortPending = true;
         return _timeout;

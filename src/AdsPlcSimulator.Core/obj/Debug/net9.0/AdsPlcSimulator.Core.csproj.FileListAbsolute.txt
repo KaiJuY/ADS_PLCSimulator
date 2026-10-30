@@ -1,0 +1,12 @@
+C:\Users\AllenY\Desktop\WorkSpace\Git\_wt_13-int\src\AdsPlcSimulator.Core\bin\Debug\net9.0\AdsPlcSimulator.Core.deps.json
+C:\Users\AllenY\Desktop\WorkSpace\Git\_wt_13-int\src\AdsPlcSimulator.Core\obj\Debug\net9.0\AdsPlcSimulator.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\AllenY\Desktop\WorkSpace\Git\_wt_13-int\src\AdsPlcSimulator.Core\obj\Debug\net9.0\AdsPlcSimulator.Core.AssemblyInfoInputs.cache
+C:\Users\AllenY\Desktop\WorkSpace\Git\_wt_13-int\src\AdsPlcSimulator.Core\obj\Debug\net9.0\AdsPlcSimulator.Core.AssemblyInfo.cs
+C:\Users\AllenY\Desktop\WorkSpace\Git\_wt_13-int\src\AdsPlcSimulator.Core\bin\Debug\net9.0\AdsPlcSimulator.Core.dll
+C:\Users\AllenY\Desktop\WorkSpace\Git\_wt_13-int\src\AdsPlcSimulator.Core\bin\Debug\net9.0\AdsPlcSimulator.Core.pdb
+C:\Users\AllenY\Desktop\WorkSpace\Git\_wt_13-int\src\AdsPlcSimulator.Core\obj\Debug\net9.0\AdsPlcSimulator.Core.csproj.CoreCompileInputs.cache
+C:\Users\AllenY\Desktop\WorkSpace\Git\_wt_13-int\src\AdsPlcSimulator.Core\obj\Debug\net9.0\AdsPlcSimulator.Core.sourcelink.json
+C:\Users\AllenY\Desktop\WorkSpace\Git\_wt_13-int\src\AdsPlcSimulator.Core\obj\Debug\net9.0\AdsPlcSimulator.Core.dll
+C:\Users\AllenY\Desktop\WorkSpace\Git\_wt_13-int\src\AdsPlcSimulator.Core\obj\Debug\net9.0\refint\AdsPlcSimulator.Core.dll
+C:\Users\AllenY\Desktop\WorkSpace\Git\_wt_13-int\src\AdsPlcSimulator.Core\obj\Debug\net9.0\AdsPlcSimulator.Core.pdb
+C:\Users\AllenY\Desktop\WorkSpace\Git\_wt_13-int\src\AdsPlcSimulator.Core\obj\Debug\net9.0\ref\AdsPlcSimulator.Core.dll

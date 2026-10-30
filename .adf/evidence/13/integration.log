@@ -1,0 +1,17 @@
+PASS S1 actual: Chamber_Control size=12966720; M1 size=2161120; Shutter.Open offset from M1=1974172; Shutter.Open size=11684
+PASS S2 actual: M1 module state=Execute; M6 module state=Execute; Shutter.Open state=Idle; Shutter.Open ServiceId=3301; Shutter.Open CompletionBehavior=1
+PASS S3 actual: ResponseId=0; state=Undefined
+PASS S4 actual: M1 Id=1; M1 Name=Module Mode; M1 DataType (Integer_32bit)=1; M1 Unit=; M1 Value=1; M1 PublishedCount=64; M6 Id=0; M6 PublishedCount=0
+PASS S5 actual: ResponseId echoes RequestId ResponseId=1001; bCommandAccepted=True; state=Execute; previous state=Starting; left Execute before 4 s=False; Complete before 7 s after 5.1 s; Accepted, Rejected and Error
+PASS S6 actual: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop
+PASS S7 actual: reaches Execute; ResponseId echoes the second RequestId ResponseId=1007; bCommandRejected=True; ErrorID in 1002..1010 ErrorID=1004; state=Execute
+PASS S8 actual: Abort reaches Aborted state=Aborted; previous state after Abort=Aborting; Clear reaches Stopped state=Stopped; previous state after Clear=Clearing; Reset reaches Idle state=Idle; previous state after 
+PASS S9 actual: Shutter.Open reaches Execute; Shutter.Close answers while Shutter.Open runs ResponseId=1015; Shutter.Open still Execute=Execute; both reach Complete
+PASS S10 actual: SetMode reaches Complete state=Complete; SVID Value=2
+PASS S11 actual: SetMode reaches Aborted state=Aborted; ModuleAlarmList[1] shows MainErrorId 1; ServiceId=1; SourceErrorId=4; Active=True; Acknowledged=False; OccurrenceCount=1; SVID Value=2
+PASS S16 actual: starts from the Aborted SetMode and its alarm (S11) state=Aborted; AckResponseId echoes RequestId; AckAccepted=True; AckError=0; Acknowledged=True; still listed=1; the same RequestId gives DuplicateRe
+PASS S12 actual: reaches Execute; left Execute before 4 s=False; Complete before 7 s after 5.1 s; SVID Value=3
+PASS S17 actual: IsControlSourceAlive while HeartbeatIndex changes=True; IsControlSourceAlive turns FALSE within 11.5 s after 00:00:10.0281200; still TRUE at 9 s after 00:00:10.0281200; a change turns IsControlSourceA
+PASS S18 actual: Aborted within 1.5 s without AliveIndex updates state=Aborted; ModuleAlarmList has 940; 940 ServiceId=3004; 940 SourceErrorId=500; Clear reaches Stopped state=Stopped; Reset reaches Idle state=Idle; s
+PASS S15 actual: module reaches Stopped state=Stopped; Shutter.Open ResponseId after Start=1032
+16/16 scenarios passed

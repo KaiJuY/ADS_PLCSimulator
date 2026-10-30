@@ -1,0 +1,147 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\AllenY\\Desktop\\WorkSpace\\Git\\_wt_13-int\\src\\AdsPlcSimulator.Host\\AdsPlcSimulator.Host.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\AllenY\\Desktop\\WorkSpace\\Git\\_wt_13-int\\src\\AdsPlcSimulator.Core\\AdsPlcSimulator.Core.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\AllenY\\Desktop\\WorkSpace\\Git\\_wt_13-int\\src\\AdsPlcSimulator.Core\\AdsPlcSimulator.Core.csproj",
+        "projectName": "AdsPlcSimulator.Core",
+        "projectPath": "C:\\Users\\AllenY\\Desktop\\WorkSpace\\Git\\_wt_13-int\\src\\AdsPlcSimulator.Core\\AdsPlcSimulator.Core.csproj",
+        "packagesPath": "C:\\Users\\AllenY\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\AllenY\\Desktop\\WorkSpace\\Git\\_wt_13-int\\src\\AdsPlcSimulator.Core\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\AllenY\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.319/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\AllenY\\Desktop\\WorkSpace\\Git\\_wt_13-int\\src\\AdsPlcSimulator.Host\\AdsPlcSimulator.Host.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\AllenY\\Desktop\\WorkSpace\\Git\\_wt_13-int\\src\\AdsPlcSimulator.Host\\AdsPlcSimulator.Host.csproj",
+        "projectName": "AdsPlcSimulator.Host",
+        "projectPath": "C:\\Users\\AllenY\\Desktop\\WorkSpace\\Git\\_wt_13-int\\src\\AdsPlcSimulator.Host\\AdsPlcSimulator.Host.csproj",
+        "packagesPath": "C:\\Users\\AllenY\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\AllenY\\Desktop\\WorkSpace\\Git\\_wt_13-int\\src\\AdsPlcSimulator.Host\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\AllenY\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Users\\AllenY\\Desktop\\WorkSpace\\Git\\_wt_13-int\\src\\AdsPlcSimulator.Core\\AdsPlcSimulator.Core.csproj": {
+                "projectPath": "C:\\Users\\AllenY\\Desktop\\WorkSpace\\Git\\_wt_13-int\\src\\AdsPlcSimulator.Core\\AdsPlcSimulator.Core.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Beckhoff.TwinCAT.Ads.SymbolicServer": {
+              "target": "Package",
+              "version": "[7.0.389, )"
+            },
+            "Beckhoff.TwinCAT.Ads.TcpRouter": {
+              "target": "Package",
+              "version": "[7.0.389, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.319/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

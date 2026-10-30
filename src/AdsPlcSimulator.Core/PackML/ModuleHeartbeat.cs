@@ -10,7 +10,7 @@ internal sealed class ModuleHeartbeat
     private readonly TimeSpan _timeout;
     private long _lastIndex;
     private TimeSpan? _unchangedSince;
-    // Stryker disable once Boolean: ServiceHost.Scan throws before Initialize, and Initialize calls Reset, which sets _alive, so the initial value is never read
+    // Stryker disable once Boolean: ServiceHostNode calls Initialize before the first Scan, and Initialize calls Reset, which sets _alive, so the initial value is never read
     private bool _alive = true;
 
     private ModuleHeartbeat(SymbolRef index, SymbolRef flag, TimeSpan timeout)
