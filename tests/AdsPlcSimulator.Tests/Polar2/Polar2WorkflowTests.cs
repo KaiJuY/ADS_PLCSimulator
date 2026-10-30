@@ -180,7 +180,7 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
     }
 
     [Fact]
-    [Trait("AC", "3")]
+    [Trait("AC", "11")]
     public async Task ModuleModeInit_publishes_identity_of_slot_1_only()
     {
         Load("modeinit", LoadDocument("Polar2_ModuleModeInit"));
