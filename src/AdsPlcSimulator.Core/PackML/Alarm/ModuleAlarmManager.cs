@@ -103,22 +103,8 @@ public sealed class ModuleAlarmManager
         if (alarm.ServiceId != 0 || alarm.MainErrorId == 0)
             return false;
 
-        Lifecycle? firstEmpty = null;
-        foreach (Lifecycle state in _hook)
-        {
-            if (!state.Latched)
-            {
-                firstEmpty ??= state;
-                continue;
-            }
-
-            if (state.Alarm!.ServiceId != alarm.ServiceId || state.Alarm.MainErrorId != alarm.MainErrorId)
-                continue;
-
-            return RefreshHook(state, alarm);
-        }
-
-        return LatchInto(firstEmpty, alarm);
+        (Lifecycle? match, Lifecycle? firstEmpty) = Scan(_hook, alarm);
+        return match is null ? LatchInto(firstEmpty, alarm) : RefreshHook(match, alarm);
     }
 
     public bool ObserveServiceAlarm(ExtAlarm alarm)
@@ -126,8 +112,20 @@ public sealed class ModuleAlarmManager
         if (alarm.ServiceId == 0 || alarm.MainErrorId == 0)
             return false;
 
+        (Lifecycle? match, Lifecycle? firstEmpty) = Scan(_service, alarm);
+        if (match is null)
+            return LatchInto(firstEmpty, alarm);
+
+        match.Seen = true;
+        Reactivate(match);
+        return true;
+    }
+
+    /// <summary>The latched entry with the same (ServiceId, MainErrorId) as <paramref name="alarm"/>, and the first empty slot seen before it.</summary>
+    private static (Lifecycle? Match, Lifecycle? FirstEmpty) Scan(Lifecycle[] states, ExtAlarm alarm)
+    {
         Lifecycle? firstEmpty = null;
-        foreach (Lifecycle state in _service)
+        foreach (Lifecycle state in states)
         {
             if (!state.Latched)
             {
@@ -135,15 +133,11 @@ public sealed class ModuleAlarmManager
                 continue;
             }
 
-            if (state.Alarm!.ServiceId != alarm.ServiceId || state.Alarm.MainErrorId != alarm.MainErrorId)
-                continue;
-
-            state.Seen = true;
-            Reactivate(state);
-            return true;
+            if (state.Alarm!.ServiceId == alarm.ServiceId && state.Alarm.MainErrorId == alarm.MainErrorId)
+                return (state, firstEmpty);
         }
 
-        return LatchInto(firstEmpty, alarm);
+        return (null, firstEmpty);
     }
 
     public void EndCycle()

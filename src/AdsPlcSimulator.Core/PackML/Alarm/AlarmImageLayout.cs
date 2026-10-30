@@ -146,31 +146,33 @@ internal sealed class ModuleAlarmBlock
         var list = AlarmLayout.ArrayMember(module.Type, "ModuleAlarmList");
         StructMember? ctrl = AlarmLayout.Member(module.Type, "ModuleCtrl");
         StructMember? status = AlarmLayout.Member(module.Type, "ModuleStatus");
-        StructMember? ack = ctrl is null ? null : AlarmLayout.Member(ctrl.Type, "AlarmAckRequest");
-        StructMember? alarm = status is null ? null : AlarmLayout.Member(status.Type, "Alarm");
-        StructMember? moduleId = status is null ? null : AlarmLayout.Member(status.Type, "ModuleId");
-        if (list is null || ctrl is null || status is null || ack is null || alarm is null || moduleId is null)
-            return null;
-
-        ExtAlarmCodec? codec = ExtAlarmCodec.TryCreate(list.Value.Array.ElementType);
-        Slot[]? statusSlots = AlarmLayout.Locate(alarm.Type, StatusNames);
-        Slot[]? ackSlots = AlarmLayout.Locate(ack.Type, AckNames);
-        if (codec is null || statusSlots is null || ackSlots is null || !moduleId.Type.IsScalar)
+        StructMember? ack = Child(ctrl, "AlarmAckRequest");
+        StructMember? alarm = Child(status, "Alarm");
+        StructMember? moduleId = Child(status, "ModuleId");
+        ExtAlarmCodec? codec = list is null ? null : ExtAlarmCodec.TryCreate(list.Value.Array.ElementType);
+        Slot[]? statusSlots = alarm is null ? null : AlarmLayout.Locate(alarm.Type, StatusNames);
+        Slot[]? ackSlots = ack is null ? null : AlarmLayout.Locate(ack.Type, AckNames);
+        if (!AllFound(list, ctrl, status, ack, alarm, moduleId, codec, statusSlots, ackSlots) || !moduleId!.Type.IsScalar)
             return null;
 
         return new ModuleAlarmBlock(
-            codec,
-            module.Offset + list.Value.Member.Offset,
+            codec!,
+            module.Offset + list!.Value.Member.Offset,
             list.Value.Array.ElementCount,
-            statusSlots,
-            module.Offset + status.Offset + alarm.Offset,
+            statusSlots!,
+            module.Offset + status!.Offset + alarm!.Offset,
             alarm.Type.Size,
-            ackSlots,
-            module.Offset + ctrl.Offset + ack.Offset,
+            ackSlots!,
+            module.Offset + ctrl!.Offset + ack!.Offset,
             ack.Type.Size,
             module.Offset + status.Offset + moduleId.Offset,
             moduleId.Type);
     }
+
+    private static StructMember? Child(StructMember? parent, string name) =>
+        parent is null ? null : AlarmLayout.Member(parent.Type, name);
+
+    private static bool AllFound(params object?[] parts) => Array.TrueForAll(parts, part => part is not null);
 
     public AlarmAckRequest ReadAckRequest(ProcessImage image)
     {

@@ -28,19 +28,22 @@ public static class AlarmCondition
     };
 
     /// <summary>M_ParseDataType names, case-sensitive as in the framework; null otherwise.</summary>
-    public static AlarmSourceType? ParseDataType(string? text) => text switch
+    public static AlarmSourceType? ParseDataType(string? text) =>
+        text is not null && DataTypeNames.TryGetValue(text, out AlarmSourceType type) ? type : null;
+
+    private static readonly Dictionary<string, AlarmSourceType> DataTypeNames = new(StringComparer.Ordinal)
     {
-        "BOOL" or "Bool" or "Boolean" => AlarmSourceType.Boolean,
-        "DINT" or "DInt" or "Integer_32bit" => AlarmSourceType.DInt,
-        "UDINT" or "UDInt" or "Unsigned_32bit" => AlarmSourceType.UDInt,
-        "REAL" or "Real" or "Float_32bit" => AlarmSourceType.Real,
-        "LREAL" or "LReal" or "Float_64bit" => AlarmSourceType.LReal,
-        "SINT" => AlarmSourceType.SInt,
-        "USINT" => AlarmSourceType.USInt,
-        "INT" => AlarmSourceType.Int,
-        "UINT" => AlarmSourceType.UInt,
-        "STRING" or "STRING(80)" or "String80" or "String_80byte" => AlarmSourceType.String80,
-        _ => null,
+        ["BOOL"] = AlarmSourceType.Boolean, ["Bool"] = AlarmSourceType.Boolean, ["Boolean"] = AlarmSourceType.Boolean,
+        ["DINT"] = AlarmSourceType.DInt, ["DInt"] = AlarmSourceType.DInt, ["Integer_32bit"] = AlarmSourceType.DInt,
+        ["UDINT"] = AlarmSourceType.UDInt, ["UDInt"] = AlarmSourceType.UDInt, ["Unsigned_32bit"] = AlarmSourceType.UDInt,
+        ["REAL"] = AlarmSourceType.Real, ["Real"] = AlarmSourceType.Real, ["Float_32bit"] = AlarmSourceType.Real,
+        ["LREAL"] = AlarmSourceType.LReal, ["LReal"] = AlarmSourceType.LReal, ["Float_64bit"] = AlarmSourceType.LReal,
+        ["SINT"] = AlarmSourceType.SInt,
+        ["USINT"] = AlarmSourceType.USInt,
+        ["INT"] = AlarmSourceType.Int,
+        ["UINT"] = AlarmSourceType.UInt,
+        ["STRING"] = AlarmSourceType.String80, ["STRING(80)"] = AlarmSourceType.String80,
+        ["String80"] = AlarmSourceType.String80, ["String_80byte"] = AlarmSourceType.String80,
     };
 
     /// <summary>True when a symbol of this PLC type can be sampled as the given source type (BOOL, SINT … LREAL by kind; any STRING for String80).</summary>

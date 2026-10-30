@@ -169,22 +169,28 @@ internal static class ModuleConfigPublisher
 
     private static void ValidateAlarm(AlarmConfig alarm, HashSet<uint> ids, string where, string path)
     {
-        string id = $"mainErrorId {alarm.MainErrorId}";
-        if (alarm.Condition is null)
-            throw Fail(path, $"{where}: {id} has no condition.");
-        if (string.IsNullOrWhiteSpace(alarm.Source))
-            throw Fail(path, $"{where}: {id} has an empty source.");
-        if (AlarmCondition.ParseDataType(alarm.DataType) is null)
-            throw Fail(path, $"{where}: {id}: dataType '{alarm.DataType}' is not supported.");
-        if (AlarmCondition.ParseOperator(alarm.Condition.Operator) is null)
-            throw Fail(path, $"{where}: {id}: operator '{alarm.Condition.Operator}' is not one of gt, lt, ge, le, eq.");
-        if (ParseSeverity(alarm.Severity) is null)
-            throw Fail(path, $"{where}: {id}: severity '{alarm.Severity}' is not Alarm or Warning.");
-        if (alarm.MainErrorId is 0 or >= ReservedErrorIdStart)
-            throw Fail(path, $"{where}: {id} is outside 1..{ReservedErrorIdStart - 1}.");
-        if (!ids.Add(alarm.MainErrorId))
-            throw Fail(path, $"{where}: {id} appears more than once.");
+        object?[] args =
+        [
+            where, $"mainErrorId {alarm.MainErrorId}", alarm.DataType, alarm.Condition?.Operator, alarm.Severity, ReservedErrorIdStart - 1,
+        ];
+        foreach ((Func<AlarmConfig, HashSet<uint>, bool> invalid, string message) in AlarmRules)
+        {
+            if (invalid(alarm, ids))
+                throw Fail(path, string.Format(message, args));
+        }
     }
+
+    /// <summary>Checked in order; {0} where, {1} id, {2} dataType, {3} operator, {4} severity, {5} last usable id.</summary>
+    private static readonly (Func<AlarmConfig, HashSet<uint>, bool> Invalid, string Message)[] AlarmRules =
+    [
+        ((alarm, _) => alarm.Condition is null, "{0}: {1} has no condition."),
+        ((alarm, _) => string.IsNullOrWhiteSpace(alarm.Source), "{0}: {1} has an empty source."),
+        ((alarm, _) => AlarmCondition.ParseDataType(alarm.DataType) is null, "{0}: {1}: dataType '{2}' is not supported."),
+        ((alarm, _) => AlarmCondition.ParseOperator(alarm.Condition!.Operator) is null, "{0}: {1}: operator '{3}' is not one of gt, lt, ge, le, eq."),
+        ((alarm, _) => ParseSeverity(alarm.Severity) is null, "{0}: {1}: severity '{4}' is not Alarm or Warning."),
+        ((alarm, _) => alarm.MainErrorId is 0 or >= ReservedErrorIdStart, "{0}: {1} is outside 1..{5}."),
+        ((alarm, ids) => !ids.Add(alarm.MainErrorId), "{0}: {1} appears more than once."),
+    ];
 
     private static AlarmSeverity? ParseSeverity(string? text) => text switch
     {
