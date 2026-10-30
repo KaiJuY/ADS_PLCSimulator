@@ -47,9 +47,10 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
     private int _notifyLoopStarted;
     private Task? _notifyLoop;
 
-    public PlcAdsServer(ushort port, SymbolTable symbols, ProcessImage image, ILoggerFactory loggerFactory)
+    public PlcAdsServer(ushort port, SymbolTable symbols, ProcessImage image, ILoggerFactory loggerFactory, byte symbolVersion = 1)
         : base(port, "AdsPlcSimulator", loggerFactory)
     {
+        this.symbolVersion = symbolVersion;
         _symbols = symbols;
         _image = image;
         _logger = loggerFactory.CreateLogger<PlcAdsServer>();

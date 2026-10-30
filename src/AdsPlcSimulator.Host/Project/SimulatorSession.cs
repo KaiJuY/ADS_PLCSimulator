@@ -3,52 +3,66 @@ using System.Text.RegularExpressions;
 using AdsPlcSimulator.Core.Flow;
 using AdsPlcSimulator.Core.Plc;
 using AdsPlcSimulator.Host.Live;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.FileProviders;
 
 namespace AdsPlcSimulator.Host.Project;
-
-public sealed class SimulatorOptions
-{
-    /// <summary>Folder with plc/, workflows/ and simulation/; relative paths start at the content root.</summary>
-    public string ProjectPath { get; set; } = "../../projects/RobustSolutionDemo";
-}
 
 public sealed record WorkflowStatus(string Name, bool Loaded, IReadOnlyList<WorkflowDiagnostic> Diagnostics);
 
 /// <summary>
-/// The running simulator project: the PLC memory built from plc/*.st|Tc*, and the workflows from workflows/*.flow.json.
+/// A loaded simulator project: the PLC memory built from plc/*.st|Tc*, and the workflows from workflows/*.flow.json.
 /// Saving a workflow writes the file and hot-reloads it.
 /// </summary>
 public sealed partial class SimulatorSession : IAsyncDisposable
 {
+    internal static readonly TimeSpan CleanupTimeout = TimeSpan.FromSeconds(5);
+
     private const string WorkflowExtension = ".flow.json";
 
     private readonly ConcurrentDictionary<string, WorkflowStatus> _statuses = new(StringComparer.OrdinalIgnoreCase);
     private readonly ILogger<SimulatorSession> _logger;
 
-    public SimulatorSession(IOptions<SimulatorOptions> options, IHostEnvironment environment, LiveHub liveHub, ILogger<SimulatorSession> logger)
+    public SimulatorSession(string projectDirectory, LiveHub liveHub, ILogger<SimulatorSession> logger)
     {
         _logger = logger;
-        ProjectDirectory = Path.GetFullPath(Path.Combine(environment.ContentRootPath, options.Value.ProjectPath));
+        ProjectDirectory = Path.TrimEndingDirectorySeparator(Path.GetFullPath(projectDirectory));
+        Name = Path.GetFileName(ProjectDirectory);
         Program = PlcProgram.LoadDirectory(Path.Combine(ProjectDirectory, "plc"));
         Image = Program.CreateProcessImage();
-        Runtime = new FlowRuntime(Image, Program.Symbols, NodeCatalog.Default, liveHub, liveHub, ProjectDirectory);
-        _logger.LogInformation("Loaded {Count} PLC root symbols ({Bytes} bytes) from {Directory}.", Program.Symbols.Roots.Count, Image.Size, ProjectDirectory);
+        Live = new SessionLiveChannel(liveHub);
+        Runtime = new FlowRuntime(Image, Program.Symbols, NodeCatalog.Default, Live, Live, ProjectDirectory);
 
-        Directory.CreateDirectory(WorkflowDirectory);
-        foreach (string file in Directory.EnumerateFiles(WorkflowDirectory, "*" + WorkflowExtension))
-            LoadWorkflowFile(Path.GetFileName(file)[..^WorkflowExtension.Length]);
+        try
+        {
+            string simulationDirectory = Path.Combine(ProjectDirectory, "simulation");
+            if (Directory.Exists(simulationDirectory))
+                SimulationFiles = new PhysicalFileProvider(simulationDirectory);
+
+            _logger.LogInformation("Loaded {Count} PLC root symbols ({Bytes} bytes) from {Directory}.", Program.Symbols.Roots.Count, Image.Size, ProjectDirectory);
+            Directory.CreateDirectory(WorkflowDirectory);
+            foreach (string file in Directory.EnumerateFiles(WorkflowDirectory, "*" + WorkflowExtension))
+                LoadWorkflowFile(Path.GetFileName(file)[..^WorkflowExtension.Length]);
+        }
+        catch
+        {
+            CleanUpAfterFailedConstruction();
+            throw;
+        }
     }
 
-    public string ProjectDirectory { get; }
+    public string Name { get; }
 
-    public string SimulationDirectory => Path.Combine(ProjectDirectory, "simulation");
+    public string ProjectDirectory { get; }
 
     public PlcProgram Program { get; }
 
     public ProcessImage Image { get; }
 
     public FlowRuntime Runtime { get; }
+
+    public IFileProvider SimulationFiles { get; private set; } = new NullFileProvider();
+
+    internal SessionLiveChannel Live { get; }
 
     private string WorkflowDirectory => Path.Combine(ProjectDirectory, "workflows");
 
@@ -68,7 +82,28 @@ public sealed partial class SimulatorSession : IAsyncDisposable
         return Apply(name, document);
     }
 
-    public async ValueTask DisposeAsync() => await Runtime.DisposeAsync();
+    public async ValueTask DisposeAsync()
+    {
+        Live.Close();
+        await Runtime.DisposeAsync();
+        (SimulationFiles as IDisposable)?.Dispose();
+    }
+
+    private void CleanUpAfterFailedConstruction()
+    {
+        Live.Close();
+        try
+        {
+            if (!Runtime.DisposeAsync().AsTask().Wait(CleanupTimeout))
+                _logger.LogWarning("Cleanup of {Directory} did not finish within 5 s.", ProjectDirectory);
+        }
+        catch (AggregateException)
+        {
+            _logger.LogWarning("Cleanup of {Directory} did not finish within 5 s.", ProjectDirectory);
+        }
+
+        (SimulationFiles as IDisposable)?.Dispose();
+    }
 
     private void LoadWorkflowFile(string name)
     {

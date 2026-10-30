@@ -51,6 +51,10 @@ public sealed class LiveHub : IFlowMonitor, ISimulationSink
         Broadcast(new { type = "sim", command });
     }
 
+    public void ClearSimulationState() => _simulationState.Clear();
+
+    internal int SimulationStateCount => _simulationState.Count;
+
     public void PublishWorkflowStatus(object status) => Broadcast(new { type = "workflow", status });
 
     public async Task ServeAsync(WebSocket socket, CancellationToken cancellation)

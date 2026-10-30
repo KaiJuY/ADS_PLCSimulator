@@ -25,7 +25,22 @@ dotnet run
 | `Local`（預設） | 機器上有 TwinCAT（XAE/XAR/ADS Setup），註冊到它的 router。 |
 | `Embedded` | 機器上沒有 TwinCAT，啟動內建 `AmsTcpIpRouter`（佔 TCP 48898，與 TwinCAT router 互斥）。 |
 
-載入哪個專案由 `Simulator:ProjectPath` 決定（預設 `RobustSolutionDemo`）。要跑 Polar2Chamber：
+### 執行器模式（Run／Stop）
+
+Host 啟動時預設**不載入任何專案**（Stopped，不註冊 ADS port）。在 Editor 工具列選專案按 Run，Host 才載入專案並在 `Ads:Port` 註冊；按 Stop 取消註冊、停止 workflow、釋放專案。同一時間只跑一個專案，要換專案先 Stop。
+
+- `Simulator:ProjectsRoot`（預設 `../../projects`，相對於 `src/AdsPlcSimulator.Host`）：Editor 列出它底下含 `plc/` 資料夾的子資料夾。
+- Editor 最後一次 Run 的專案記在 `%LOCALAPPDATA%\AdsPlcSimulator\state.json`，下次 Host 啟動時在清單預選它（不會自動 Run）。
+- 每次 Run，ADS symbol version（IG 0xF008）加 1（1–255 循環），ADS client 藉此知道符號表換過。
+- Stopped 時 `/api/symbols*`、`/api/workflows*` 回 409；`/simulation/` 跟著執行中專案。
+
+| API | 說明 |
+|---|---|
+| `GET /api/project` | `{ state, projects, running, runningPath, last, port }` |
+| `POST /api/project/run` `{ "name": "Polar2Chamber" }` | 200 成功；409 已有專案在跑；404 找不到專案；400 載入或註冊 port 失敗（`error` 為原因） |
+| `POST /api/project/stop` | 200（Stopped 時也是 200） |
+
+命令列仍可直接指定專案：啟動時自動 Run，失敗則 Host 啟動失敗；這種 Run 不寫 `state.json`。要跑 Polar2Chamber：
 
 ```powershell
 dotnet run --project src/AdsPlcSimulator.Host -- --Simulator:ProjectPath=../../projects/Polar2Chamber
@@ -91,7 +106,7 @@ dotnet test
 `tests/AdsPlcSimulator.Integration` 是 ADS client 主控台程式（不是 xUnit，`dotnet test` 不會執行它）。它連到執行中的 Host，跑 Polar2Chamber 的情境 S1–S12 與 S15，每個情境印一行 PASS／FAIL 與預期值、實際值。S13、S14 是 HTTP／瀏覽器步驟，不在 driver 內。
 
 ```powershell
-# 終端機 1：啟動 Host（載入 Polar2Chamber）
+# 終端機 1：啟動 Host（自動 Run Polar2Chamber）
 dotnet run --project src/AdsPlcSimulator.Host -- --Simulator:ProjectPath=../../projects/Polar2Chamber
 
 # 終端機 2：執行 driver
