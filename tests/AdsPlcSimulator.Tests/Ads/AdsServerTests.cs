@@ -547,7 +547,7 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
 
     private AdsErrorCode ReadValueByName(string path, int readLength, out byte[] data)
     {
-        byte[] name = System.Text.Encoding.ASCII.GetBytes(path + " ");
+        byte[] name = System.Text.Encoding.ASCII.GetBytes(path + "\0");
         byte[] buffer = new byte[readLength];
         AdsErrorCode result = _client.TryReadWrite(ValueByNameGroup, 0, buffer.AsMemory(), name.AsMemory(), out int read);
         data = buffer[..read];
@@ -787,7 +787,8 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
 
         Assert.Equal(AdsErrorCode.NoError, result);
         Assert.Equal(8, read);
-        Assert.Equal([AdsErrorCode.NoError, AdsErrorCode.NoError], Codes(data, 2));    }
+        Assert.Equal([AdsErrorCode.NoError, AdsErrorCode.NoError], Codes(data, 2));
+    }
 
     [Fact]
     [Trait("AC", "6")]
