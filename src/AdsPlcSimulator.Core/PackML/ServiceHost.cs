@@ -30,25 +30,29 @@ public sealed class ServiceHost
     private readonly Func<string, object?> _overrideToken;
     private readonly SymbolTable _symbols;
     private readonly Func<DateTimeOffset> _utcNow;
+    private readonly AliveSettings _alive;
     private readonly Dictionary<string, ModuleUnit> _moduleByPath = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ModuleUnit> _moduleByService = new(StringComparer.OrdinalIgnoreCase);
     private bool _retired;
     private ProcessImage? _image;
 
     /// <param name="utcNow">The clock of alarm DateTime; null = DateTimeOffset.UtcNow.</param>
+    /// <param name="alive">Heartbeat and Service Alive timeouts; null = AliveSettings.Default.</param>
     /// <exception cref="ServiceHostException">The root does not have the module shape, or no service is bound.</exception>
     public ServiceHost(
         SymbolTable symbols, SymbolRef root, ServiceIdentityTable identities, TimeSpan defaultDelay,
-        Func<string, object?> overrideToken, Func<DateTimeOffset>? utcNow = null)
+        Func<string, object?> overrideToken, Func<DateTimeOffset>? utcNow = null,
+        AliveSettings? alive = null)
     {
         RootPath = root.Path;
         _symbols = symbols;
         _defaultDelay = defaultDelay;
         _overrideToken = overrideToken;
         _utcNow = utcNow ?? (() => DateTimeOffset.UtcNow);
+        _alive = alive ?? AliveSettings.Default;
 
         foreach (SymbolRef module in FindModules(root))
-            _modules.Add(ModuleUnit.Create(symbols, module, identities));
+            _modules.Add(ModuleUnit.Create(symbols, module, identities, _alive));
 
         foreach (ModuleUnit module in _modules)
         {
@@ -229,6 +233,7 @@ public sealed class ServiceHost
         module.Machine.SeedInput(input.PackML);
         module.LastCommandRequest = input.PackML.CommandRequest;
         module.LastModeRequest = input.PackML.ModeRequest;
+        module.ResetHeartbeat(image);
 
         foreach (ServiceUnit service in module.Services)
             service.WriteIdentity(image);
@@ -252,6 +257,7 @@ public sealed class ServiceHost
 
     private void ScanModule(ProcessImage image, ModuleUnit module, TimeSpan now, string utc)
     {
+        module.ScanHeartbeat(image, now);
         module.ReadInputs(image);
         RawInput moduleInput = module.ReadModuleInput();
         module.Machine.Scan(moduleInput.PackML, state => IsModuleActingStateDone(module, state));
@@ -631,10 +637,12 @@ public sealed class ServiceHost
             StatusBlock status,
             List<ServiceUnit> services,
             string path,
-            ModuleAlarmBlock? alarm)
+            ModuleAlarmBlock? alarm,
+            ModuleHeartbeat? heartbeat)
         {
             Path = path;
             Alarm = alarm;
+            Heartbeat = heartbeat;
             _input = input;
             _ctrlOffset = ctrlOffset;
             _serviceCtrlOffset = serviceCtrlOffset;
@@ -652,6 +660,8 @@ public sealed class ServiceHost
 
         public ModuleAlarmBlock? Alarm { get; }
 
+        public ModuleHeartbeat? Heartbeat { get; }
+
         public StatusBlock Status { get; }
 
         public IReadOnlyList<ServiceUnit> Services { get; }
@@ -664,7 +674,7 @@ public sealed class ServiceHost
 
         public bool LastModeRequest { get; set; }
 
-        public static ModuleUnit Create(SymbolTable symbols, SymbolRef module, ServiceIdentityTable identities)
+        public static ModuleUnit Create(SymbolTable symbols, SymbolRef module, ServiceIdentityTable identities, AliveSettings alive)
         {
             StructMember ctrl = RequireMember(module, "ModuleCtrl", "ST_ModuleCtrl");
             StructMember status = RequireMember(module, "ModuleStatus", "ST_ModuleStatus");
@@ -686,7 +696,8 @@ public sealed class ServiceHost
                 new StatusBlock(new SymbolRef($"{module.Path}.ModuleStatus", status.Type, module.Offset + status.Offset)),
                 services,
                 module.Path,
-                ModuleAlarmBlock.TryCreate(module));
+                ModuleAlarmBlock.TryCreate(module),
+                ModuleHeartbeat.TryCreate(module, alive.HeartbeatTimeout));
         }
 
         public void ReadInputs(ProcessImage image)
@@ -702,6 +713,10 @@ public sealed class ServiceHost
         public void SetHook(HookSubmission submission, bool active) => _alarms.SetHook(submission, active);
 
         public void ScanAlarms(ProcessImage image, string utc) => _alarms.Scan(image, utc);
+
+        public void ResetHeartbeat(ProcessImage image) => Heartbeat?.Reset(image);
+
+        public void ScanHeartbeat(ProcessImage image, TimeSpan now) => Heartbeat?.Scan(image, now);
 
         public RawInput ReadServiceInput(ServiceUnit service) => service.ReadInput(_serviceCtrlBuffer);
 
