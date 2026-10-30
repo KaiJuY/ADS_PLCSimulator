@@ -61,7 +61,5 @@ internal sealed class ModuleHeartbeat
         image.WriteValue(_flag, alive, WriteSource.Workflow);
     }
 
-    private static bool IsKind(PlcType type, PrimitiveKind kind) => type.Unaliased is PrimitiveType primitive && primitive.Kind == kind;
-
     private long ReadIndex(ProcessImage image) => PlcValue.ToInt64(image.ReadValue(_index));
 }

@@ -298,7 +298,7 @@ public class ServiceAliveTests
 
     [Fact]
     [Trait("AC", "6")]
-    public void Timeout_scan_with_a_queued_Abort_keeps_the_pending_Abort_for_the_next_scan()
+    public void Pending_Abort_is_kept_after_the_service_leaves_Execute_until_it_is_queued()
     {
         HostFixture fixture = StartB();
         fixture.Host.Abort(CtrlB, null);

@@ -31,7 +31,7 @@ public sealed partial class SimulatorSession : IAsyncDisposable
         Name = Path.GetFileName(ProjectDirectory);
         Program = PlcProgram.LoadDirectory(Path.Combine(ProjectDirectory, "plc"));
         Image = CreatePublishedImage();
-        _ = AliveSettings.FromSymbols(Program.Symbols);
+        AliveSettings.Validate(Program.Symbols);
         Live = new SessionLiveChannel(liveHub);
         Runtime = new FlowRuntime(Image, Program.Symbols, NodeCatalog.Default, Live, Live, ProjectDirectory);
         Runtime.Registry.ConfiguredAlarms = ConfiguredAlarms;

@@ -16,13 +16,21 @@ public sealed record AliveSettings(TimeSpan HeartbeatTimeout, TimeSpan ServiceAl
         TimeSpan heartbeat = Read(symbols, "ModuleHeartbeat_Timeout", Default.HeartbeatTimeout, out _);
         TimeSpan min = Read(symbols, "ServiceAliveTimeoutMin", Default.ServiceAliveMin, out bool minIsDefault);
         TimeSpan max = Read(symbols, "ServiceAliveTimeoutMax", Default.ServiceAliveMax, out bool maxIsDefault);
-        if (min > max)
-        {
-            throw new ServiceHostException(
-                $"Param_Config.ServiceAliveTimeoutMin ({Describe(min, minIsDefault)}) is greater than ServiceAliveTimeoutMax ({Describe(max, maxIsDefault)}).");
-        }
-
+        RequireOrdered(min, minIsDefault, max, maxIsDefault);
         return new AliveSettings(heartbeat, min, max);
+    }
+
+    /// <summary>Checks the Param_Config values without building the settings.</summary>
+    /// <exception cref="ServiceHostException">Same condition as <see cref="FromSymbols"/>.</exception>
+    public static void Validate(SymbolTable symbols) => FromSymbols(symbols);
+
+    private static void RequireOrdered(TimeSpan min, bool minIsDefault, TimeSpan max, bool maxIsDefault)
+    {
+        if (min <= max)
+            return;
+
+        throw new ServiceHostException(
+            $"Param_Config.ServiceAliveTimeoutMin ({Describe(min, minIsDefault)}) is greater than ServiceAliveTimeoutMax ({Describe(max, maxIsDefault)}).");
     }
 
     public TimeSpan Clamp(TimeSpan aliveTimeout) =>

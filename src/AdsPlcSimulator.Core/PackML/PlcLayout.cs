@@ -13,6 +13,8 @@ internal static class PlcLayout
 {
     public static StructMember? Find(PlcType type, string name) => (type.Unaliased as StructType)?.Find(name);
 
+    public static bool IsKind(PlcType type, PrimitiveKind kind) => type.Unaliased is PrimitiveType primitive && primitive.Kind == kind;
+
     public static StructMember Require(PlcType type, string name, string owner) =>
         Find(type, name)
             ?? throw new ServiceHostException($"{owner} has no member '{name}'.");

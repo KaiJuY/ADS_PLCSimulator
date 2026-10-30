@@ -52,7 +52,6 @@ internal sealed class ServiceAliveMonitor
     public void Reset()
     {
         _active = false;
-        _timedOut = false;
         AbortPending = false;
     }
 
@@ -68,7 +67,6 @@ internal sealed class ServiceAliveMonitor
         AbortPending = false;
     }
 
-    // AbortPending stays after a service leaves Execute until an Abort is queued (framework behavior)
     public void LeaveExecute() => _active = false;
 
     public TimeSpan? Evaluate(AliveInput input, bool inExecute, TimeSpan now)
@@ -89,6 +87,4 @@ internal sealed class ServiceAliveMonitor
         AbortPending = true;
         return _timeout;
     }
-
-    private static bool IsKind(PlcType type, PrimitiveKind kind) => type.Unaliased is PrimitiveType primitive && primitive.Kind == kind;
 }

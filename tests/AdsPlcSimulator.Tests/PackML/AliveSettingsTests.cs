@@ -100,6 +100,44 @@ public class AliveSettingsTests
             """));
     }
 
+    [Fact]
+    [Trait("AC", "10")]
+    public void Validate_throws_when_Min_is_greater_than_Max()
+    {
+        SymbolTable symbols = TestPaths.BuildFromText("""
+            VAR_GLOBAL CONSTANT
+            ServiceAliveTimeoutMin : TIME := T#2S;
+            ServiceAliveTimeoutMax : TIME := T#1S;
+            END_VAR
+            """, "Param_Config").Symbols;
+
+        var exception = Assert.Throws<ServiceHostException>(() => AliveSettings.Validate(symbols));
+
+        Assert.Equal("Param_Config.ServiceAliveTimeoutMin (T#2000MS) is greater than ServiceAliveTimeoutMax (T#1000MS).", exception.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "10")]
+    public void Validate_accepts_the_project_without_the_constants()
+    {
+        AliveSettings.Validate(TestPaths.BuildFromText("VAR_GLOBAL n : INT; END_VAR").Symbols);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(500)]
+    [InlineData(60000)]
+    [Trait("AC", "10")]
+    public void Min_equal_to_Max_is_accepted_and_Clamp_returns_that_value(double input)
+    {
+        AliveSettings settings = Read("""
+            ServiceAliveTimeoutMin : TIME := T#500MS;
+            ServiceAliveTimeoutMax : TIME := T#500MS;
+            """);
+
+        Assert.Equal(Milliseconds(500), settings.Clamp(Milliseconds(input)));
+    }
+
     [Theory]
     [InlineData(50, 100)]
     [InlineData(20000, 10000)]

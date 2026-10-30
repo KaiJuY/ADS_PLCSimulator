@@ -119,10 +119,7 @@ public sealed class ServiceHost
             if (mainErrorId == 0)
                 throw new InvalidOperationException("MainErrorId 0 means no error.");
 
-            ServiceErrorResult result = service.Errors.Add(BuildServiceError(service, image, mainErrorId, sourceErrorId, message));
-            if (result.Added)
-                service.Errors.WriteIfChanged(image);
-            return result;
+            return AddError(service, image, mainErrorId, sourceErrorId, message);
         }
     }
 
@@ -156,9 +153,15 @@ public sealed class ServiceHost
         if (service.Errors is null)
             return;
 
-        ServiceErrorResult result = service.Errors.Add(BuildServiceError(service, image, mainErrorId, sourceErrorId, message));
+        AddError(service, image, mainErrorId, sourceErrorId, message);
+    }
+
+    private ServiceErrorResult AddError(ServiceUnit service, ProcessImage image, uint mainErrorId, uint sourceErrorId, string message)
+    {
+        ServiceErrorResult result = service.Errors!.Add(BuildServiceError(service, image, mainErrorId, sourceErrorId, message));
         if (result.Added)
             service.Errors.WriteIfChanged(image);
+        return result;
     }
 
     private ProcessImage RequireUsable()
