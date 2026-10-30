@@ -1,5 +1,6 @@
 using System.Text.Json;
 using AdsPlcSimulator.Core.Flow;
+using AdsPlcSimulator.Core.PackML;
 using AdsPlcSimulator.Core.PackML.Alarm;
 using AdsPlcSimulator.Host.Live;
 using AdsPlcSimulator.Host.Project;
@@ -152,6 +153,24 @@ public sealed class SessionPartsTests
         var exception = Assert.Throws<ModuleConfigException>(() => new SimulatorSession(root.ProjectPath("Alpha"), hub, NullLogger<SimulatorSession>.Instance));
 
         Assert.Contains("module-config.json", exception.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "10")]
+    public void Session_construction_rejects_ServiceAliveTimeoutMin_above_Max()
+    {
+        using var root = new ProjectTestRoot();
+        File.WriteAllText(Path.Combine(root.ProjectPath("Alpha"), "plc", "Param_Config.st"), """
+            VAR_GLOBAL CONSTANT
+                ServiceAliveTimeoutMin : TIME := T#2S;
+                ServiceAliveTimeoutMax : TIME := T#1S;
+            END_VAR
+            """);
+        var hub = new LiveHub(NullLogger<LiveHub>.Instance);
+
+        var exception = Assert.Throws<ServiceHostException>(() => new SimulatorSession(root.ProjectPath("Alpha"), hub, NullLogger<SimulatorSession>.Instance));
+
+        Assert.Contains("ServiceAliveTimeoutMin", exception.Message);
     }
 
     [Fact]

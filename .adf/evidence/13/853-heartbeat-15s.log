@@ -1,0 +1,5 @@
+00:42:32.791 == port 853, GVL_Module.Chamber1_Control[1], ADS state=Run
+00:42:35.851 ORIGINAL HeartbeatIndex=0 (restore manually with this value if the program is interrupted); IsControlSourceAlive=False
+00:42:37.921 after 2 s of increments: HeartbeatIndex=10 IsControlSourceAlive=True
+00:42:52.973 IsControlSourceAlive stayed TRUE for 15 s
+00:42:52.979 restored HeartbeatIndex=0 (alive right after restore=True)
