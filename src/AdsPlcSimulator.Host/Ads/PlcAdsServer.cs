@@ -11,7 +11,7 @@ namespace AdsPlcSimulator.Host.Ads;
 /// <summary>
 /// ADS face of the simulated PLC. Publishes the symbol table (so SymbolLoader, ReadValue and variable handles work)
 /// and serves every symbol read/write directly from the shared <see cref="ProcessImage"/>.
-/// Read, write and notification lengths follow what was measured on a real PLC.
+/// Read, write and notification lengths follow the AMS 854 measurements of issue #3.
 /// </summary>
 internal sealed class PlcAdsServer : AdsSymbolicServer
 {
@@ -20,14 +20,12 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
 
     private const uint VariableHandleIndexGroup = 0xF005;
 
-    // Far above the small handle numbers of the base class, so the two never collide.
-    private const int FirstNotificationHandle = 0x4000_0000;
+    private const int FirstHandleAboveBaseClassRange = 0x4000_0000;
 
     private static readonly TimeSpan ScanPeriod = TimeSpan.FromMilliseconds(10);
     private static readonly TimeSpan MinimumInterval = TimeSpan.FromMilliseconds(10);
 
-    // The Add response goes out within the same call chain; the client drops samples of a handle it does not know yet.
-    private static readonly TimeSpan InitialDelay = TimeSpan.FromMilliseconds(20);
+    private static readonly TimeSpan FirstSampleDelayAfterAddResponse = TimeSpan.FromMilliseconds(20);
     private static readonly TimeSpan SendTimeout = TimeSpan.FromSeconds(1);
 
     private readonly SymbolTable _symbols;
@@ -36,7 +34,7 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
     private readonly Dictionary<uint, Subscription> _subscriptions = new();
     private readonly object _subscriptionLock = new();
     private readonly CancellationTokenSource _notifyStop = new();
-    private int _nextNotificationHandle = FirstNotificationHandle - 1;
+    private int _nextNotificationHandle = FirstHandleAboveBaseClassRange - 1;
     private int _nextInvokeId;
     private int _notifyLoopStarted;
     private Task? _notifyLoop;
@@ -62,7 +60,6 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
             var area = new DataArea(root.Path, PlcDataIndexGroup, (uint)root.Offset, (uint)root.Type.Size);
             symbolFactory!.AddDataArea(area).AddSymbol(root.Path, rootTypes[index], area);
 
-            // Raw IG 0x4040 access treats the ADS offset as a process image offset, so the two must be equal.
             uint adsOffset = ((IProcessImageAddress)Symbols[root.Path]).IndexOffset;
             if (adsOffset != (uint)root.Offset)
                 throw new InvalidOperationException($"Root '{root.Path}' has process image offset {root.Offset} but ADS offset {adsOffset}.");
@@ -130,7 +127,7 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         return Task.FromResult(ResultReadBytes.CreateSuccess(_image.Read(offset, readLength)));
     }
 
-    // A real PLC answers a handle read with min(requested, symbol size) bytes.
+    // AMS 854 (#3): a handle read answers min(requested, symbol size) bytes.
     private Task<ResultReadBytes> ReadByHandle(AmsAddress sender, uint invokeId, uint handle, int readLength, CancellationToken cancel)
     {
         if (!TryResolveHandle(handle, out int offset, out int size))
@@ -151,7 +148,7 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         if (!TryResolveRaw(indexOffset, writeData.Length, _image.Size, out int offset))
             return Task.FromResult(ResultWrite.CreateError(AdsErrorCode.DeviceInvalidOffset));
 
-        return Task.FromResult(WriteFromClient(invokeId, offset, writeData));
+        return Task.FromResult(WriteUnlessEmpty(invokeId, offset, writeData));
     }
 
     private Task<ResultWrite> WriteByHandle(AmsAddress sender, uint invokeId, uint handle, ReadOnlyMemory<byte> writeData, CancellationToken cancel)
@@ -161,11 +158,10 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         if (writeData.Length > size)
             return Task.FromResult(ResultWrite.CreateError(AdsErrorCode.DeviceInvalidSize));
 
-        return Task.FromResult(WriteFromClient(invokeId, offset, writeData));
+        return Task.FromResult(WriteUnlessEmpty(invokeId, offset, writeData));
     }
 
-    // A zero-length write must not reach the image: it would still raise Written and fire trigger.onClientWrite.
-    private ResultWrite WriteFromClient(uint invokeId, int offset, ReadOnlyMemory<byte> data)
+    private ResultWrite WriteUnlessEmpty(uint invokeId, int offset, ReadOnlyMemory<byte> data)
     {
         if (data.Length > 0)
             _image.Write(offset, data.Span, WriteSource.Client);
@@ -198,7 +194,7 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
             Cyclic = IsCyclic(settings.NotificationMode),
             Interval = TimeSpan.FromMilliseconds(Math.Max(settings.CycleTime, MinimumInterval.TotalMilliseconds)),
             Buffer = new byte[dataLength],
-            NextDue = Stopwatch.GetTimestamp() + ToTicks(InitialDelay),
+            NextDue = Stopwatch.GetTimestamp() + ToTicks(FirstSampleDelayAfterAddResponse),
         };
         lock (_subscriptionLock)
             _subscriptions[handle] = subscription;
@@ -241,7 +237,6 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
             }
             catch (AggregateException)
             {
-                // The loop only ends by cancellation; there is nothing to report while shutting down.
             }
 
             lock (_subscriptionLock)
@@ -253,12 +248,10 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
 
     private bool TryLocate(ISymbol symbol, int length, out int offset)
     {
-        offset = 0;
-        if (!_symbols.TryResolve(symbol.InstancePath, out SymbolRef resolved, out _))
+        if (!TryResolvePath(symbol.InstancePath, out offset, out int size))
             return false;
 
-        offset = resolved.Offset;
-        return length <= resolved.Size && offset >= 0 && offset + length <= _image.Size;
+        return length <= size && offset >= 0 && offset + length <= _image.Size;
     }
 
     private bool TryResolveHandle(uint handle, out int offset, out int size)
@@ -267,6 +260,14 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         size = 0;
         if (handleTable is null || !handleTable.TryGetReferencedItem(handle, out string? path) || path is null)
             return false;
+
+        return TryResolvePath(path, out offset, out size);
+    }
+
+    private bool TryResolvePath(string path, out int offset, out int size)
+    {
+        offset = 0;
+        size = 0;
         if (!_symbols.TryResolve(path, out SymbolRef resolved, out _))
             return false;
 
@@ -275,7 +276,6 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         return true;
     }
 
-    /// <summary>Checks a raw IG 0x4040 range against the process image; long arithmetic keeps huge offsets from wrapping.</summary>
     private static bool TryResolveRaw(uint indexOffset, int length, int imageSize, out int offset)
     {
         offset = 0;
@@ -309,7 +309,6 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         }
         catch (OperationCanceledException)
         {
-            // Dispose asked the loop to stop.
         }
     }
 
@@ -371,7 +370,6 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         _logger.LogWarning("Dropped notification {Handle} for {Receiver}: {Reason}", subscription.NotificationHandle, subscription.Receiver, reason);
     }
 
-    /// <summary>Mutable fields change only inside the subscription lock; <see cref="Buffer"/> belongs to the scan loop.</summary>
     private sealed class Subscription
     {
         public required AmsAddress Receiver { get; init; }

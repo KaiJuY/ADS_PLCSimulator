@@ -136,7 +136,6 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
 
     private byte[] ImageBytes(int offset, int length) => _image.Read(offset, length);
 
-    /// <summary>Fills a range of the process image with known bytes and puts the old bytes back afterwards.</summary>
     private void WithImageBytes(int offset, byte[] bytes, Action body)
     {
         byte[] before = ImageBytes(offset, bytes.Length);
@@ -304,7 +303,6 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
         Assert.False(monitor.Completed.Task.IsCompleted);
         Assert.Empty(monitor.Events);
 
-        // Control: a real write through the same handle does fire the trigger, so the silence above means something.
         WithHandle(requestId, handle => Assert.Equal(AdsErrorCode.NoError, TryWriteBytes(HandleGroup, handle, BitConverter.GetBytes(77u))));
         await monitor.Completed.Task.WaitAsync(TimeSpan.FromSeconds(5));
     }
@@ -469,9 +467,8 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
     [Trait("AC", "10")]
     public void Releasing_a_handle_with_its_own_number_as_offset_succeeds_and_invalidates_it()
     {
-        // Own symbol on purpose: a raw 0xF006 release bypasses AdsClient's handle cache, so a later
-        // CreateVariableHandle of the same name on this client would return the released handle.
-        uint handle = _client.CreateVariableHandle("GVL_Module.Chamber1_Control[6].ServiceCtrl.DoorOpen.RequestId");
+        const string symbolNoOtherTestUses = "GVL_Module.Chamber1_Control[6].ServiceCtrl.DoorOpen.RequestId";
+        uint handle = _client.CreateVariableHandle(symbolNoOtherTestUses);
         Assert.Equal(AdsErrorCode.NoError, TryWriteBytes(ReleaseGroup, handle, BitConverter.GetBytes(handle)));
         Assert.NotEqual(AdsErrorCode.NoError, TryReadBytes(HandleGroup, handle, 4, out _));
     }
@@ -496,7 +493,6 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
         }
     }
 
-    /// <summary>Collects every notification the client receives, so a test can wait for a sample or count them.</summary>
     private sealed class NotificationWatcher : IDisposable
     {
         private readonly AdsClient _watched;
