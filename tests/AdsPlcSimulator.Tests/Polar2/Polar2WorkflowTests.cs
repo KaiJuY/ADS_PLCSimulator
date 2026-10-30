@@ -58,9 +58,9 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
     private static WorkflowDocument SetModeWithHoldBeforeComplete(string delayMs)
     {
         WorkflowDocument document = LoadDocument("Polar2_Chamber_SetMode");
-        document.Links.RemoveAll(link => link is { FromNode: "write", FromPort: "then" });
+        document.Links.RemoveAll(link => link is { FromNode: "branch", FromPort: "true" });
         document.Nodes.Add(new WorkflowNode { Id = "hold", Type = "flow.delay", Params = { ["ms"] = delayMs } });
-        document.Links.Add(new WorkflowLink("write", "then", "hold", "exec"));
+        document.Links.Add(new WorkflowLink("branch", "true", "hold", "exec"));
         document.Links.Add(new WorkflowLink("hold", "then", "complete", "exec"));
         return document;
     }
@@ -285,7 +285,7 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
     [Fact]
     [Trait("AC", "10")]
     [Trait("AC", "11")]
-    public async Task SetMode_aborted_before_complete_fails_at_complete_after_writing_svid()
+    public async Task SetMode_aborted_before_complete_keeps_svid()
     {
         await StartPlcAsync();
         Load("setmode", SetModeWithHoldBeforeComplete("2000"));
@@ -297,6 +297,6 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
 
         Assert.Equal("complete", failure.NodeId);
         Assert.Equal(PackMLState.Aborted, State("Chamber.SetMode"));
-        Assert.Equal("2", Read(SvidValue));
+        Assert.Equal("1", Read(SvidValue));
     }
 }

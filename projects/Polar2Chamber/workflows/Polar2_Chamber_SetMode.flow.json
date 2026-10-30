@@ -96,7 +96,7 @@
     {
       "fromNode": "branch",
       "fromPort": "true",
-      "toNode": "write",
+      "toNode": "complete",
       "toPort": "exec"
     },
     {
@@ -106,9 +106,9 @@
       "toPort": "value"
     },
     {
-      "fromNode": "write",
+      "fromNode": "complete",
       "fromPort": "then",
-      "toNode": "complete",
+      "toNode": "write",
       "toPort": "exec"
     },
     {
