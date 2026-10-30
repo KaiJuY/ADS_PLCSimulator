@@ -1,0 +1,21 @@
+== target port 25860, GVL_Module.Chamber_Control[1], service Chamber.SetMode
+ADS state=Run
+Chamber.SetMode: ServiceId=1 State=4 ErrorList[1].MainErrorId=0
+ModuleAlarmList[1]: ModuleId=0 ServiceId=0 MainErrorId=0 SourceErrorId=0 Message='' Path='' Severity=0 DateTime='' Active=False Acknowledged=False Count=0
+Alarm status: AckResponseId=0 AckAccepted=False AckError=0 Svc=0 Cfg=0 Hook=0 Overflow=False DuplicateId=0
+saved AlarmAckRequest=0000000000000000000000000000000000000000 ctrl.RequestId=00000000 PackMLIn=0000000000000000
+command 2 -> state 9 (expected 9) ResponseId=1001
+ErrorList[1]: ModuleId=1 ServiceId=1 MainErrorId=1 SourceErrorId=4 Message='TargetMode out of range (0~3).' Path='GVL_Module.Chamber_Control[1].ServiceStatus.Chamber.SetMode' Severity=1 DateTime='20261030152833114' Active=True Acknowledged=False Count=1
+test alarm at ModuleAlarmList[1]: ModuleId=1 ServiceId=1 MainErrorId=1 SourceErrorId=4 Message='TargetMode out of range (0~3).' Path='GVL_Module.Chamber_Control[1].ServiceStatus.Chamber.SetMode' Severity=1 DateTime='20261030152833114' Active=True Acknowledged=False Count=1
+Alarm status: AckResponseId=0 AckAccepted=False AckError=0 Svc=1 Cfg=0 Hook=0 Overflow=False DuplicateId=0
+RequestId 0: RequestId=0 -> AckResponseId=0 AckAccepted=False AckError=1 Svc=1 Cfg=0 Hook=0 Overflow=False DuplicateId=0
+Command 3: RequestId=1001 -> AckResponseId=1001 AckAccepted=False AckError=3 Svc=1 Cfg=0 Hook=0 Overflow=False DuplicateId=0
+AcknowledgeOne unknown: RequestId=1002 -> AckResponseId=1002 AckAccepted=False AckError=4 Svc=1 Cfg=0 Hook=0 Overflow=False DuplicateId=0
+AcknowledgeOne test alarm: RequestId=1003 -> AckResponseId=1003 AckAccepted=True AckError=0 Svc=1 Cfg=0 Hook=0 Overflow=False DuplicateId=0
+after Ack: ModuleAlarmList[1]: ModuleId=1 ServiceId=1 MainErrorId=1 SourceErrorId=4 Message='TargetMode out of range (0~3).' Path='GVL_Module.Chamber_Control[1].ServiceStatus.Chamber.SetMode' Severity=1 DateTime='20261030152833114' Active=True Acknowledged=True Count=1
+same RequestId again: RequestId=1003 -> AckResponseId=1003 AckAccepted=False AckError=2 Svc=1 Cfg=0 Hook=0 Overflow=False DuplicateId=0
+command 9 -> state 2 (expected 2) ResponseId=1002
+after Clear: ErrorList[1].MainErrorId=0 test alarm index=-1 status: AckResponseId=1003 AckAccepted=False AckError=0 Svc=0 Cfg=0 Hook=0 Overflow=False DuplicateId=0
+command 1 -> state 4 (expected 4) ResponseId=1003
+final: state=4 test alarm present=False ack restored=True ctrl restored=True
+final ModuleAlarmList[1]: ModuleId=0 ServiceId=0 MainErrorId=0 SourceErrorId=0 Message='' Path='' Severity=0 DateTime='' Active=False Acknowledged=False Count=0

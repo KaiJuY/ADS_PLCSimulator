@@ -9,7 +9,7 @@ namespace AdsPlcSimulator.Integration;
 
 internal sealed record Scenario(string Id, string Title, Func<PlcSession, Task<Checks>> Run);
 
-/// <summary>Scenarios S1 to S12, S15 and S16 of .adf/scenarios/1.md; S13 and S14 are browser steps and are not here. S16 continues from the state S11 leaves.</summary>
+/// <summary>Scenarios S1 to S12, S15 and S16 of .adf/scenarios/1.md; S13 and S14 are browser steps and are not here. S16 runs right after S11 and continues from the Aborted SetMode it leaves; a module Stop (S15) cannot finish while a service stays Aborted.</summary>
 internal static class Scenarios
 {
     private const string Gvl = "GVL_Module.Chamber_Control";
@@ -50,9 +50,9 @@ internal static class Scenarios
         new("S9", "Two services run in parallel", ParallelServicesAsync),
         new("S10", "SetMode TargetMode=2 writes SVID", session => SetModeAsync(session, 2, expectChange: true)),
         new("S11", "SetMode TargetMode=4 aborts with an alarm", SetModeAbortsAsync),
+        new("S16", "Alarm Ack and removal", AlarmAckAsync),
         new("S12", "Initial switches mode to 3", InitialAsync),
         new("S15", "Module Stop ignores later service commands", ModuleStopAsync),
-        new("S16", "Alarm Ack and removal", AlarmAckAsync),
     ];
 
     // Expected sizes are the MaxConfigParamPerModule = 500 layout; see projects/Polar2Chamber/README.md. M1 and M6 share one layout.
