@@ -18,6 +18,16 @@ Polar2 Chamber 的 PLC 宣告檔。模擬器載入這個專案，就有和真 PL
 
 `Polar2LayoutTests` 的預期值取自這個 `.tmc`（`BitOffs`、`BitSize` 除以 8）。
 
+### 規格書
+
+`spec/Polar 二代機 測試 Chamber 規格_20261007.xlsx` 是原檔的副本，原樣複製，不改內容。Service、SVID、ALID、DVID、ECID 的內容以它為準。
+
+| 原檔位置 | SHA-256 | 修改時間 |
+|---|---|---|
+| `C:\Users\AllenY\Desktop\WorkSpace\Scientech\Polar 二代機 測試 Chamber 規格_20261007.xlsx` | `14bcc55783b6e07bc94f04c123420ee2677eefba68471cad0aa4c09cab7faf79` | 2026-10-29 08:21 +0800 |
+
+工作表：`Service`（70 列）、`Object Quantity`、`Recipe Map`、`ModuleConfigParamList_ECID`（198 列）、`ModuleVariableList_SVID`（22 列）、`ModuleAlarmList_ALID`（68 列）、`ModuleDataList_DVID`（2 列）、`Material Context`、`Nozzle_Cup_Drainer Table`、`Verification Data`。規格書更新時，重新複製並更新上表。
+
 ## Framework 升級時重新複製
 
 1. 在 TSMC repo 取得新版本，記下新的 commit SHA。

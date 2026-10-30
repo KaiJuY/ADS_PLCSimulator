@@ -1,0 +1,6 @@
+== slot 1 ModuleId=1 Enabled=True Type='' SVIDcount=0 DVIDcount=0
+== slot 2 ModuleId=0 Enabled=False Type='' SVIDcount=0 DVIDcount=0
+== slot 3 ModuleId=0 Enabled=False Type='' SVIDcount=0 DVIDcount=0
+== slot 4 ModuleId=0 Enabled=False Type='' SVIDcount=0 DVIDcount=0
+== slot 5 ModuleId=0 Enabled=False Type='' SVIDcount=0 DVIDcount=0
+== slot 6 ModuleId=0 Enabled=False Type='' SVIDcount=0 DVIDcount=0
