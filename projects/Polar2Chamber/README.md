@@ -109,7 +109,7 @@ Run 前若 `AlarmAckRequest.bChangeRequest` 還是 TRUE，新的 host 會把它�
 
 - `Polar2_ServiceHost`：執行 `GVL_Module.Chamber_Control` 底下所有 module 的 PackML 交握，ServiceId 與 CompletionBehavior 來自 `plc/ServiceIdentity/` 的 identity 檔。
 - `Polar2_ModuleModeInit`：啟動時把 slot 1 的 SVID 1（`Module Mode`）寫成 `'1'`。slot 1 的 identity（`ModuleId=1`、`Enabled=TRUE`、`ModuleType=Polar2`）與 SVID、ECID 內容由 `config/module-config.json` 在 Run 時發布；其餘 slot 保持 0、FALSE、空字串。
-- `Polar2_Chamber_SetMode`：Chamber.SetMode 進入 Execute 時，依 `TargetMode`（0 到 3）寫入 SVID 1，然後完成 service。超出範圍時 SVID 不變，改用 `action.addServiceError` 把 MainErrorId 1、SourceErrorId = `TargetMode`、訊息 `TargetMode out of range (0~3).` 加入 `ErrorList`，再用 `action.abortService` 中止 service。MainErrorId 1 是暫定值：規格書 ALID 沒有 SetMode 的項目。
+- `Polar2_Chamber_SetMode`：Chamber.SetMode 進入 Execute 時，`TargetMode` 在 0 到 3 時先完成 service，再把它寫入 SVID 1（Complete 前被 Abort 時 SVID 不變）。超出範圍時 SVID 不變，改用 `action.addServiceError` 把 MainErrorId 1、SourceErrorId = `TargetMode`、訊息 `TargetMode out of range (0~3).` 加入 `ErrorList`，再用 `action.abortService` 中止 service。MainErrorId 1 是暫定值：規格書 ALID 沒有 SetMode 的項目。
 - `Polar2_Chamber_Initial`：Chamber.Initial 進入 Execute 後等待 5000 ms 再完成；依 `SwitchModeAfterFinish` 把 SVID 1 寫成 `'2'`（1）或 `'3'`（2），其他值保持原值。
 
 `plc/` 資料夾以 `.gitattributes` 的 `-text` 規則逐位元組保存，不做換行轉換；複製後的檔案與來源的 SHA-256 相同。

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using AdsPlcSimulator.Core.Flow;
+using AdsPlcSimulator.Core.PackML.Alarm;
 using AdsPlcSimulator.Host.Live;
 using AdsPlcSimulator.Host.Project;
 using Microsoft.Extensions.Logging;
@@ -151,5 +152,36 @@ public sealed class SessionPartsTests
         var exception = Assert.Throws<ModuleConfigException>(() => new SimulatorSession(root.ProjectPath("Alpha"), hub, NullLogger<SimulatorSession>.Instance));
 
         Assert.Contains("module-config.json", exception.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "12")]
+    public void Session_construction_hands_the_configured_alarms_to_the_runtime_before_workflows_load()
+    {
+        using var root = new ProjectTestRoot();
+        string project = root.ProjectPath("Alpha");
+        File.WriteAllText(Path.Combine(project, "plc", "GVL_Module.st"), """
+            TYPE ST_VariableStatus : STRUCT PublishedCount : UINT; END_STRUCT END_TYPE
+            TYPE ST_ModuleStatus : STRUCT ModuleId : UDINT; Enabled : BOOL; ModuleType : STRING(16); Variable : ST_VariableStatus; END_STRUCT END_TYPE
+            TYPE ST_ExtAlarm : STRUCT Message : STRING(80); Path : STRING(255); END_STRUCT END_TYPE
+            TYPE ST_Descriptor : STRUCT Id : UDINT; END_STRUCT END_TYPE
+            TYPE ST_Module : STRUCT
+                ModuleStatus : ST_ModuleStatus; Level : REAL; ModuleAlarmList : ARRAY[1..2] OF ST_ExtAlarm;
+                ModuleVariableList : ARRAY[1..1] OF ST_Descriptor; ModuleConfigParamList : ARRAY[1..1] OF ST_Descriptor;
+            END_STRUCT END_TYPE
+            VAR_GLOBAL Chamber_Control : ARRAY[1..1] OF ST_Module; END_VAR
+            """);
+        Directory.CreateDirectory(Path.Combine(project, "config"));
+        File.WriteAllText(Path.Combine(project, "config", "module-config.json"), """
+            {"schemaVersion":4,"modules":[{"enabled":true,"slot":1,"id":1,"variableList":[],"configParamList":[],
+             "alarmList":[{"source":"Level","dataType":"REAL","condition":{"operator":"gt","value":5},"mainErrorId":9,"message":"High"}]}]}
+            """);
+        var hub = new LiveHub(NullLogger<LiveHub>.Instance);
+
+        SimulatorSession session = new(project, hub, NullLogger<SimulatorSession>.Instance);
+
+        Assert.Same(session.ConfiguredAlarms, session.Runtime.Registry.ConfiguredAlarms);
+        ConfiguredAlarm alarm = Assert.Single(session.Runtime.Registry.ConfiguredAlarms.For("GVL_Module.Chamber_Control[1]"));
+        Assert.Equal(9u, alarm.MainErrorId);
     }
 }

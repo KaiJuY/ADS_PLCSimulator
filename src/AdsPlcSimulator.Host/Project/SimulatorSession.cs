@@ -32,6 +32,7 @@ public sealed partial class SimulatorSession : IAsyncDisposable
         Image = CreatePublishedImage();
         Live = new SessionLiveChannel(liveHub);
         Runtime = new FlowRuntime(Image, Program.Symbols, NodeCatalog.Default, Live, Live, ProjectDirectory);
+        Runtime.Registry.ConfiguredAlarms = ConfiguredAlarms;
 
         try
         {
