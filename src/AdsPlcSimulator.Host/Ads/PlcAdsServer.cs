@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Diagnostics;
 using AdsPlcSimulator.Core.Plc;
 using TwinCAT;
@@ -19,6 +20,10 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
     public const uint PlcDataIndexGroup = 0x4040;
 
     private const uint VariableHandleIndexGroup = 0xF005;
+    private const uint SumReadIndexGroup = 0xF080;
+    private const uint SumWriteIndexGroup = 0xF081;
+    private const uint SumReadWriteIndexGroup = 0xF082;
+    private const uint SymbolVersionIndexGroup = 0xF008;
 
     private const int FirstHandleAboveBaseClassRange = 0x4000_0000;
 
@@ -115,7 +120,7 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
     protected override Task<ResultReadBytes> OnReadAsync(AmsAddress sender, uint invokeId, uint indexGroup, uint indexOffset, int readLength, CancellationToken cancel)
     {
         if (indexGroup == VariableHandleIndexGroup)
-            return ReadByHandle(sender, invokeId, indexOffset, readLength, cancel);
+            return ReadByHandle(indexOffset, readLength);
         if (indexGroup != PlcDataIndexGroup)
             return base.OnReadAsync(sender, invokeId, indexGroup, indexOffset, readLength, cancel);
 
@@ -126,10 +131,10 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
     }
 
     // AMS 854 (#3): a handle read answers min(requested, symbol size) bytes.
-    private Task<ResultReadBytes> ReadByHandle(AmsAddress sender, uint invokeId, uint handle, int readLength, CancellationToken cancel)
+    private Task<ResultReadBytes> ReadByHandle(uint handle, int readLength)
     {
         if (!TryResolveHandle(handle, out int offset, out int size))
-            return base.OnReadAsync(sender, invokeId, VariableHandleIndexGroup, handle, readLength, cancel);
+            return Task.FromResult(ResultReadBytes.CreateError(AdsErrorCode.DeviceSymbolVersionInvalid));
 
         return Task.FromResult(ResultReadBytes.CreateSuccess(_image.Read(offset, (int)Math.Min((uint)readLength, (uint)size))));
     }
@@ -137,7 +142,7 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
     protected override Task<ResultWrite> OnWriteAsync(AmsAddress sender, uint invokeId, uint indexGroup, uint indexOffset, ReadOnlyMemory<byte> writeData, CancellationToken cancel)
     {
         if (indexGroup == VariableHandleIndexGroup)
-            return WriteByHandle(sender, invokeId, indexOffset, writeData, cancel);
+            return WriteByHandle(invokeId, indexOffset, writeData);
         if (indexGroup != PlcDataIndexGroup)
             return base.OnWriteAsync(sender, invokeId, indexGroup, indexOffset, writeData, cancel);
 
@@ -147,10 +152,10 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         return Task.FromResult(WriteUnlessEmpty(invokeId, offset, writeData));
     }
 
-    private Task<ResultWrite> WriteByHandle(AmsAddress sender, uint invokeId, uint handle, ReadOnlyMemory<byte> writeData, CancellationToken cancel)
+    private Task<ResultWrite> WriteByHandle(uint invokeId, uint handle, ReadOnlyMemory<byte> writeData)
     {
         if (!TryResolveHandle(handle, out int offset, out int size))
-            return base.OnWriteAsync(sender, invokeId, VariableHandleIndexGroup, handle, writeData, cancel);
+            return Task.FromResult(ResultWrite.CreateError(AdsErrorCode.DeviceSymbolVersionInvalid));
         if (writeData.Length > size)
             return Task.FromResult(ResultWrite.CreateError(AdsErrorCode.DeviceInvalidSize));
 
@@ -165,8 +170,177 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         return ResultWrite.CreateSuccess(invokeId);
     }
 
+    protected override Task<ResultReadWriteBytes> OnReadWriteAsync(AmsAddress sender, uint invokeId, uint indexGroup, uint indexOffset, int readLength, ReadOnlyMemory<byte> writeData, CancellationToken cancel)
+    {
+        SumKind? kind = indexGroup switch
+        {
+            SumReadIndexGroup => SumKind.Read,
+            SumWriteIndexGroup => SumKind.Write,
+            SumReadWriteIndexGroup => SumKind.ReadWrite,
+            _ => null,
+        };
+        if (kind is null)
+            return base.OnReadWriteAsync(sender, invokeId, indexGroup, indexOffset, readLength, writeData, cancel);
+
+        return SumAsync(sender, invokeId, kind.Value, indexOffset, readLength, writeData, cancel);
+    }
+
+    private async Task<ResultReadWriteBytes> SumAsync(AmsAddress sender, uint invokeId, SumKind kind, uint count, int readLength, ReadOnlyMemory<byte> request, CancellationToken cancel)
+    {
+        AdsErrorCode parseError = ParseSumItems(request.Span, count, kind, out SumItem[] items);
+        if (parseError != AdsErrorCode.NoError)
+            return ResultReadWriteBytes.CreateError(parseError);
+
+        return kind switch
+        {
+            SumKind.Read => await SumReadAsync(sender, invokeId, items, readLength, cancel),
+            SumKind.Write => await SumWriteAsync(sender, invokeId, items, readLength, request, cancel),
+            _ => await SumReadWriteAsync(sender, invokeId, items, readLength, request, cancel),
+        };
+    }
+
+    private async Task<ResultReadWriteBytes> SumReadAsync(AmsAddress sender, uint invokeId, SumItem[] items, int readLength, CancellationToken cancel)
+    {
+        long expected = items.Length * 4L + items.Sum(item => (long)item.ReadLength);
+        if (readLength != expected)
+            return ResultReadWriteBytes.CreateError(AdsErrorCode.DeviceInvalidSize);
+
+        byte[] response = new byte[readLength];
+        int slot = items.Length * 4;
+        for (int index = 0; index < items.Length; index++)
+        {
+            SumItem item = items[index];
+            ResultReadBytes result = await OnReadAsync(sender, invokeId, item.IndexGroup, item.IndexOffset, item.ReadLength, cancel);
+            BinaryPrimitives.WriteUInt32LittleEndian(response.AsSpan(index * 4), (uint)result.ErrorCode);
+            if (result.ErrorCode == AdsErrorCode.NoError)
+                result.Data.Span[..Math.Min(result.Data.Length, item.ReadLength)].CopyTo(response.AsSpan(slot));
+
+            slot += item.ReadLength;
+        }
+
+        return ResultReadWriteBytes.CreateSuccess(response);
+    }
+
+    private async Task<ResultReadWriteBytes> SumWriteAsync(AmsAddress sender, uint invokeId, SumItem[] items, int readLength, ReadOnlyMemory<byte> request, CancellationToken cancel)
+    {
+        if (readLength < items.Length * 4L)
+            return ResultReadWriteBytes.CreateError(AdsErrorCode.DeviceInvalidSize);
+
+        byte[] response = new byte[items.Length * 4];
+        for (int index = 0; index < items.Length; index++)
+        {
+            SumItem item = items[index];
+            ResultWrite result = await OnWriteAsync(sender, invokeId, item.IndexGroup, item.IndexOffset, request.Slice(item.WriteOffset, item.WriteLength), cancel);
+            BinaryPrimitives.WriteUInt32LittleEndian(response.AsSpan(index * 4), (uint)result.ErrorCode);
+        }
+
+        return ResultReadWriteBytes.CreateSuccess(response);
+    }
+
+    private async Task<ResultReadWriteBytes> SumReadWriteAsync(AmsAddress sender, uint invokeId, SumItem[] items, int readLength, ReadOnlyMemory<byte> request, CancellationToken cancel)
+    {
+        if (readLength < items.Length * 8L + items.Sum(item => (long)item.ReadLength))
+            return ResultReadWriteBytes.CreateError(AdsErrorCode.DeviceInvalidSize);
+
+        var results = new List<ResultReadWriteBytes>(items.Length);
+        foreach (SumItem item in items)
+            results.Add(await ReadWriteItemAsync(sender, invokeId, item, request.Slice(item.WriteOffset, item.WriteLength), cancel));
+
+        return ResultReadWriteBytes.CreateSuccess(BuildReadWriteResponse(items, results));
+    }
+
+    private Task<ResultReadWriteBytes> ReadWriteItemAsync(AmsAddress sender, uint invokeId, SumItem item, ReadOnlyMemory<byte> writeData, CancellationToken cancel)
+    {
+        if (item.IndexGroup is SumReadIndexGroup or SumWriteIndexGroup or SumReadWriteIndexGroup)
+            return Task.FromResult(ResultReadWriteBytes.CreateError(AdsErrorCode.DeviceServiceNotSupported));
+
+        return base.OnReadWriteAsync(sender, invokeId, item.IndexGroup, item.IndexOffset, item.ReadLength, writeData, cancel);
+    }
+
+    private static byte[] BuildReadWriteResponse(SumItem[] items, List<ResultReadWriteBytes> results)
+    {
+        var response = new List<byte>(items.Length * 8);
+        var data = new List<byte>();
+        for (int index = 0; index < items.Length; index++)
+        {
+            ResultReadWriteBytes result = results[index];
+            ReadOnlyMemory<byte> bytes = result.ErrorCode == AdsErrorCode.NoError
+                ? result.Data[..Math.Min(result.Data.Length, items[index].ReadLength)]
+                : ReadOnlyMemory<byte>.Empty;
+            response.AddRange(BitConverter.GetBytes((uint)result.ErrorCode));
+            response.AddRange(BitConverter.GetBytes((uint)bytes.Length));
+            data.AddRange(bytes.ToArray());
+        }
+
+        response.AddRange(data);
+        return response.ToArray();
+    }
+
+    internal enum SumKind
+    {
+        Read,
+        Write,
+        ReadWrite,
+    }
+
+    internal readonly record struct SumItem(uint IndexGroup, uint IndexOffset, int ReadLength, int WriteLength, int WriteOffset);
+
+    internal static AdsErrorCode ParseSumItems(ReadOnlySpan<byte> request, uint count, SumKind kind, out SumItem[] items)
+    {
+        items = [];
+        if (count == 0)
+            return AdsErrorCode.DeviceInvalidSize;
+
+        int headerSize = kind == SumKind.ReadWrite ? 16 : 12;
+        long headerTotal = count * (long)headerSize;
+        if (headerTotal > request.Length)
+            return AdsErrorCode.DeviceInvalidOffset;
+
+        var parsed = new SumItem[count];
+        long dataTotal = 0;
+        for (int index = 0; index < parsed.Length; index++)
+        {
+            if (!TryParseSumItem(request.Slice(index * headerSize, headerSize), kind, headerTotal + dataTotal, out parsed[index]))
+                return AdsErrorCode.DeviceInvalidSize;
+
+            dataTotal += parsed[index].WriteLength;
+        }
+
+        if (request.Length != headerTotal + dataTotal)
+            return AdsErrorCode.DeviceInvalidOffset;
+
+        items = parsed;
+        return AdsErrorCode.NoError;
+    }
+
+    private static bool TryParseSumItem(ReadOnlySpan<byte> header, SumKind kind, long writeOffset, out SumItem item)
+    {
+        uint length = BinaryPrimitives.ReadUInt32LittleEndian(header[8..]);
+        uint writeLength = kind switch
+        {
+            SumKind.Read => 0,
+            SumKind.Write => length,
+            _ => BinaryPrimitives.ReadUInt32LittleEndian(header[12..]),
+        };
+        uint readLength = kind == SumKind.Write ? 0 : length;
+        item = default;
+        if (readLength > int.MaxValue || writeLength > int.MaxValue)
+            return false;
+
+        item = new SumItem(
+            BinaryPrimitives.ReadUInt32LittleEndian(header),
+            BinaryPrimitives.ReadUInt32LittleEndian(header[4..]),
+            (int)readLength,
+            (int)writeLength,
+            (int)Math.Min(writeOffset, int.MaxValue));
+        return true;
+    }
+
     protected override Task<ResultHandle> OnAddDeviceNotificationAsync(AmsAddress sender, uint invokeId, uint indexGroup, uint indexOffset, int dataLength, AmsAddress receiver, NotificationSettings settings, CancellationToken cancel)
     {
+        if (indexGroup == SymbolVersionIndexGroup)
+            return Task.FromResult(AddSymbolVersionNotification(dataLength, receiver, settings));
+
         bool byHandle = indexGroup == VariableHandleIndexGroup;
         if (!byHandle && indexGroup != PlcDataIndexGroup)
             return base.OnAddDeviceNotificationAsync(sender, invokeId, indexGroup, indexOffset, dataLength, receiver, settings, cancel);
@@ -182,6 +356,19 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
 
         int offset = byHandle ? handleOffset : rawOffset;
 
+        return Task.FromResult(Register(receiver, settings, offset, watchLength, null));
+    }
+
+    private ResultHandle AddSymbolVersionNotification(int dataLength, AmsAddress receiver, NotificationSettings settings)
+    {
+        if (dataLength <= 0)
+            return ResultHandle.CreateError(AdsErrorCode.DeviceInvalidWatchsize);
+
+        return Register(receiver, settings, 0, 1, [symbolVersion]);
+    }
+
+    private ResultHandle Register(AmsAddress receiver, NotificationSettings settings, int offset, int watchLength, byte[]? fixedData)
+    {
         uint handle = (uint)Interlocked.Increment(ref _nextNotificationHandle);
         var subscription = new Subscription
         {
@@ -191,12 +378,13 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
             Cyclic = IsCyclic(settings.NotificationMode),
             Interval = TimeSpan.FromMilliseconds(Math.Max(settings.CycleTime, MinimumInterval.TotalMilliseconds)),
             Buffer = new byte[watchLength],
+            FixedData = fixedData,
             NextDue = Stopwatch.GetTimestamp() + ToTicks(FirstSampleDelayAfterAddResponse),
         };
         lock (_subscriptionLock)
             _subscriptions[handle] = subscription;
 
-        return Task.FromResult(ResultHandle.CreateSuccess(handle));
+        return ResultHandle.CreateSuccess(handle);
     }
 
     protected override Task<ResultAds> OnDeleteDeviceNotificationAsync(AmsAddress sender, uint invokeId, uint hNotification, CancellationToken cancel)
@@ -332,7 +520,10 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
 
     private async Task ScanAsync(Subscription subscription, CancellationToken cancel)
     {
-        _image.Read(subscription.Offset, subscription.Buffer);
+        if (subscription.FixedData is null)
+            _image.Read(subscription.Offset, subscription.Buffer);
+        else
+            subscription.FixedData.CopyTo(subscription.Buffer, 0);
 
         byte[]? data = null;
         lock (_subscriptionLock)
@@ -388,6 +579,8 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         public required TimeSpan Interval { get; init; }
 
         public required byte[] Buffer { get; init; }
+
+        public byte[]? FixedData { get; init; }
 
         public byte[]? LastSent { get; set; }
 
