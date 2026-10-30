@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using AdsPlcSimulator.Core.Plc;
+using TwinCAT;
 using TwinCAT.Ads;
 using TwinCAT.Ads.Server;
 using TwinCAT.Ads.Server.TypeSystem;
@@ -9,21 +11,42 @@ namespace AdsPlcSimulator.Host.Ads;
 /// <summary>
 /// ADS face of the simulated PLC. Publishes the symbol table (so SymbolLoader, ReadValue and variable handles work)
 /// and serves every symbol read/write directly from the shared <see cref="ProcessImage"/>.
+/// Read, write and notification lengths follow what was measured on a real PLC.
 /// </summary>
 internal sealed class PlcAdsServer : AdsSymbolicServer
 {
     /// <summary>Index group TwinCAT PLC runtimes use for symbol data.</summary>
     public const uint PlcDataIndexGroup = 0x4040;
 
+    private const uint VariableHandleIndexGroup = 0xF005;
+
+    // Far above the small handle numbers of the base class, so the two never collide.
+    private const int FirstNotificationHandle = 0x4000_0000;
+
+    private static readonly TimeSpan ScanPeriod = TimeSpan.FromMilliseconds(10);
+    private static readonly TimeSpan MinimumInterval = TimeSpan.FromMilliseconds(10);
+
+    // The Add response goes out within the same call chain; the client drops samples of a handle it does not know yet.
+    private static readonly TimeSpan InitialDelay = TimeSpan.FromMilliseconds(20);
+    private static readonly TimeSpan SendTimeout = TimeSpan.FromSeconds(1);
+
     private readonly SymbolTable _symbols;
     private readonly ProcessImage _image;
-    private readonly Dictionary<string, int> _coreOffsetMinusAdsOffset = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ILogger _logger;
+    private readonly Dictionary<uint, Subscription> _subscriptions = new();
+    private readonly object _subscriptionLock = new();
+    private readonly CancellationTokenSource _notifyStop = new();
+    private int _nextNotificationHandle = FirstNotificationHandle - 1;
+    private int _nextInvokeId;
+    private int _notifyLoopStarted;
+    private Task? _notifyLoop;
 
     public PlcAdsServer(ushort port, SymbolTable symbols, ProcessImage image, ILoggerFactory loggerFactory)
         : base(port, "AdsPlcSimulator", loggerFactory)
     {
         _symbols = symbols;
         _image = image;
+        _logger = loggerFactory.CreateLogger<PlcAdsServer>();
     }
 
     protected override void OnCreateSymbols()
@@ -39,8 +62,10 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
             var area = new DataArea(root.Path, PlcDataIndexGroup, (uint)root.Offset, (uint)root.Type.Size);
             symbolFactory!.AddDataArea(area).AddSymbol(root.Path, rootTypes[index], area);
 
+            // Raw IG 0x4040 access treats the ADS offset as a process image offset, so the two must be equal.
             uint adsOffset = ((IProcessImageAddress)Symbols[root.Path]).IndexOffset;
-            _coreOffsetMinusAdsOffset[root.Path] = root.Offset - (int)adsOffset;
+            if (adsOffset != (uint)root.Offset)
+                throw new InvalidOperationException($"Root '{root.Path}' has process image offset {root.Offset} but ADS offset {adsOffset}.");
         }
 
         base.OnCreateSymbols();
@@ -90,20 +115,279 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         return AdsErrorCode.NoError;
     }
 
-    /// <summary>Maps any (sub-)symbol to its process-image offset through the offset of its root variable.</summary>
+    protected override Task<ResultReadBytes> OnReadAsync(AmsAddress sender, uint invokeId, uint indexGroup, uint indexOffset, int readLength, CancellationToken cancel)
+    {
+        if (indexGroup == VariableHandleIndexGroup)
+            return ReadByHandle(sender, invokeId, indexOffset, readLength, cancel);
+        if (indexGroup != PlcDataIndexGroup)
+            return base.OnReadAsync(sender, invokeId, indexGroup, indexOffset, readLength, cancel);
+
+        if (readLength < 0)
+            return Task.FromResult(ResultReadBytes.CreateError(AdsErrorCode.DeviceInvalidSize));
+        if (!TryResolveRaw(indexOffset, readLength, _image.Size, out int offset))
+            return Task.FromResult(ResultReadBytes.CreateError(AdsErrorCode.DeviceInvalidOffset));
+
+        return Task.FromResult(ResultReadBytes.CreateSuccess(_image.Read(offset, readLength)));
+    }
+
+    // A real PLC answers a handle read with min(requested, symbol size) bytes.
+    private Task<ResultReadBytes> ReadByHandle(AmsAddress sender, uint invokeId, uint handle, int readLength, CancellationToken cancel)
+    {
+        if (!TryResolveHandle(handle, out int offset, out int size))
+            return base.OnReadAsync(sender, invokeId, VariableHandleIndexGroup, handle, readLength, cancel);
+        if (readLength < 0)
+            return Task.FromResult(ResultReadBytes.CreateError(AdsErrorCode.DeviceInvalidSize));
+
+        return Task.FromResult(ResultReadBytes.CreateSuccess(_image.Read(offset, Math.Min(readLength, size))));
+    }
+
+    protected override Task<ResultWrite> OnWriteAsync(AmsAddress sender, uint invokeId, uint indexGroup, uint indexOffset, ReadOnlyMemory<byte> writeData, CancellationToken cancel)
+    {
+        if (indexGroup == VariableHandleIndexGroup)
+            return WriteByHandle(sender, invokeId, indexOffset, writeData, cancel);
+        if (indexGroup != PlcDataIndexGroup)
+            return base.OnWriteAsync(sender, invokeId, indexGroup, indexOffset, writeData, cancel);
+
+        if (!TryResolveRaw(indexOffset, writeData.Length, _image.Size, out int offset))
+            return Task.FromResult(ResultWrite.CreateError(AdsErrorCode.DeviceInvalidOffset));
+
+        return Task.FromResult(WriteFromClient(invokeId, offset, writeData));
+    }
+
+    private Task<ResultWrite> WriteByHandle(AmsAddress sender, uint invokeId, uint handle, ReadOnlyMemory<byte> writeData, CancellationToken cancel)
+    {
+        if (!TryResolveHandle(handle, out int offset, out int size))
+            return base.OnWriteAsync(sender, invokeId, VariableHandleIndexGroup, handle, writeData, cancel);
+        if (writeData.Length > size)
+            return Task.FromResult(ResultWrite.CreateError(AdsErrorCode.DeviceInvalidSize));
+
+        return Task.FromResult(WriteFromClient(invokeId, offset, writeData));
+    }
+
+    // A zero-length write must not reach the image: it would still raise Written and fire trigger.onClientWrite.
+    private ResultWrite WriteFromClient(uint invokeId, int offset, ReadOnlyMemory<byte> data)
+    {
+        if (data.Length > 0)
+            _image.Write(offset, data.Span, WriteSource.Client);
+
+        return ResultWrite.CreateSuccess(invokeId);
+    }
+
+    protected override Task<ResultHandle> OnAddDeviceNotificationAsync(AmsAddress sender, uint invokeId, uint indexGroup, uint indexOffset, int dataLength, AmsAddress receiver, NotificationSettings settings, CancellationToken cancel)
+    {
+        bool byHandle = indexGroup == VariableHandleIndexGroup;
+        if (!byHandle && indexGroup != PlcDataIndexGroup)
+            return base.OnAddDeviceNotificationAsync(sender, invokeId, indexGroup, indexOffset, dataLength, receiver, settings, cancel);
+
+        int offset = 0;
+        int size = 0;
+        if (byHandle && !TryResolveHandle(indexOffset, out offset, out size))
+            return base.OnAddDeviceNotificationAsync(sender, invokeId, indexGroup, indexOffset, dataLength, receiver, settings, cancel);
+
+        if (dataLength <= 0)
+            return Task.FromResult(ResultHandle.CreateError(byHandle ? AdsErrorCode.DeviceInvalidOffset : AdsErrorCode.DeviceInvalidWatchsize));
+        if (byHandle ? dataLength > size : !TryResolveRaw(indexOffset, dataLength, _image.Size, out offset))
+            return Task.FromResult(ResultHandle.CreateError(AdsErrorCode.DeviceInvalidOffset));
+
+        uint handle = (uint)Interlocked.Increment(ref _nextNotificationHandle);
+        var subscription = new Subscription
+        {
+            Receiver = receiver,
+            NotificationHandle = handle,
+            Offset = offset,
+            Cyclic = IsCyclic(settings.NotificationMode),
+            Interval = TimeSpan.FromMilliseconds(Math.Max(settings.CycleTime, MinimumInterval.TotalMilliseconds)),
+            Buffer = new byte[dataLength],
+            NextDue = Stopwatch.GetTimestamp() + ToTicks(InitialDelay),
+        };
+        lock (_subscriptionLock)
+            _subscriptions[handle] = subscription;
+
+        return Task.FromResult(ResultHandle.CreateSuccess(handle));
+    }
+
+    protected override Task<ResultAds> OnDeleteDeviceNotificationAsync(AmsAddress sender, uint invokeId, uint hNotification, CancellationToken cancel)
+    {
+        lock (_subscriptionLock)
+        {
+            if (!_subscriptions.TryGetValue(hNotification, out Subscription? subscription))
+                return base.OnDeleteDeviceNotificationAsync(sender, invokeId, hNotification, cancel);
+            if (!subscription.Receiver.Equals(sender))
+                return Task.FromResult(ResultAds.CreateError(AdsErrorCode.DeviceNotifyHandleInvalid));
+
+            _subscriptions.Remove(hNotification);
+        }
+
+        return Task.FromResult(ResultAds.CreateSuccess(invokeId));
+    }
+
+    protected override void OnConnected()
+    {
+        base.OnConnected();
+        if (Interlocked.Exchange(ref _notifyLoopStarted, 1) == 1)
+            return;
+
+        _notifyLoop = Task.Run(() => NotifyLoopAsync(_notifyStop.Token));
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _notifyStop.Cancel();
+            try
+            {
+                _notifyLoop?.Wait(TimeSpan.FromSeconds(1));
+            }
+            catch (AggregateException)
+            {
+                // The loop only ends by cancellation; there is nothing to report while shutting down.
+            }
+
+            lock (_subscriptionLock)
+                _subscriptions.Clear();
+        }
+
+        base.Dispose(disposing);
+    }
+
     private bool TryLocate(ISymbol symbol, int length, out int offset)
     {
         offset = 0;
-        // The server adds virtual parents such as "GVL_Module" above root variables, so stop at the first registered root.
-        ISymbol? root = symbol;
-        int delta = 0;
-        while (root is not null && !_coreOffsetMinusAdsOffset.TryGetValue(root.InstancePath, out delta))
-            root = root.Parent;
-
-        if (root is null || symbol is not IProcessImageAddress address)
+        if (!_symbols.TryResolve(symbol.InstancePath, out SymbolRef resolved, out _))
             return false;
 
-        offset = (int)address.IndexOffset + delta;
-        return length <= symbol.ByteSize && offset >= 0 && offset + length <= _image.Size;
+        offset = resolved.Offset;
+        return length <= resolved.Size && offset >= 0 && offset + length <= _image.Size;
+    }
+
+    private bool TryResolveHandle(uint handle, out int offset, out int size)
+    {
+        offset = 0;
+        size = 0;
+        if (handleTable is null || !handleTable.TryGetReferencedItem(handle, out string? path) || path is null)
+            return false;
+        if (!_symbols.TryResolve(path, out SymbolRef resolved, out _))
+            return false;
+
+        offset = resolved.Offset;
+        size = resolved.Size;
+        return true;
+    }
+
+    /// <summary>Checks a raw IG 0x4040 range against the process image; long arithmetic keeps huge offsets from wrapping.</summary>
+    private static bool TryResolveRaw(uint indexOffset, int length, int imageSize, out int offset)
+    {
+        offset = 0;
+        if (length < 0 || (long)indexOffset + length > imageSize)
+            return false;
+
+        offset = (int)indexOffset;
+        return true;
+    }
+
+    // ClientCycle is obsolete in the SDK but a client may still send it; it means the same as Cyclic.
+    private static bool IsCyclic(AdsTransMode mode)
+    {
+#pragma warning disable CS0612
+        return mode is AdsTransMode.Cyclic or AdsTransMode.ClientCycle;
+#pragma warning restore CS0612
+    }
+
+    private static long ToTicks(TimeSpan span) => (long)(span.TotalSeconds * Stopwatch.Frequency);
+
+    private async Task NotifyLoopAsync(CancellationToken cancel)
+    {
+        using var timer = new PeriodicTimer(ScanPeriod);
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cancel))
+            {
+                foreach (Subscription subscription in TakeDue())
+                    await ScanAsync(subscription, cancel);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Dispose asked the loop to stop.
+        }
+    }
+
+    private List<Subscription> TakeDue()
+    {
+        long now = Stopwatch.GetTimestamp();
+        lock (_subscriptionLock)
+            return _subscriptions.Values.Where(subscription => subscription.NextDue <= now).ToList();
+    }
+
+    private async Task ScanAsync(Subscription subscription, CancellationToken cancel)
+    {
+        _image.Read(subscription.Offset, subscription.Buffer);
+
+        byte[]? data = null;
+        lock (_subscriptionLock)
+        {
+            if (!_subscriptions.TryGetValue(subscription.NotificationHandle, out Subscription? current) || current != subscription)
+                return;
+
+            subscription.NextDue = Stopwatch.GetTimestamp() + ToTicks(subscription.Interval);
+            bool changed = subscription.LastSent is null || !subscription.Buffer.AsSpan().SequenceEqual(subscription.LastSent);
+            if (changed || subscription.Cyclic)
+            {
+                data = subscription.Buffer.ToArray();
+                subscription.LastSent = data;
+            }
+        }
+
+        if (data is null)
+            return;
+
+        await SendAsync(subscription, data, cancel);
+    }
+
+    private async Task SendAsync(Subscription subscription, byte[] data, CancellationToken cancel)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancel);
+        timeout.CancelAfter(SendTimeout);
+        var stamp = new NotificationSamplesStamp(DateTimeOffset.UtcNow, [new NotificationDataSample(subscription.NotificationHandle, data)]);
+        try
+        {
+            uint invokeId = (uint)Interlocked.Increment(ref _nextInvokeId);
+            AdsErrorCode result = await DeviceNotificationRequestAsync(subscription.Receiver, invokeId, 1, [stamp], timeout.Token);
+            if (result != AdsErrorCode.NoError)
+                Drop(subscription, result.ToString());
+        }
+        catch (Exception exception) when (!cancel.IsCancellationRequested)
+        {
+            Drop(subscription, exception.Message);
+        }
+    }
+
+    private void Drop(Subscription subscription, string reason)
+    {
+        lock (_subscriptionLock)
+            _subscriptions.Remove(subscription.NotificationHandle);
+
+        _logger.LogWarning("Dropped notification {Handle} for {Receiver}: {Reason}", subscription.NotificationHandle, subscription.Receiver, reason);
+    }
+
+    /// <summary>Mutable fields change only inside the subscription lock; <see cref="Buffer"/> belongs to the scan loop.</summary>
+    private sealed class Subscription
+    {
+        public required AmsAddress Receiver { get; init; }
+
+        public required uint NotificationHandle { get; init; }
+
+        public required int Offset { get; init; }
+
+        public required bool Cyclic { get; init; }
+
+        public required TimeSpan Interval { get; init; }
+
+        public required byte[] Buffer { get; init; }
+
+        public byte[]? LastSent { get; set; }
+
+        public long NextDue { get; set; }
     }
 }
