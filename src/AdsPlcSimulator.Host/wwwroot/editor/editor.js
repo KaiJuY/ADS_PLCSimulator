@@ -1,6 +1,8 @@
 // Node-graph editor for simulator workflows. The workflow document ({nodes, links}) is the single source of
 // truth; the DOM is re-rendered from it, and live runtime events only decorate the rendered nodes.
 
+import { initProjectBar } from './project.js';
+
 const CATEGORY_COLORS = {
   Trigger: '#e8743b',
   Flow: '#8b5cf6',
@@ -117,6 +119,7 @@ function newWorkflow() {
 }
 
 async function saveWorkflow() {
+  if (document.body.classList.contains('project-stopped')) return;
   if (!state.name) return;
   try {
     const status = await api(`/api/workflows/${encodeURIComponent(state.name)}`, {
@@ -998,6 +1001,8 @@ async function init() {
   const definitions = await api('/api/nodes');
   for (const definition of definitions) state.catalog.set(definition.type, definition);
   renderPalette();
+  const project = await initProjectBar({ isDirty: () => state.dirty });
+  if (project.state !== 'Running') return;
 
   const workflows = await refreshWorkflowList();
   const requested = new URLSearchParams(location.search).get('workflow');
