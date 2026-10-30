@@ -84,9 +84,9 @@ internal sealed class HostFixture
         """;
 
     public const string AlarmTypes = """
-        TYPE E_Severity : (Alarm := 1, Warning := 2) UDINT; END_TYPE
-        TYPE E_AlarmAckCommand : (None := 0, AcknowledgeOne := 1, AcknowledgeAll := 2) UDINT; END_TYPE
-        TYPE E_AlarmAckError : (None := 0, InvalidRequestId := 1, DuplicateRequest := 2, InvalidCommand := 3, AlarmNotFound := 4) UDINT; END_TYPE
+        TYPE E_Severity : (Alarm := 1, Warning := 2); END_TYPE
+        TYPE E_AlarmAckCommand : (None := 0, AcknowledgeOne := 1, AcknowledgeAll := 2); END_TYPE
+        TYPE E_AlarmAckError : (None := 0, InvalidRequestId := 1, DuplicateRequest := 2, InvalidCommand := 3, AlarmNotFound := 4); END_TYPE
         TYPE ST_ExtAlarm : STRUCT
             ModuleId : UDINT;
             ServiceId : UDINT;

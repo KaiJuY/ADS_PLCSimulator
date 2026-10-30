@@ -74,11 +74,42 @@ dotnet run --project src/AdsPlcSimulator.Host -- --Simulator:ProjectPath=../../p
 - 重新載入 `Polar2_ModuleModeInit` workflow 會把 slot 1 的 SVID 1（`Module Mode`）寫回 `'1'`。
 - 重新載入有 `trigger.onServiceExecute` 的 workflow 時，若它的 service 正在 Execute，這次 Execute 會退回預設行為：NaturalCompletion 在 `defaultDelayMs` 後完成，ExecuteUntilExternalStop 等到 Stop 或 Abort。
 
+## Alarm
+
+`Polar2_ServiceHost`（`service.host`）照 framework 的 `FB_ModuleAlarmManager` 與 `FB_ModuleBase.M_UpdateAlarmState` 每 10 ms 處理每個 module 的 alarm，發布到 `ModuleAlarmList`，並處理 `ModuleCtrl.AlarmAckRequest`，回應寫在 `ModuleStatus.Alarm`。`ModuleAlarmList` 的順序是 service、configured、hook alarm。
+
+alarm 有三個來源：
+
+- service alarm：`ServiceStatus.<service>.ErrorList` 的項目，由節點 `action.addServiceError` 加入（同 `M_AddError`：重複的 MainErrorId 與第 11 筆會被拒絕，節點的輸出 `added`、`reason` 說明原因）。service 經 Clearing 時 `ErrorList` 清空，alarm 在同一次 scan 變成 inactive。
+- configured alarm：設定檔 `alarmList`（見下）。
+- hook alarm：節點 `action.setModuleAlarm`（同 `M_AddAlarm`），`active` TRUE 時出現，FALSE 時變成 inactive。設定檔已有同一個 MainErrorId 時，hook alarm 不出現。
+
+Ack：`ModuleCtrl.AlarmAckRequest` 的 `bChangeRequest` 上升緣處理一次；`Command` 1 = AcknowledgeOne（以 ServiceId 與 MainErrorId 找，ServiceId 0 找 configured 與 hook alarm），2 = AcknowledgeAll。inactive 且已 Ack 的 alarm 從 List 移除。
+
+節點的 `message`、`path` 只能在 Editor 的參數欄位輸入，不能接線。字串超過 `ST_ExtAlarm` 宣告的長度（Message 80、Path 255、DateTime 20）時截斷。
+
+### 設定檔 `alarmList`
+
+`config/module-config.json` 的每個 `modules[]` 元素可以有 `alarmList`（最多 30 筆），`source` 相對於該 module：
+
+```
+"alarmList": [ {
+    "source": "ModuleVariableList[3].Value",
+    "dataType": "REAL",
+    "condition": { "operator": "gt", "value": 80.0, "tolerance": 0 },
+    "mainErrorId": 101, "sourceErrorId": 0,
+    "message": "FFU pressure out of range.", "severity": "Alarm" } ]
+```
+
+`operator` 為 `gt`、`lt`、`ge`、`le`、`eq`（`eq` 用 `tolerance`）；`severity` 為 `Alarm` 或 `Warning`。`mainErrorId` 必須是 1 到 4294901759。
+
+Run 前若 `AlarmAckRequest.bChangeRequest` 還是 TRUE，新的 host 會把它當作上升緣處理一次（等同 PLC 重開機），所以 Run 前先把 Ctrl 清掉。
+
 ## Workflow
 
 - `Polar2_ServiceHost`：執行 `GVL_Module.Chamber_Control` 底下所有 module 的 PackML 交握，ServiceId 與 CompletionBehavior 來自 `plc/ServiceIdentity/` 的 identity 檔。
 - `Polar2_ModuleModeInit`：啟動時把 slot 1 的 SVID 1（`Module Mode`）寫成 `'1'`。slot 1 的 identity（`ModuleId=1`、`Enabled=TRUE`、`ModuleType=Polar2`）與 SVID、ECID 內容由 `config/module-config.json` 在 Run 時發布；其餘 slot 保持 0、FALSE、空字串。
-- `Polar2_Chamber_SetMode`：Chamber.SetMode 進入 Execute 時，依 `TargetMode`（0 到 3）寫入 SVID 1，超出範圍則保持原值，然後完成 service。
+- `Polar2_Chamber_SetMode`：Chamber.SetMode 進入 Execute 時，依 `TargetMode`（0 到 3）寫入 SVID 1，然後完成 service。超出範圍時 SVID 不變，改用 `action.addServiceError` 把 MainErrorId 1、SourceErrorId = `TargetMode`、訊息 `TargetMode out of range (0~3).` 加入 `ErrorList`，再用 `action.abortService` 中止 service。MainErrorId 1 是暫定值：規格書 ALID 沒有 SetMode 的項目。
 - `Polar2_Chamber_Initial`：Chamber.Initial 進入 Execute 後等待 5000 ms 再完成；依 `SwitchModeAfterFinish` 把 SVID 1 寫成 `'2'`（1）或 `'3'`（2），其他值保持原值。
 
 `plc/` 資料夾以 `.gitattributes` 的 `-text` 規則逐位元組保存，不做換行轉換；複製後的檔案與來源的 SHA-256 相同。
