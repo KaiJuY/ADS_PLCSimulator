@@ -118,6 +118,7 @@ public sealed partial class SimulatorSession : IAsyncDisposable
             return image;
         }
 
+        // Stryker disable once Statement,String: a log line has no test value
         _logger.LogInformation("Published module config {Path}.", configPath);
         return image;
     }

@@ -138,6 +138,8 @@ internal static class ModuleConfigPublisher
     {
         if (item.Name is null || item.Unit is null || item.DataType is null)
             throw Fail(path, $"{where}: id {item.Id} needs name, unit and dataType.");
+        if (string.IsNullOrWhiteSpace(item.Name))
+            throw Fail(path, $"{where}: id {item.Id} has an empty name.");
         if (!IsAscii(item.Name) || !IsAscii(item.Unit))
             throw Fail(path, $"{where}: name or unit of id {item.Id} contains non-ASCII characters.");
         if (!DataTypes.ContainsKey(item.DataType))
@@ -199,6 +201,7 @@ internal static class ModuleConfigPublisher
                 return;
 
             Add($"{itemPath}.IsBound", true);
+            // Stryker disable once Statement: the process image starts zeroed, so FALSE is already there; the write documents the published value
             Add($"{itemPath}.HasLimits", false);
         }
 
