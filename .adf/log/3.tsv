@@ -38,3 +38,4 @@ time	stage	decision	why	evidence	result
 2026-10-30T10:33:42+0800	I	stage I 通過：I1–I10 全 PASS（.adf/scenarios/3.md）	client 免手動寫入可綁定並完成 service、SVID、module 命令；釋放失敗 0（原 501）；量測矩陣 19/22 相同、3 項已知例外	.adf/scenarios/3.md、.adf/evidence/3	進 stage J（需 Allen 核可合併）
 2026-10-30T10:33:42+0800	I	driver S6/S7 在 Host ready 後立即執行會失敗，main 同樣失敗；等 3 秒後 int/3 兩輪 13/13	既有啟動時序問題，非 #3 回歸	driver 輸出	記入 profile 陷阱
 2026-10-30T10:33:42+0800	I	ConPTY harness 與 client 腳本存入 .adf/evidence/3/conpty（非 tests/），profile 記操作方式	放 evidence 才能重現 stage I；grill 決策是不進 tests	-	-
+2026-10-30T11:09:30+0800	J	合併 int/3 到 main（547d834），關閉 #3	Allen 核可「合併並 push main」	main build 成功、361/361；gh issue close 3	移除 3 個 unit worktree 與分支，保留 int/3
