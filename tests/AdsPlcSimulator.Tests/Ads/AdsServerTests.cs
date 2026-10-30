@@ -387,14 +387,57 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
         SymbolRef element = Sym($"{Control}[1]");
         WithHandle($"{Control}[1]", handle =>
         {
-            AddNotification(HandleGroup, handle, element.Size + 4, AdsTransMode.OnChange, out AdsErrorCode tooLong);
             AddNotification(HandleGroup, handle, 0, AdsTransMode.OnChange, out AdsErrorCode zeroByHandle);
-            Assert.Equal(AdsErrorCode.DeviceInvalidOffset, tooLong);
-            Assert.Equal(AdsErrorCode.DeviceInvalidOffset, zeroByHandle);
+            Assert.Equal(AdsErrorCode.DeviceInvalidWatchsize, zeroByHandle);
         });
 
         AddNotification(DataGroup, (uint)element.Offset, 0, AdsTransMode.OnChange, out AdsErrorCode zeroRaw);
         Assert.Equal(AdsErrorCode.DeviceInvalidWatchsize, zeroRaw);
+    }
+
+    [Fact]
+    [Trait("AC", "8")]
+    public async Task Handle_notification_longer_than_the_symbol_is_truncated_to_the_symbol_size()
+    {
+        SymbolRef element = Sym($"{Control}[1]");
+        SymbolRef neighbour = Sym($"{Control}[2]");
+        Assert.Equal(element.Offset + element.Size, neighbour.Offset);
+        byte[] originalNeighbour = ImageBytes(neighbour.Offset, neighbour.Size);
+        using var watcher = new NotificationWatcher(_client);
+        uint variable = _client.CreateVariableHandle($"{Control}[1]");
+        uint handle = 0;
+        try
+        {
+            handle = AddNotification(HandleGroup, variable, element.Size + 4, AdsTransMode.OnChange, out AdsErrorCode result);
+            Assert.Equal(AdsErrorCode.NoError, result);
+            Assert.True(await watcher.WaitFor(handle, data => data.Length == element.Size), "initial value not received");
+            await Task.Delay(200);
+            int received = watcher.Count(handle);
+
+            _image.Write(neighbour.Offset, Sequence(neighbour.Size, 77), WriteSource.Client);
+            await Task.Delay(500);
+
+            Assert.Equal(received, watcher.Count(handle));
+            Assert.True(watcher.All(handle, data => data.Length == element.Size));
+        }
+        finally
+        {
+            _client.TryDeleteDeviceNotification(handle);
+            _client.TryDeleteVariableHandle(variable);
+            _image.Write(neighbour.Offset, originalNeighbour, WriteSource.Client);
+        }
+    }
+
+    [Fact]
+    [Trait("AC", "8")]
+    public void Handle_notification_with_a_released_handle_is_refused_with_invalid_offset()
+    {
+        uint released = _client.CreateVariableHandle($"{Control}[1]");
+        Assert.Equal(AdsErrorCode.NoError, _client.TryDeleteVariableHandle(released));
+
+        AddNotification(HandleGroup, released, 8, AdsTransMode.OnChange, out AdsErrorCode result);
+
+        Assert.Equal(AdsErrorCode.DeviceInvalidOffset, result);
     }
 
     [Fact]
@@ -545,12 +588,12 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
 
     [Fact]
     [Trait("AC", "5")]
-    public void Requests_for_an_unknown_handle_are_answered_by_the_base_server()
+    public void Requests_for_an_unknown_handle_fail_and_notification_add_reports_invalid_offset()
     {
         Assert.NotEqual(AdsErrorCode.NoError, TryWriteBytes(HandleGroup, UnknownHandle, [1, 2, 3, 4]));
         Assert.NotEqual(AdsErrorCode.NoError, TryReadBytes(HandleGroup, UnknownHandle, 4, out _));
         AddNotification(HandleGroup, UnknownHandle, 4, AdsTransMode.OnChange, out AdsErrorCode add);
-        Assert.NotEqual(AdsErrorCode.NoError, add);
+        Assert.Equal(AdsErrorCode.DeviceInvalidOffset, add);
         Assert.NotEqual(AdsErrorCode.NoError, _client.TryDeleteDeviceNotification(UnknownHandle));
     }
 
@@ -584,17 +627,19 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
 
     [Theory]
     [Trait("AC", "8")]
-    [InlineData(true, 0, 4, 0u, 100, AdsErrorCode.DeviceInvalidOffset)]
+    [InlineData(true, 0, 4, 0u, 100, AdsErrorCode.DeviceInvalidWatchsize)]
     [InlineData(false, 0, 4, 0u, 100, AdsErrorCode.DeviceInvalidWatchsize)]
     [InlineData(false, -1, 4, 0u, 100, AdsErrorCode.DeviceInvalidWatchsize)]
-    [InlineData(true, 5, 4, 0u, 100, AdsErrorCode.DeviceInvalidOffset)]
+    [InlineData(true, 5, 4, 0u, 100, AdsErrorCode.NoError)]
     [InlineData(true, 4, 4, 0u, 100, AdsErrorCode.NoError)]
     [InlineData(false, 4, 0, 97u, 100, AdsErrorCode.DeviceInvalidOffset)]
     [InlineData(false, 4, 0, 96u, 100, AdsErrorCode.NoError)]
     public void Notification_range_check_returns_the_measured_error_codes(bool byHandle, int dataLength, int size, uint indexOffset, int imageSize, AdsErrorCode expected)
     {
-        Assert.Equal(expected, PlcAdsServer.CheckNotificationRange(byHandle, dataLength, size, indexOffset, imageSize, out int offset));
+        Assert.Equal(expected, PlcAdsServer.CheckNotificationRange(byHandle, dataLength, size, indexOffset, imageSize, out int offset, out int watchLength));
         Assert.Equal(expected == AdsErrorCode.NoError && !byHandle ? (int)indexOffset : 0, offset);
+        if (expected == AdsErrorCode.NoError)
+            Assert.Equal(byHandle ? Math.Min(dataLength, size) : dataLength, watchLength);
     }
 
     private sealed class NotificationWatcher : IDisposable
@@ -609,6 +654,9 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
         }
 
         public int Count(uint handle) => _samples.Count(sample => sample.Handle == handle);
+
+        public bool All(uint handle, Func<byte[], bool> match) =>
+            _samples.Where(sample => sample.Handle == handle).All(sample => match(sample.Data));
 
         public async Task<bool> WaitFor(uint handle, Func<byte[], bool> match)
         {

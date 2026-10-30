@@ -174,9 +174,9 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         int handleOffset = 0;
         int size = 0;
         if (byHandle && !TryResolveHandle(indexOffset, out handleOffset, out size))
-            return base.OnAddDeviceNotificationAsync(sender, invokeId, indexGroup, indexOffset, dataLength, receiver, settings, cancel);
+            return Task.FromResult(ResultHandle.CreateError(AdsErrorCode.DeviceInvalidOffset));
 
-        AdsErrorCode rangeError = CheckNotificationRange(byHandle, dataLength, size, indexOffset, _image.Size, out int rawOffset);
+        AdsErrorCode rangeError = CheckNotificationRange(byHandle, dataLength, size, indexOffset, _image.Size, out int rawOffset, out int watchLength);
         if (rangeError != AdsErrorCode.NoError)
             return Task.FromResult(ResultHandle.CreateError(rangeError));
 
@@ -190,7 +190,7 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
             Offset = offset,
             Cyclic = IsCyclic(settings.NotificationMode),
             Interval = TimeSpan.FromMilliseconds(Math.Max(settings.CycleTime, MinimumInterval.TotalMilliseconds)),
-            Buffer = new byte[dataLength],
+            Buffer = new byte[watchLength],
             NextDue = Stopwatch.GetTimestamp() + ToTicks(FirstSampleDelayAfterAddResponse),
         };
         lock (_subscriptionLock)
@@ -274,16 +274,17 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         return true;
     }
 
-    /// <summary>By handle only <paramref name="size"/> bounds the length; otherwise <paramref name="offset"/> is the raw image offset.</summary>
-    internal static AdsErrorCode CheckNotificationRange(bool byHandle, int dataLength, int size, uint indexOffset, int imageSize, out int offset)
+    internal static AdsErrorCode CheckNotificationRange(bool byHandle, int dataLength, int size, uint indexOffset, int imageSize, out int offset, out int watchLength)
     {
         offset = 0;
+        watchLength = dataLength;
         if (dataLength <= 0)
-            return byHandle ? AdsErrorCode.DeviceInvalidOffset : AdsErrorCode.DeviceInvalidWatchsize;
-        if (byHandle)
-            return dataLength > size ? AdsErrorCode.DeviceInvalidOffset : AdsErrorCode.NoError;
+            return AdsErrorCode.DeviceInvalidWatchsize;
+        if (!byHandle)
+            return TryResolveRaw(indexOffset, dataLength, imageSize, out offset) ? AdsErrorCode.NoError : AdsErrorCode.DeviceInvalidOffset;
 
-        return TryResolveRaw(indexOffset, dataLength, imageSize, out offset) ? AdsErrorCode.NoError : AdsErrorCode.DeviceInvalidOffset;
+        watchLength = Math.Min(dataLength, size);
+        return AdsErrorCode.NoError;
     }
 
     private static bool TryResolveRaw(uint indexOffset, int length, int imageSize, out int offset)
