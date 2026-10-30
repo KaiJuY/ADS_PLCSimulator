@@ -10,16 +10,25 @@
   <header class="topbar">
     <div class="brand">ADS PLC Simulator <span>Workflow Editor</span></div>
     <div class="toolbar">
-      <select id="workflowSelect" title="Workflow"></select>
-      <button id="newButton" type="button">New</button>
-      <button id="saveButton" type="button" class="primary" title="Ctrl+S">Save</button>
-      <span id="saveState" class="pill"></span>
+      <select id="projectSelect" title="Project"></select>
+      <button id="runButton" type="button" class="primary">Run</button>
+      <button id="stopButton" type="button">Stop</button>
+      <span id="projectState" class="pill"></span>
+      <span id="projectError" class="pill error" hidden></span>
+      <div id="workflowControls" class="toolbar">
+        <select id="workflowSelect" title="Workflow"></select>
+        <button id="newButton" type="button">New</button>
+        <button id="saveButton" type="button" class="primary" title="Ctrl+S">Save</button>
+        <span id="saveState" class="pill"></span>
+      </div>
     </div>
     <div class="toolbar right">
       <span id="liveState" class="pill">offline</span>
       <a href="/simulation/" target="_blank" rel="noopener">Simulation ↗</a>
     </div>
   </header>
+
+  <section id="stoppedNotice" hidden>No project is running. Select a project and press Run.</section>
 
   <main class="layout">
     <aside class="palette">
