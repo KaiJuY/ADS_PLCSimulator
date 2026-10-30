@@ -93,4 +93,32 @@ public class PlcProgramTests
         Assert.Equal(new byte[] { 9, 0 }, published.NewData);
         Assert.Throws<OverflowException>(() => image.WriteValue(value, 40000, WriteSource.Client));
     }
+
+    [Theory]
+    [Trait("AC", "1")]
+    [Trait("AC", "2")]
+    [InlineData(null, "has no PLC declarations")]
+    [InlineData("", "has no PLC declarations")]
+    [InlineData("TYPE ST_Only : STRUCT nValue : INT; END_STRUCT END_TYPE", "declares no global variables")]
+    public void Loading_a_folder_without_root_symbols_fails_with_its_full_path(string? stSource, string expectedMessage)
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "adsplc-" + Guid.NewGuid().ToString("N"), "plc");
+        Directory.CreateDirectory(directory);
+        try
+        {
+            // An unsupported extension is ignored, so the global declared here must not count.
+            File.WriteAllText(Path.Combine(directory, "notes.txt"), "VAR_GLOBAL nIgnored : INT; END_VAR");
+            if (stSource is not null)
+                File.WriteAllText(Path.Combine(directory, "source.st"), stSource);
+
+            var exception = Assert.Throws<PlcBuildException>(() => PlcProgram.LoadDirectory(directory));
+
+            Assert.Contains(expectedMessage, exception.Message);
+            Assert.Contains(Path.GetFullPath(directory), exception.Message);
+        }
+        finally
+        {
+            Directory.Delete(Path.GetDirectoryName(directory)!, recursive: true);
+        }
+    }
 }

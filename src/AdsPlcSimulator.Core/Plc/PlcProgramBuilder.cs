@@ -13,7 +13,19 @@ public sealed class PlcProgram(SymbolTable symbols, byte[] initialImage)
 
     public ProcessImage CreateProcessImage() => new(InitialImage);
 
-    public static PlcProgram LoadDirectory(string directory) => PlcProgramBuilder.Build(PlcSourceReader.ReadDirectory(directory));
+    /// <summary>Builds the program from a plc/ folder. A program without root symbols is a wrong project path, so it is rejected.</summary>
+    public static PlcProgram LoadDirectory(string directory)
+    {
+        DeclarationSet declarations = PlcSourceReader.ReadDirectory(directory);
+        PlcProgram program = PlcProgramBuilder.Build(declarations);
+        if (program.Symbols.Roots.Count > 0)
+            return program;
+
+        string fullPath = Path.GetFullPath(directory);
+        throw new PlcBuildException(declarations.Types.Count == 0 && declarations.Globals.Count == 0
+            ? $"'{fullPath}' has no PLC declarations. Add .st, .TcDUT, .TcGVL, .TcPOU or .TcIO files."
+            : $"'{fullPath}' declares no global variables (VAR_GLOBAL or PROGRAM), so the simulator has no symbols.");
+    }
 }
 
 /// <summary>

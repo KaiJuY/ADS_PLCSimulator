@@ -16,8 +16,8 @@ public enum AdsRouterMode
 
 public sealed class AdsOptions
 {
-    /// <summary>AMS port of the simulated PLC runtime; 851 is TwinCAT's first PLC runtime.</summary>
-    public ushort Port { get; set; } = 851;
+    /// <summary>AMS port of the simulated PLC runtime. Not 851: that is the first runtime of a real TwinCAT PLC on the same router.</summary>
+    public ushort Port { get; set; } = 25860;
 
     public AdsRouterMode Router { get; set; } = AdsRouterMode.Local;
 
