@@ -22,10 +22,14 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
 
     private AdsClient _client => plc.Client;
 
+    private PlcAdsServer _server => plc.Server;
+
     /// <summary>One server for the whole class: re-registering the same AMS port per test races its release.</summary>
     public sealed class SimulatedPlc : IAsyncLifetime
     {
-        private const ushort TestPort = 25853;
+        public const ushort Port = 25853;
+
+        private const ushort TestPort = Port;
 
         private readonly CancellationTokenSource _stop = new();
         private PlcAdsServer _server = null!;
@@ -36,6 +40,8 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
         public ProcessImage Image { get; private set; } = null!;
 
         public AdsClient Client { get; } = new();
+
+        internal PlcAdsServer Server => _server;
 
         public async Task InitializeAsync()
         {
@@ -491,6 +497,138 @@ public sealed class AdsServerTests(AdsServerTests.SimulatedPlc plc) : IClassFixt
             Assert.Equal(DataGroup, ((IAdsSymbol)symbol!).IndexGroup);
             Assert.Equal((uint)Sym(path).Offset, ((IAdsSymbol)symbol).IndexOffset);
         }
+    }
+
+    private const uint ValueByNameGroup = 0xF004;
+    private const uint UnknownHandle = 0x0BAD_0001;
+
+    private AdsErrorCode ReadValueByName(string path, int readLength, out byte[] data)
+    {
+        byte[] name = System.Text.Encoding.ASCII.GetBytes(path + " ");
+        byte[] buffer = new byte[readLength];
+        AdsErrorCode result = _client.TryReadWrite(ValueByNameGroup, 0, buffer.AsMemory(), name.AsMemory(), out int read);
+        data = buffer[..read];
+        return result;
+    }
+
+    [Fact]
+    [Trait("AC", "1")]
+    public void Value_by_name_read_returns_the_process_image_bytes()
+    {
+        SymbolRef field = Sym(RequestIdOf3);
+        WithImageBytes(field.Offset, [0x11, 0x22, 0x33, 0x44], () =>
+        {
+            Assert.Equal(AdsErrorCode.NoError, ReadValueByName(RequestIdOf3, 4, out byte[] data));
+            Assert.Equal(new byte[] { 0x11, 0x22, 0x33, 0x44 }, data);
+        });
+    }
+
+    [Fact]
+    [Trait("AC", "2")]
+    public void Value_by_name_read_with_too_small_a_buffer_or_an_unknown_name_fails()
+    {
+        Assert.NotEqual(AdsErrorCode.NoError, ReadValueByName(RequestIdOf3, 2, out _));
+        Assert.NotEqual(AdsErrorCode.NoError, ReadValueByName("GVL_Module.NoSuchSymbol", 4, out _));
+    }
+
+    [Fact]
+    [Trait("AC", "2")]
+    public void Locating_a_symbol_accepts_lengths_up_to_its_size_only()
+    {
+        Assert.True(_server.Symbols.TryGetInstance(RequestIdOf3, out ISymbol? symbol));
+        SymbolRef field = Sym(RequestIdOf3);
+
+        Assert.True(_server.TryLocate(symbol!, field.Size, out int offset));
+        Assert.Equal(field.Offset, offset);
+        Assert.False(_server.TryLocate(symbol!, field.Size + 1, out _));
+    }
+
+    [Fact]
+    [Trait("AC", "5")]
+    public void Requests_for_an_unknown_handle_are_answered_by_the_base_server()
+    {
+        Assert.NotEqual(AdsErrorCode.NoError, TryWriteBytes(HandleGroup, UnknownHandle, [1, 2, 3, 4]));
+        Assert.NotEqual(AdsErrorCode.NoError, TryReadBytes(HandleGroup, UnknownHandle, 4, out _));
+        AddNotification(HandleGroup, UnknownHandle, 4, AdsTransMode.OnChange, out AdsErrorCode add);
+        Assert.NotEqual(AdsErrorCode.NoError, add);
+        Assert.NotEqual(AdsErrorCode.NoError, _client.TryDeleteDeviceNotification(UnknownHandle));
+    }
+
+    [Fact]
+    [Trait("AC", "8")]
+    public async Task Notification_cannot_be_deleted_by_another_client_and_keeps_arriving_for_its_owner()
+    {
+        SymbolRef field = Sym(RequestIdOf3);
+        byte[] original = ImageBytes(field.Offset, 4);
+        using var watcher = new NotificationWatcher(_client);
+        using var other = new AdsClient();
+        other.Connect(AmsNetId.Local, AdsServerTests.SimulatedPlc.Port);
+        uint handle = AddNotification(DataGroup, (uint)field.Offset, 4, AdsTransMode.OnChange, out AdsErrorCode result);
+        try
+        {
+            Assert.Equal(AdsErrorCode.NoError, result);
+            Assert.True(await watcher.WaitFor(handle, _ => true), "initial value not received");
+
+            Assert.Equal(AdsErrorCode.DeviceNotifyHandleInvalid, other.TryDeleteDeviceNotification(handle));
+
+            byte[] changed = [0xD1, 0xD2, 0xD3, 0xD4];
+            _image.Write(field.Offset, changed, WriteSource.Client);
+            Assert.True(await watcher.WaitFor(handle, data => data.SequenceEqual(changed)), "owner stopped receiving");
+        }
+        finally
+        {
+            _client.TryDeleteDeviceNotification(handle);
+            _image.Write(field.Offset, original, WriteSource.Client);
+        }
+    }
+
+    [Fact]
+    [Trait("AC", "8")]
+    public async Task Subscription_of_a_disconnected_client_is_dropped_after_the_failed_send()
+    {
+        const string path = "GVL_Module.Chamber1_Control[6].ServiceCtrl.DoorClose.RequestId";
+        SymbolRef field = Sym(path);
+        byte[] original = ImageBytes(field.Offset, 4);
+        int before = _server.SubscriptionCount;
+        var other = new AdsClient();
+        other.Connect(AmsNetId.Local, AdsServerTests.SimulatedPlc.Port);
+        var arrived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        other.AdsNotification += (_, _) => arrived.TrySetResult();
+        try
+        {
+            Assert.Equal(AdsErrorCode.NoError, other.TryAddDeviceNotification(DataGroup, (uint)field.Offset, 4, new NotificationSettings(AdsTransMode.OnChange, 10, 0), null, out _));
+            await arrived.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.Equal(before + 1, _server.SubscriptionCount);
+
+            other.Dispose();
+            _image.Write(field.Offset, [0xE1, 0xE2, 0xE3, 0xE4], WriteSource.Client);
+
+            DateTime deadline = DateTime.UtcNow.AddSeconds(10);
+            while (_server.SubscriptionCount != before && DateTime.UtcNow < deadline)
+                await Task.Delay(50);
+
+            Assert.Equal(before, _server.SubscriptionCount);
+        }
+        finally
+        {
+            other.Dispose();
+            _image.Write(field.Offset, original, WriteSource.Client);
+        }
+    }
+
+    [Theory]
+    [Trait("AC", "8")]
+    [InlineData(true, 0, 4, 0u, 100, AdsErrorCode.DeviceInvalidOffset)]
+    [InlineData(false, 0, 4, 0u, 100, AdsErrorCode.DeviceInvalidWatchsize)]
+    [InlineData(false, -1, 4, 0u, 100, AdsErrorCode.DeviceInvalidWatchsize)]
+    [InlineData(true, 5, 4, 0u, 100, AdsErrorCode.DeviceInvalidOffset)]
+    [InlineData(true, 4, 4, 0u, 100, AdsErrorCode.NoError)]
+    [InlineData(false, 4, 0, 97u, 100, AdsErrorCode.DeviceInvalidOffset)]
+    [InlineData(false, 4, 0, 96u, 100, AdsErrorCode.NoError)]
+    public void Notification_range_check_returns_the_measured_error_codes(bool byHandle, int dataLength, int size, uint indexOffset, int imageSize, AdsErrorCode expected)
+    {
+        Assert.Equal(expected, PlcAdsServer.CheckNotificationRange(byHandle, dataLength, size, indexOffset, imageSize, out int offset));
+        Assert.Equal(expected == AdsErrorCode.NoError && !byHandle ? (int)indexOffset : 0, offset);
     }
 
     private sealed class NotificationWatcher : IDisposable

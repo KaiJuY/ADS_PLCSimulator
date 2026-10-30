@@ -119,8 +119,6 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         if (indexGroup != PlcDataIndexGroup)
             return base.OnReadAsync(sender, invokeId, indexGroup, indexOffset, readLength, cancel);
 
-        if (readLength < 0)
-            return Task.FromResult(ResultReadBytes.CreateError(AdsErrorCode.DeviceInvalidSize));
         if (!TryResolveRaw(indexOffset, readLength, _image.Size, out int offset))
             return Task.FromResult(ResultReadBytes.CreateError(AdsErrorCode.DeviceInvalidOffset));
 
@@ -132,10 +130,8 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
     {
         if (!TryResolveHandle(handle, out int offset, out int size))
             return base.OnReadAsync(sender, invokeId, VariableHandleIndexGroup, handle, readLength, cancel);
-        if (readLength < 0)
-            return Task.FromResult(ResultReadBytes.CreateError(AdsErrorCode.DeviceInvalidSize));
 
-        return Task.FromResult(ResultReadBytes.CreateSuccess(_image.Read(offset, Math.Min(readLength, size))));
+        return Task.FromResult(ResultReadBytes.CreateSuccess(_image.Read(offset, Math.Min(Math.Max(readLength, 0), size))));
     }
 
     protected override Task<ResultWrite> OnWriteAsync(AmsAddress sender, uint invokeId, uint indexGroup, uint indexOffset, ReadOnlyMemory<byte> writeData, CancellationToken cancel)
@@ -175,15 +171,16 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         if (!byHandle && indexGroup != PlcDataIndexGroup)
             return base.OnAddDeviceNotificationAsync(sender, invokeId, indexGroup, indexOffset, dataLength, receiver, settings, cancel);
 
-        int offset = 0;
+        int handleOffset = 0;
         int size = 0;
-        if (byHandle && !TryResolveHandle(indexOffset, out offset, out size))
+        if (byHandle && !TryResolveHandle(indexOffset, out handleOffset, out size))
             return base.OnAddDeviceNotificationAsync(sender, invokeId, indexGroup, indexOffset, dataLength, receiver, settings, cancel);
 
-        if (dataLength <= 0)
-            return Task.FromResult(ResultHandle.CreateError(byHandle ? AdsErrorCode.DeviceInvalidOffset : AdsErrorCode.DeviceInvalidWatchsize));
-        if (byHandle ? dataLength > size : !TryResolveRaw(indexOffset, dataLength, _image.Size, out offset))
-            return Task.FromResult(ResultHandle.CreateError(AdsErrorCode.DeviceInvalidOffset));
+        AdsErrorCode rangeError = CheckNotificationRange(byHandle, dataLength, size, indexOffset, _image.Size, out int rawOffset);
+        if (rangeError != AdsErrorCode.NoError)
+            return Task.FromResult(ResultHandle.CreateError(rangeError));
+
+        int offset = byHandle ? handleOffset : rawOffset;
 
         uint handle = (uint)Interlocked.Increment(ref _nextNotificationHandle);
         var subscription = new Subscription
@@ -246,7 +243,16 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         base.Dispose(disposing);
     }
 
-    private bool TryLocate(ISymbol symbol, int length, out int offset)
+    internal int SubscriptionCount
+    {
+        get
+        {
+            lock (_subscriptionLock)
+                return _subscriptions.Count;
+        }
+    }
+
+    internal bool TryLocate(ISymbol symbol, int length, out int offset)
     {
         if (!TryResolvePath(symbol.InstancePath, out offset, out int size))
             return false;
@@ -274,6 +280,18 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         offset = resolved.Offset;
         size = resolved.Size;
         return true;
+    }
+
+    /// <summary>By handle only <paramref name="size"/> bounds the length; otherwise <paramref name="offset"/> is the raw image offset.</summary>
+    internal static AdsErrorCode CheckNotificationRange(bool byHandle, int dataLength, int size, uint indexOffset, int imageSize, out int offset)
+    {
+        offset = 0;
+        if (dataLength <= 0)
+            return byHandle ? AdsErrorCode.DeviceInvalidOffset : AdsErrorCode.DeviceInvalidWatchsize;
+        if (byHandle)
+            return dataLength > size ? AdsErrorCode.DeviceInvalidOffset : AdsErrorCode.NoError;
+
+        return TryResolveRaw(indexOffset, dataLength, imageSize, out offset) ? AdsErrorCode.NoError : AdsErrorCode.DeviceInvalidOffset;
     }
 
     private static bool TryResolveRaw(uint indexOffset, int length, int imageSize, out int offset)
@@ -329,13 +347,7 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
             if (!_subscriptions.TryGetValue(subscription.NotificationHandle, out Subscription? current) || current != subscription)
                 return;
 
-            subscription.NextDue = Stopwatch.GetTimestamp() + ToTicks(subscription.Interval);
-            bool changed = subscription.LastSent is null || !subscription.Buffer.AsSpan().SequenceEqual(subscription.LastSent);
-            if (changed || subscription.Cyclic)
-            {
-                data = subscription.Buffer.ToArray();
-                subscription.LastSent = data;
-            }
+            data = subscription.TakeSample(Stopwatch.GetTimestamp());
         }
 
         if (data is null)
@@ -387,5 +399,16 @@ internal sealed class PlcAdsServer : AdsSymbolicServer
         public byte[]? LastSent { get; set; }
 
         public long NextDue { get; set; }
+
+        public byte[]? TakeSample(long now)
+        {
+            NextDue = now + ToTicks(Interval);
+            bool changed = LastSent is null || !Buffer.AsSpan().SequenceEqual(LastSent);
+            if (!changed && !Cyclic)
+                return null;
+
+            LastSent = Buffer.ToArray();
+            return LastSent;
+        }
     }
 }
