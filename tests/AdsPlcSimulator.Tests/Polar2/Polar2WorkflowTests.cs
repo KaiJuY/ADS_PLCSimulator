@@ -58,9 +58,9 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
     private static WorkflowDocument SetModeWithHoldBeforeComplete(string delayMs)
     {
         WorkflowDocument document = LoadDocument("Polar2_Chamber_SetMode");
-        document.Links.RemoveAll(link => link is { FromNode: "trigger", FromPort: "then" });
+        document.Links.RemoveAll(link => link is { FromNode: "branch", FromPort: "true" });
         document.Nodes.Add(new WorkflowNode { Id = "hold", Type = "flow.delay", Params = { ["ms"] = delayMs } });
-        document.Links.Add(new WorkflowLink("trigger", "then", "hold", "exec"));
+        document.Links.Add(new WorkflowLink("branch", "true", "hold", "exec"));
         document.Links.Add(new WorkflowLink("hold", "then", "complete", "exec"));
         return document;
     }
@@ -216,16 +216,22 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
     [Trait("AC", "10")]
     [InlineData(4)]
     [InlineData(65535)]
-    public async Task SetMode_out_of_range_keeps_svid_and_completes(long targetMode)
+    public async Task SetMode_out_of_range_adds_error_and_aborts(long targetMode)
     {
         await StartPlcAsync();
         Load("setmode", LoadDocument("Polar2_Chamber_SetMode"));
 
         Write($"{Module1}.ServiceParam.Chamber.SetMode.TargetMode", targetMode);
-        await CommandAsync("Chamber.SetMode", PackMLCommand.Start, PackMLState.Complete);
+        await CommandAsync("Chamber.SetMode", PackMLCommand.Start, PackMLState.Aborted);
         await WaitForRunAsync("setmode", FlowEventKind.RunCompleted);
 
         Assert.Equal("1", Read(SvidValue));
+        Assert.Equal(1, ReadNumber($"{Status("Chamber.SetMode")}.ErrorList[1].MainErrorId"));
+        Assert.Equal(targetMode, ReadNumber($"{Status("Chamber.SetMode")}.ErrorList[1].SourceErrorId"));
+        Assert.Equal("TargetMode out of range (0~3).", Read($"{Status("Chamber.SetMode")}.ErrorList[1].Message"));
+        await WaitUntilAsync(() => ReadNumber($"{Module1}.ModuleAlarmList[1].MainErrorId") == 1, "the alarm in ModuleAlarmList");
+        Assert.Equal(targetMode, ReadNumber($"{Module1}.ModuleAlarmList[1].SourceErrorId"));
+        Assert.Equal(1, ReadNumber($"{Module1}.ModuleAlarmList[1].Active"));
     }
 
     [Theory]

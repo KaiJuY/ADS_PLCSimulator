@@ -32,6 +32,8 @@ public sealed class NodeCatalog
         ServiceExecuteTriggerNode.Definition,
         CompleteServiceNode.Definition,
         AbortServiceNode.Definition,
+        AddServiceErrorNode.Definition,
+        SetModuleAlarmNode.Definition,
     ]);
 
     public IReadOnlyList<NodeDefinition> Definitions { get; }

@@ -10,15 +10,6 @@
       }
     },
     {
-      "id": "complete",
-      "type": "action.completeService",
-      "x": 360,
-      "y": 60,
-      "params": {
-        "service": "GVL_Module.Chamber_Control[#].ServiceCtrl.Chamber.SetMode"
-      }
-    },
-    {
       "id": "read",
       "type": "data.readSymbol",
       "x": 40,
@@ -40,17 +31,46 @@
     {
       "id": "branch",
       "type": "flow.branch",
-      "x": 680,
+      "x": 360,
       "y": 60,
       "params": {}
     },
     {
       "id": "write",
       "type": "action.writeSymbol",
-      "x": 960,
+      "x": 680,
       "y": 60,
       "params": {
         "symbol": "GVL_Module.Chamber_Control[#].ModuleVariableList[1].Value"
+      }
+    },
+    {
+      "id": "complete",
+      "type": "action.completeService",
+      "x": 960,
+      "y": 60,
+      "params": {
+        "service": "GVL_Module.Chamber_Control[#].ServiceCtrl.Chamber.SetMode"
+      }
+    },
+    {
+      "id": "addError",
+      "type": "action.addServiceError",
+      "x": 680,
+      "y": 300,
+      "params": {
+        "service": "GVL_Module.Chamber_Control[#].ServiceCtrl.Chamber.SetMode",
+        "mainErrorId": "1",
+        "message": "TargetMode out of range (0~3)."
+      }
+    },
+    {
+      "id": "abort",
+      "type": "action.abortService",
+      "x": 960,
+      "y": 300,
+      "params": {
+        "service": "GVL_Module.Chamber_Control[#].ServiceCtrl.Chamber.SetMode"
       }
     }
   ],
@@ -58,31 +78,55 @@
     {
       "fromNode": "trigger",
       "fromPort": "then",
-      "toNode": "complete",
-      "toPort": "exec"
-    },
-    {
-      "fromNode": "trigger",
-      "fromPort": "index",
-      "toNode": "complete",
-      "toPort": "index"
-    },
-    {
-      "fromNode": "trigger",
-      "fromPort": "generation",
-      "toNode": "complete",
-      "toPort": "generation"
-    },
-    {
-      "fromNode": "complete",
-      "fromPort": "then",
       "toNode": "branch",
       "toPort": "exec"
     },
     {
+      "fromNode": "read",
+      "fromPort": "value",
+      "toNode": "inRange",
+      "toPort": "a"
+    },
+    {
+      "fromNode": "inRange",
+      "fromPort": "result",
+      "toNode": "branch",
+      "toPort": "condition"
+    },
+    {
       "fromNode": "branch",
       "fromPort": "true",
+      "toNode": "complete",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "read",
+      "fromPort": "value",
       "toNode": "write",
+      "toPort": "value"
+    },
+    {
+      "fromNode": "complete",
+      "fromPort": "then",
+      "toNode": "write",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "branch",
+      "fromPort": "false",
+      "toNode": "addError",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "read",
+      "fromPort": "value",
+      "toNode": "addError",
+      "toPort": "sourceErrorId"
+    },
+    {
+      "fromNode": "addError",
+      "fromPort": "then",
+      "toNode": "abort",
       "toPort": "exec"
     },
     {
@@ -98,22 +142,34 @@
       "toPort": "index"
     },
     {
-      "fromNode": "read",
-      "fromPort": "value",
-      "toNode": "inRange",
-      "toPort": "a"
+      "fromNode": "trigger",
+      "fromPort": "index",
+      "toNode": "complete",
+      "toPort": "index"
     },
     {
-      "fromNode": "read",
-      "fromPort": "value",
-      "toNode": "write",
-      "toPort": "value"
+      "fromNode": "trigger",
+      "fromPort": "index",
+      "toNode": "addError",
+      "toPort": "index"
     },
     {
-      "fromNode": "inRange",
-      "fromPort": "result",
-      "toNode": "branch",
-      "toPort": "condition"
+      "fromNode": "trigger",
+      "fromPort": "index",
+      "toNode": "abort",
+      "toPort": "index"
+    },
+    {
+      "fromNode": "trigger",
+      "fromPort": "generation",
+      "toNode": "complete",
+      "toPort": "generation"
+    },
+    {
+      "fromNode": "trigger",
+      "fromPort": "generation",
+      "toNode": "abort",
+      "toPort": "generation"
     }
   ]
 }

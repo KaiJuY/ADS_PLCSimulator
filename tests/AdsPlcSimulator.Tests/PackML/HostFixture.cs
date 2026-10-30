@@ -1,4 +1,5 @@
 using AdsPlcSimulator.Core.PackML;
+using AdsPlcSimulator.Core.PackML.Alarm;
 using AdsPlcSimulator.Core.Plc;
 
 namespace AdsPlcSimulator.Tests.PackML;
@@ -82,18 +83,66 @@ internal sealed class HostFixture
         ServiceStatus.Unbound.CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion;
         """;
 
+    public const string AlarmTypes = """
+        TYPE E_Severity : (Alarm := 1, Warning := 2); END_TYPE
+        TYPE E_AlarmAckCommand : (None := 0, AcknowledgeOne := 1, AcknowledgeAll := 2); END_TYPE
+        TYPE E_AlarmAckError : (None := 0, InvalidRequestId := 1, DuplicateRequest := 2, InvalidCommand := 3, AlarmNotFound := 4); END_TYPE
+        TYPE ST_ExtAlarm : STRUCT
+            ModuleId : UDINT;
+            ServiceId : UDINT;
+            MainErrorId : UDINT;
+            SourceErrorId : UDINT;
+            Message : STRING(80);
+            Path : STRING(255);
+            Severity : E_Severity;
+            DateTime : STRING(20);
+            Active : BOOL;
+            Acknowledged : BOOL;
+            OccurrenceCount : UDINT;
+        END_STRUCT END_TYPE
+        TYPE ST_AlarmAckRequest : STRUCT
+            RequestId : UDINT;
+            Command : E_AlarmAckCommand;
+            MainErrorId : UDINT;
+            ServiceId : UDINT;
+            bChangeRequest : BOOL;
+        END_STRUCT END_TYPE
+        TYPE ST_ModuleAlarmStatus : STRUCT
+            AckResponseId : UDINT;
+            AckAccepted : BOOL;
+            AckError : E_AlarmAckError;
+            ConfiguredLatchedCount : UINT;
+            ServiceLatchedCount : UINT;
+            Overflow : BOOL;
+            HookLatchedCount : UINT;
+            DuplicateId : UDINT;
+        END_STRUCT END_TYPE
+        TYPE ST_TestSources : STRUCT Pressure : REAL; Flag : BOOL; Text : STRING(80); END_STRUCT END_TYPE
+        """;
+
+    /// <summary>The declarations of <see cref="Declarations"/> plus the alarm members of the framework: ErrorList, ModuleAlarmList, ModuleStatus.Alarm, ModuleCtrl.AlarmAckRequest and a Sources struct for configured alarms.</summary>
+    public static readonly string AlarmDeclarations = WithAlarmMembers(Declarations);
+
+    /// <summary>Like <see cref="AlarmDeclarations"/> but ModuleStatus has no ModuleId.</summary>
+    public static readonly string AlarmDeclarationsWithoutModuleId = WithAlarmMembers(Declarations.Replace("ModuleId : UDINT;", "Spare : UDINT;"));
+
     public static readonly TimeSpan DefaultDelay = TimeSpan.FromSeconds(5);
 
     private readonly Dictionary<string, object?> _tokens = new(StringComparer.OrdinalIgnoreCase);
 
-    public HostFixture(TimeSpan? defaultDelay = null, bool initialize = true)
+    public HostFixture(
+        TimeSpan? defaultDelay = null, bool initialize = true, string? declarations = null,
+        ConfiguredAlarmTable? configuredAlarms = null, Func<DateTimeOffset>? utcNow = null)
     {
-        Program = TestPaths.BuildFromText(Declarations);
+        Program = TestPaths.BuildFromText(declarations ?? Declarations);
         Image = Program.CreateProcessImage();
-        Host = CreateHost(Program, Image, defaultDelay ?? DefaultDelay, token => _tokens.GetValueOrDefault(token));
+        ConfiguredAlarms = configuredAlarms ?? ConfiguredAlarmTable.Empty;
+        Host = CreateHost(Program, Image, defaultDelay ?? DefaultDelay, token => _tokens.GetValueOrDefault(token), utcNow);
         if (initialize)
-            Host.Initialize(Image);
+            Host.Initialize(Image, ConfiguredAlarms);
     }
+
+    public ConfiguredAlarmTable ConfiguredAlarms { get; }
 
     public PlcProgram Program { get; }
 
@@ -108,8 +157,15 @@ internal sealed class HostFixture
     public static ServiceIdentityTable ParseIdentities(SymbolTable symbols, string text = Identities) =>
         ServiceIdentityTable.Parse(text, name => symbols.TryGetEnumValue(name, out long value) ? value : null);
 
-    public static ServiceHost CreateHost(PlcProgram program, ProcessImage image, TimeSpan defaultDelay, Func<string, object?> overrideToken) =>
-        new(program.Symbols, program.Symbols.Resolve("GVL_Test.Modules"), ParseIdentities(program.Symbols), defaultDelay, overrideToken);
+    public static ServiceHost CreateHost(
+        PlcProgram program, ProcessImage image, TimeSpan defaultDelay, Func<string, object?> overrideToken, Func<DateTimeOffset>? utcNow = null) =>
+        new(program.Symbols, program.Symbols.Resolve("GVL_Test.Modules"), ParseIdentities(program.Symbols), defaultDelay, overrideToken, utcNow);
+
+    private static string WithAlarmMembers(string declarations) => AlarmTypes + Environment.NewLine + declarations
+        .Replace("TYPE ST_ModuleCtrl : STRUCT", "TYPE ST_ModuleCtrl : STRUCT AlarmAckRequest : ST_AlarmAckRequest;")
+        .Replace("TYPE ST_ModuleStatus : STRUCT", "TYPE ST_ModuleStatus : STRUCT Alarm : ST_ModuleAlarmStatus;")
+        .Replace("TYPE ST_ServiceStatus : STRUCT", "TYPE ST_ServiceStatus : STRUCT ErrorList : ARRAY[1..10] OF ST_ExtAlarm;")
+        .Replace("TYPE ST_TestModule : STRUCT", "TYPE ST_TestModule : STRUCT ModuleAlarmList : ARRAY[1..100] OF ST_ExtAlarm; Sources : ST_TestSources;");
 
     public static string CtrlPath(int module, string service) => $"GVL_Test.Modules[{module}].ServiceCtrl.{service}";
 
