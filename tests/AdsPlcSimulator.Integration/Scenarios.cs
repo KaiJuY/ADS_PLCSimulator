@@ -61,9 +61,9 @@ internal static class Scenarios
             return Task.FromResult(checks);
         }
 
-        checks.Equal("Chamber_Control size", 12678720, gvl.ByteSize);
-        checks.Equal("M1 size", 2113120, module.ByteSize);
-        checks.Equal("Shutter.Open offset from M1", 1926172L, (long)((IProcessImageAddress)open).IndexOffset - ((IProcessImageAddress)module).IndexOffset);
+        checks.Equal("Chamber_Control size", 12966720, gvl.ByteSize);
+        checks.Equal("M1 size", 2161120, module.ByteSize);
+        checks.Equal("Shutter.Open offset from M1", 1974172L, (long)((IProcessImageAddress)open).IndexOffset - ((IProcessImageAddress)module).IndexOffset);
         checks.Equal("Shutter.Open size", 11684, open.ByteSize);
         return Task.FromResult(checks);
     }
@@ -98,24 +98,21 @@ internal static class Scenarios
         return checks;
     }
 
-    // Expected strings: Polar2_ModuleModeInit.flow.json. They hold on a fresh Host only; S10, S12 change SVID 1 of M1.
+    // Expected values: projects/Polar2Chamber/config/module-config.json (64 SVIDs for slot 1) and Polar2_ModuleModeInit.flow.json (Value '1'). They hold on a fresh Host only; S10, S12 change SVID 1 of M1.
     private static Task<Checks> ModuleVariableAsync(PlcSession session)
     {
         var checks = new Checks();
-        foreach (int module in new[] { 1, 6 })
-            CheckModeVariable(checks, session, module);
-        return Task.FromResult(checks);
-    }
+        string variable = $"{Gvl}[1].ModuleVariableList[1]";
+        checks.Equal("M1 Id", 1u, session.Read<uint>(variable + ".Id"));
+        checks.Equal("M1 Name", "Module Mode", session.Read<string>(variable + ".Name"));
+        checks.Equal("M1 DataType (Integer_32bit)", (short)1, session.Read<short>(variable + ".DataType"));
+        checks.Equal("M1 Unit", "", session.Read<string>(variable + ".Unit"));
+        checks.Equal("M1 Value", "1", session.Read<string>(variable + ".Value"));
+        checks.Equal("M1 PublishedCount", (ushort)64, session.Read<ushort>($"{Gvl}[1].ModuleStatus.Variable.PublishedCount"));
 
-    private static void CheckModeVariable(Checks checks, PlcSession session, int module)
-    {
-        string variable = $"{Gvl}[{module}].ModuleVariableList[1]";
-        checks.Equal($"M{module} Id", 1u, session.Read<uint>(variable + ".Id"));
-        checks.Equal($"M{module} Name", "Module Mode", session.Read<string>(variable + ".Name"));
-        checks.Equal($"M{module} DataType (Integer_32bit)", (short)1, session.Read<short>(variable + ".DataType"));
-        checks.Equal($"M{module} Unit", "", session.Read<string>(variable + ".Unit"));
-        checks.Equal($"M{module} Value", "1", session.Read<string>(variable + ".Value"));
-        checks.Equal($"M{module} PublishedCount", (ushort)1, session.Read<ushort>($"{Gvl}[{module}].ModuleStatus.Variable.PublishedCount"));
+        checks.Equal("M6 Id", 0u, session.Read<uint>($"{Gvl}[6].ModuleVariableList[1].Id"));
+        checks.Equal("M6 PublishedCount", (ushort)0, session.Read<ushort>($"{Gvl}[6].ModuleStatus.Variable.PublishedCount"));
+        return Task.FromResult(checks);
     }
 
     private static async Task<Checks> ShutterHandshakeAsync(PlcSession session)

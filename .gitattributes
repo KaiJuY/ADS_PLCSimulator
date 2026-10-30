@@ -1,1 +1,2 @@
 projects/Polar2Chamber/plc/** -text
+projects/Polar2Chamber/config/module-config.json -text
