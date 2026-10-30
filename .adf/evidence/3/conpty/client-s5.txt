@@ -1,0 +1,48 @@
+expect Select:
+send 9
+expect Select:
+# T1 Shutter.Open
+send 3
+expect Select:
+send 150
+expect (\): |\]: )
+send n
+expect Type MOVE
+send MOVE
+expect Press Enter
+send 
+expect Select:
+# T2 SetMode 2
+send 3
+expect Select:
+send 1
+expect (\): |\]: )
+send 2
+expect Type MOVE
+send MOVE
+expect Press Enter
+send 
+expect Select:
+# T3 continuous
+send 3
+expect Select:
+send 139
+expect (\): |\]: )
+send 10
+expect Type MOVE
+send MOVE
+expect Press Enter
+send 
+expect Select:
+send B
+expect Select:
+send B
+expect Select:
+send 3
+expect Press Enter
+send 
+expect Select:
+send B
+expect Select:
+send Q
+sleep 1500

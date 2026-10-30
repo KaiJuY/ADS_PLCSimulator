@@ -1,0 +1,23 @@
+expect Select:
+send 8
+expect Select:
+send 5
+expect (Press Enter|\]: )
+send y
+expect (Press Enter|Select:)
+send 
+expect Select:
+send 4
+expect (Press Enter|\]: )
+send y
+expect (Press Enter|Select:)
+send 
+expect Select:
+send 7
+expect Press Enter
+send 
+expect Select:
+send B
+expect Select:
+send Q
+sleep 1500

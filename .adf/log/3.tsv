@@ -1,0 +1,40 @@
+time	stage	decision	why	evidence	result
+2026-10-30T09:28:10+0800	A	建立 #3（部分讀寫與 Polar2 identity）並分出 #4（sum 指令、0xF008）	AdsClientForPolarII 在 25860 綁定失敗：IG f005 Len 8 回 0x705；slot 1 未發布 identity	client 驗證 transcript；AMS 854 讀寫量測（寫入只改 RequestId，已還原 restored=True）	#3、#4 已建立
+2026-10-30T09:28:10+0800	A	以 AMS 854 實測值為規格，取代原本推測的規則	推測與實測有兩處不同：handle 讀超長是截斷不是 0x705；handle 通知超長回 DeviceInvalidOffset	probe854 輸出	Allen 確認 Q6
+2026-10-30T09:28:10+0800	A	跳過 concept check	bug，重現步驟明確（grill 規則）	-	-
+2026-10-30T09:32:44+0800	B	拆成 U1（ADS 存取規則）與 U2（Polar2 identity），平行兩個 worktree	兩者檔案不重疊，沒有共用型別	plan 輸出	Allen 確認，並授權後續階段不需逐步確認
+2026-10-30T09:37:14+0800	C	proposal 寫完，宣稱 C1–C8 全部 VERIFIED	C1 以 Core 與執行中 Host 比對 root offset（Polar2 1/1、RobustSolutionDemo 5/5）	.adf/proposals/3.md	進 D+E
+2026-10-30T09:37:14+0800	C	通知送出納入範圍，issue 補 AC 9a	模擬器通知只送初始值（afterClientWrite=0），854 會送；不送則 AC 8–9 無實際作用；不改 public API，屬同一子系統，依授權自行決定	notify probe	issue #3 已更新
+2026-10-30T09:37:14+0800	C	通知用背景迴圈比對，不用 ProcessImage.Written 即時送	Written 在寫入者執行緒觸發，送網路會拖慢寫入者，也無法做 CycleTime/Cyclic	proposal §8	-
+2026-10-30T09:46:04+0800	E	judge 第 1 次 NOT READY：1 major（0 長度通知規則無實測）	規則是推測，違反 Allen 決策（以 854 實測為準）	.adf/proposals/3.review.md #29	854 量測後 FIX
+2026-10-30T09:46:04+0800	E	第 2 輪只重跑 judge，不重跑 5 個 reviewer	judge 已逐條確認第 1 輪 27 個 FIX 到位；剩下的只有 judge 自己的發現	judge 第 1 次報告	-
+2026-10-30T09:46:04+0800	E	REBUT #11（啟動檢查）列入 settled	delta 由 PlcAdsServer.cs:39 同一行以 root.Offset 建構	judge 確認	-
+2026-10-30T09:47:01+0800	E	judge 第 2 輪 READY（0 blocker、0 major、2 nit 已處理）	所有 reviewer 都有跑；nit：未知 handle 先交 base、負長度標為假設	.adf/proposals/3.review.md	進 stage F
+2026-10-30T09:49:49+0800	F	U2 完成（a5634e5、19ceed0）	code-reviewer 唯一 major：AC trait 寫成 3，owner 改成 11 後重跑該測試通過	329/329（implementer）；非 Ads 324/324（owner）	U2 done
+2026-10-30T09:56:26+0800	F	U1 回報的「釋放後 handle 失效」不是 server bug，不修	owner 用新 client 重測：854 與模擬器都給新 handle 可讀、舊 handle DeviceSymbolNotFound；失效是 .NET AdsClient 的 client 端 handle 快取被原始 0xF006 寫入繞過	scratchpad/stale probe 兩次輸出	§4 D 結論維持
+2026-10-30T09:56:26+0800	F	接受 implementer 的 proposal 偏差：無 ServerCycle（Cyclic、ClientCycle→Cyclic）、Subscription 無 Length 欄位、TryLocate 改寫保留	SDK 7.0.389 enum 實際內容；OnReadRawValue/OnWriteRawValue 仍需要	U1 報告	-
+2026-10-30T09:58:05+0800	F	U1 完成（d6aa9e1、edbfa52）	code-reviewer 1 major：錯誤的 stale-handle 註解，owner 改正；CS0618 改用非過時 ReadAsync	346/346（implementer 兩次、reviewer、owner）	U1 done；stage F 完成
+2026-10-30T09:58:44+0800	G	建立 int/3（worktree ../_wt_3-int）並合併 U1、U2，無衝突	兩個 unit 檔案不重疊	git merge 輸出；建置成功	派 cleanup、comment reviewer
+2026-10-30T09:59:45+0800	G	cleanup：TryLocate 與 TryResolveHandle 抽出共用 TryResolvePath	重複的 path→TryResolve→Offset/Size；無行為改變	cleanup-reviewer	交 implementer
+2026-10-30T09:59:45+0800	G	comment：接受 13 項刪除/改名；A14、A133 改成連到 #3 的 type 4（AMS 854 實測，非刪除）	實測行為是外部限制，程式表達不出	comment-reviewer	交 implementer
+2026-10-30T09:59:45+0800	G	拒絕 A18、B13–15、B25	非本 diff 新增的既有註解	git diff bff8bcb...int/3	-
+2026-10-30T09:59:45+0800	G	Subscription 的鎖規則（可變欄位只在 _subscriptionLock 內改）刪註解、不編碼，列為 open	用型別或測試強制此規則對本變更過度設計	comment-rules「Constraint comments」	open
+2026-10-30T10:01:00+0800	G	清理套用完成（0eb3fe1）	-	347/347（implementer、owner）	stage G 完成
+2026-10-30T10:02:52+0800	H	gate 1 通過；gate 2 失敗（3 個方法 CRAP>12、變更行覆蓋 85.7%）	TryLocate 0% 覆蓋、OnAddDeviceNotificationAsync 複雜度 16、ScanAsync 12.02	.adf/out/gate-20261030-100106/crap-net9.0.json（int/3 worktree）	交 implementer
+2026-10-30T10:02:52+0800	H	移除 OnReadAsync/ReadByHandle 的負長度檢查（偏離 proposal §4 A2、B）	ADS 線上長度為 uint，負 int 只在 >2GB 時出現，測不到；raw 由 TryResolveRaw 擋，handle 讀取下限夾到 0	gate 2 未覆蓋行 123、136	-
+2026-10-30T10:12:01+0800	H	gate 1–3 全部通過（7a3659c）	359/359；變更行覆蓋 188/209=90.0%；CRAP 最高 12；Stryker 變更行 0 survivor	_wt_3-int/.adf/out/gate-20261030-100918	進 post-merge review
+2026-10-30T10:12:01+0800	H	Drop（送出失敗移除訂閱）無法以真 router 測到，保留未覆蓋	router 對已關閉 port 的通知送出不回錯誤，subscription 留著（implementer 實測 10 秒）；這也表示 client 異常離線時訂閱會殘留（proposal §9 已列不在範圍）	implementer 報告	open：殘留訂閱
+2026-10-30T10:13:59+0800	H	correctness major「client 異常離線訂閱殘留」接受為已知限制	proposal §9 已列不在範圍；只耗 CPU；stage I 以真 client 確認是否使用通知	correctness-reviewer；implementer 實測 router 不回錯	open
+2026-10-30T10:13:59+0800	H	correctness major「慢接收端阻塞」REBUT	stage C §8 已決定依序送、每筆 1 秒逾時	proposal §8	settled
+2026-10-30T10:13:59+0800	H	修正：handle 讀取長度以 uint 截斷（取代夾到 0）、Dispose 釋放 _notifyStop、AdsServerTests.cs 換行改回 LF（原本整檔被改成 CRLF）	correctness nit；drift 發現 792 行變更實為換行	git diff --ignore-cr-at-eol 505/1	重跑 gate
+2026-10-30T10:13:59+0800	H	drift 11 項皆有決策：1–4、8、11 已在 log；5 迴圈啟動旗標同效；6、7 額外私有成員與測試為 gate 修正所需；9 evidence 與 profile 在 stage I/J 加入；10 Delete 在鎖內呼叫 base（非送出）可接受	drift-reviewer	.adf/log/3.tsv	-
+2026-10-30T10:16:09+0800	H	gate 重跑通過（d7f4cc9）；stage H 完成	359/359、覆蓋 189/210=90.0%、Stryker 0 survivor	_wt_3-int/.adf/out/gate-20261030-101401	進 stage I
+2026-10-30T10:18:37+0800	I	stage I 量測矩陣：模擬器 20/22 與 854 一致；handle 通知兩項不同	measure.cs 對 25860 輸出 N8b、N0a	Host log InvokeId 47：AdsClient 刪除 handle 通知後自動釋放 handle	追查
+2026-10-30T10:18:37+0800	I	更正 AC 8：854 原量測重用了已釋放的 handle；用新 handle 重測：超長成功並截斷為 symbol 大小、長度 0 回 DeviceInvalidWatchsize、已釋放 handle 回 DeviceInvalidOffset	不一致回到 stage F，開 U3（從 int/3 d7f4cc9）	measure.cs 新增 N8c；scratchpad/n8b probe：sample 20 bytes、相鄰改值不觸發	issue #3 AC 8 已更新；U3 交 implementer
+2026-10-30T10:20:46+0800	F	U3 完成並合併 int/3（e78d4f5、7197413）	code-reviewer MERGE yes；owner 刪除 internal 方法上的 ///	361/361	重跑 gate
+2026-10-30T10:33:20+0800	I	stage I 通過：I1–I10 全 PASS（.adf/scenarios/3.md）	client 免手動寫入可綁定並完成 service、SVID、module 命令；釋放失敗 0（原 501）；量測矩陣 19/22 相同、3 項已知例外	.adf/scenarios/3.md、.adf/evidence/3	進 stage J（需 Allen 核可合併）
+2026-10-30T10:33:20+0800	I	driver S6/S7 在 Host ready 後立即執行會失敗，main 同樣失敗；等 3 秒後 int/3 兩輪 13/13	既有啟動時序問題，非 #3 回歸	driver 輸出	記入 profile 陷阱
+2026-10-30T10:33:20+0800	I	ConPTY harness 與 client 腳本存入 .adf/evidence/3/conpty（非 tests/），profile 記操作方式	它不依賴 client binaries 本身；放 evidence 才能重現 stage I；grill 決策是不進 tests	-	-
+2026-10-30T10:33:42+0800	I	stage I 通過：I1–I10 全 PASS（.adf/scenarios/3.md）	client 免手動寫入可綁定並完成 service、SVID、module 命令；釋放失敗 0（原 501）；量測矩陣 19/22 相同、3 項已知例外	.adf/scenarios/3.md、.adf/evidence/3	進 stage J（需 Allen 核可合併）
+2026-10-30T10:33:42+0800	I	driver S6/S7 在 Host ready 後立即執行會失敗，main 同樣失敗；等 3 秒後 int/3 兩輪 13/13	既有啟動時序問題，非 #3 回歸	driver 輸出	記入 profile 陷阱
+2026-10-30T10:33:42+0800	I	ConPTY harness 與 client 腳本存入 .adf/evidence/3/conpty（非 tests/），profile 記操作方式	放 evidence 才能重現 stage I；grill 決策是不進 tests	-	-
