@@ -68,6 +68,12 @@ a { color: var(--data); text-decoration: none; }
 .pill.warn { color: var(--warn); }
 .pill.error { color: var(--error); }
 
+.toolbar button:disabled, .toolbar select:disabled { opacity: 0.45; cursor: default; }
+body.project-stopped #workflowControls,
+body.project-stopped main.layout { display: none; }
+body.project-stopped #stoppedNotice { display: block; }
+#stoppedNotice { margin: 48px 0; text-align: center; color: var(--muted); }
+
 .layout {
   flex: 1;
   display: grid;

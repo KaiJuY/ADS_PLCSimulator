@@ -12,7 +12,7 @@ The scripts read `.adf/profile.json`. Keep both files in step.
 | Target frameworks | net9.0 (all three projects) |
 | Main framework (development gates) | net9.0 |
 | Release frameworks | net9.0 |
-| Expected test count | 388 on 2026-10-30 (net9.0) |
+| Expected test count | 470 on 2026-10-30 (net9.0; #6) |
 | Full suite time | about 1 minute with coverage (net9.0) |
 
 ## Known load-dependent tests
@@ -34,7 +34,7 @@ The scripts read `.adf/profile.json`. Keep both files in step.
 | Driver | `tests/AdsPlcSimulator.Integration` (ADS client, scenarios S1–S12, S15 of `.adf/scenarios/1.md`); HTTP API for workflow diagnostics; Editor screenshot with headless Edge: `msedge.exe --headless=new --screenshot=<png> "http://localhost:5259/editor/?workflow=<name>"`, then read the PNG |
 | Real client | AdsClientForPolarII in `tests/AdsClientForPolarII/` (untracked binaries, do not commit). It reads `Console.ReadLine` and quits when stdin is redirected, so drive it with the ConPTY harness `.adf/evidence/3/conpty`: `conpty.exe <script> <transcript> <client exe> --port 25860 --container-path GVL_Module.Chamber_Control`. Script lines: `expect <regex>`, `send <text>`, `sleep <ms>`. Ready scripts in the same folder: `client-s3.txt` (read-only items), `client-s5.txt` (Start), `client-s7.txt` (Stop, ReturnToIdle, Abort/Clear/Reset, SVID), `client-s8.txt` (Module Stop/Reset). See `.adf/scenarios/3.md`. |
 | Real-PLC comparison | `.adf/evidence/3/measure` (`measure.exe <port>`): the ADS access matrix of #3. Run on 854 and 25860 and compare line by line. It writes only `ServiceCtrl.Shutter.*.RequestId` and restores it. |
-| Start | `dotnet run --project src/AdsPlcSimulator.Host --no-launch-profile --urls http://localhost:5259 -- --Simulator:ProjectPath=../../projects/Polar2Chamber --Ads:Port=25860`; wait about 3 s after `Now listening`, then `dotnet run --project tests/AdsPlcSimulator.Integration -- --port 25860`. Restart the Host before each driver run (S2 needs the module in Execute). |
+| Start | `dotnet run --project src/AdsPlcSimulator.Host --no-launch-profile --urls http://localhost:5259 -- --Simulator:ProjectPath=../../projects/Polar2Chamber --Ads:Port=25860` (the CLI path still works: it runs the project at startup and does not write state.json; without it the Host starts Stopped and `POST /api/project/run {"name":"Polar2Chamber"}` / `POST /api/project/stop` run and stop a project at runtime, #6); wait about 3 s after `Now listening` (or about 5 s after a `POST /api/project/run` returns 200; with 3 s S6 and S7 fail because the workflows are still starting), then `dotnet run --project tests/AdsPlcSimulator.Integration -- --port 25860`. Start a fresh project before each driver run (restart the Host, or Stop then Run): S6 leaves services Stopped and S2 needs the module in Execute. |
 | Real hardware | AMS 854 (local TwinCAT runtime, `Plc30 App`, Polar2 `GVL_Module`): reads for measurement, and writes to the Ctrl area only (never `PackMLIn`, which holds command bits). Restore and compare every written byte. |
 | Address and port | HTTP `http://localhost:5259`, simulator ADS port 25860 on the local router |
 | Resting state | Host stopped; no workflow run in progress |
