@@ -76,6 +76,15 @@ Polar2 的規則：
 - `Cup[1..4].Lift.TopPos`、`MiddlePos`、`DownPos`：在 Complete 之前（5000 ms 到時）把該 Cup 的 Master、Slave 高度 SVID 寫成對應的 ECID（Top／Down／Middle Pos）。Cup1 是 SVID 45／46、ECID 276／277／278，Cup2 是 47／48、288／289／290，Cup3 是 49／50、300／301／302，Cup4 是 51／52、312／313／314。
 - `Cup[1..4].Lift.IncrementalJog`：在 Complete 之前，Master、Slave 高度 SVID 各自加上 `Position`（mm，可為負）；不檢查上下限。Execute 中被 Stop 或 Abort 時高度不變。
 - DryRun（Mode 2）不影響以上各項（沒有標 `dryRunZero`）。
+- 第 3 批（#18，62 項，共 86 項）：
+  - `Arm[1..4].Lift.TopPos`、`DownPos`：進入 Execute 時 `Armn Lift Speed` 寫成 ECID `Armn Lift Speed (Normal)`，Complete 之前（5000 ms 到時）`Armn Lift Position` 寫成 ECID `Lift Top Pos`／`Down Pos`，離開 Execute 時速度寫回 0。
+  - `Arm[1..4].Rotate.NegLimitPos`、`PosLimitPos`、`NozzlePortPos`、`Noz1CenterPos`、`Noz2CenterPos`、`Noz3CenterPos`：同上，速度是 `Armn Rotate Speed (Normal)`，位置是 `Armn Rotate Position` 寫成對應的 `Rotate Neg Limit Pos`、`Pos Limit Pos`、`Nozzle Port Pos`、`Noz1/2/3 Center Pos`（各 Arm 只有 PLC 綁定的 service 在表中：Arm1、Arm2 各 17 項，Arm3 11 項，Arm4 9 項）。
+  - `Arm[1..4].Rotate.IncrementalJog`：速度同上；Complete 之前 `Armn Rotate Position` 加上 `Position`（deg，可為負）。
+  - `Arm[1..4].Rotate.JogPositive`、`JogNegative`：進入 Execute 時 `Armn Rotate Speed` 寫成 ECID `Armn Rotate Speed (Jog)`（Negative 為負值），離開 Execute 寫回 0；ExecuteUntilExternalStop，沒有位置變化。
+  - `Arm[n].Nozzle[k].ChemicalSupply`、`Arm[n].NozzlePort.Nozzle[k].Supply`、`FixedNozzle[1..4].ChemicalSupply`：進入 Execute 時對應的 Flow/Pressure SVID 寫成 `ServiceParam` 的 `Setpoint`，離開 Execute 寫回 0。DryRun（Mode 2）時寫 0（`dryRunZero`），因為 DryRun 不出化學藥劑。
+  - `Exhaust.Fan[1..4].SupplyFlowPID`：進入 Execute 時 `ExhaustFann Pressure` 寫成 ECID `ExhaustFann Target Pressure`，離開 Execute 寫回 0。排氣不出化學藥劑，DryRun 不歸零。
+  - 不在表中（沒有 SVID 可寫，或留待後批）：`Arm[n].Rotate.MoveRecipe`、`Arm[n].NozzlePort.DrainSelect*`、`Exhaust.Damper.*`、`SideVent[n].*`。FFU（SVID 63、64）在 PLC 沒有 service，記在 #10。
+- 同一個 SVID 由多個 service 寫入（例 Arm1 的 `Arm1 Rotate Speed` 由 9 個 Rotate service 寫入）時沒有擁有者檢查：兩個 service 同時在 Execute 時，先離開的寫 0。模擬器不阻擋同一軸的 service 同時執行。
 
 `ranges` 可以用整數、REAL、LREAL 欄位，`min`、`max` 可為小數（REAL 欄位的界線以 REAL 數值比較，兩端皆含）。寫入值多一種 `addParam`：寫入「目前 SVID 值 + 該 ServiceParam 欄位」（`negate` 只對欄位值生效）；目前值不是數字或不是有限值時以 0 計，欄位值是 NaN、∞ 時加 0。高度 SVID 只存在 process image，Run 時重設為 `"0.0"`。
 
@@ -84,7 +93,7 @@ Polar2 的規則：
 - Mode 改成 0 之後只有 `Chamber.SetMode` 能跑，手動測試完要用 SetMode 把 Mode 寫回。
 - Run 之後到 `Polar2_ModuleModeInit` 寫 `'1'` 之前，SVID 1 是初始值 `"0"`，Mode 是 Disable；`Polar2_ModuleModeInit` 載入失敗時一直如此。
 - `duration`、`beforeComplete` 只對 NaturalCompletion 的 service 有作用；寫在 ExecuteUntilExternalStop 的 service 上不會報錯，但沒有效果（Host 在 Run 時不讀 identity file，無法發現）。
-- 重新載入 `Polar2_ServiceHost` 時，Execute 中的 service 不經過離開 Execute，`onLeave` 不會寫，SVID 53 可能停在速度值。
+- 重新載入 `Polar2_ServiceHost` 時，Execute 中的 service 不經過離開 Execute，`onLeave` 不會寫，速度、流量、壓力 SVID（例 SVID 53、Arm 的 Rotate Speed、Nozzle Flow/Pressure、ExhaustFan Pressure）可能停在 Execute 時的值。
 
 ## Framework 升級時重新複製
 
