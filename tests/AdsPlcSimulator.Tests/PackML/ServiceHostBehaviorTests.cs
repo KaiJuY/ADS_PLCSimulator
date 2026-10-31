@@ -364,6 +364,11 @@ public class ServiceHostBehaviorTests
         Assert.False(fixture.Host.IsExecuteRejected(PathA));
 
         fixture.Write(ModeValue, "0");
+        ReleaseAndScan(fixture);
+        fixture.Host.Initialize(fixture.Image, ConfiguredAlarmTable.Empty, StandardBehaviors());
+        StartAndScan(fixture);
+        ReleaseAndScan(fixture);
+        Assert.True(fixture.Host.IsExecuteRejected(PathA));
         fixture.Host.Initialize(fixture.Image, ConfiguredAlarmTable.Empty, StandardBehaviors());
         Assert.False(fixture.Host.IsExecuteRejected(PathA));
     }

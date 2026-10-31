@@ -205,7 +205,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "param": "Flag" } } ] } }"""), "BOOL, not an integer or REAL" },
         { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "constant": 2.5 } } ] } }"""), "does not fit a DINT SVID" },
         { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "constant": 3e9 } } ] } }"""), "does not fit a DINT SVID" },
-        { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "constant": 1e999 } } ] } }"""), "service-behaviors.json" },
+        { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "constant": 1e999 } } ] } }"""), "services.A.onEnter[1]: constant must be a finite number" },
         { Json("""{ "A": { "ranges": [ { "field": "Index", "min": 1 } ] } }"""), "services.A.ranges[1]: min and max are required" },
         { Json(modes: """[{"value":0,"name":"x","deny":[" "]}]"""), "modes[1].deny contains an empty service name" },
         { Json(modes: """[{"value":0,"name":"x","deny":["A","a"]}]"""), "modes[1].deny: 'a' appears more than once" },
