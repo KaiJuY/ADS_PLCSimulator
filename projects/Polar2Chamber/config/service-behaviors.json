@@ -26,6 +26,67 @@
     "Holder.Rotate.MoveVelocityCCW": {
       "onEnter": [ { "svid": 53, "value": { "ecid": 318, "negate": true } } ],
       "onLeave": [ { "svid": 53, "value": { "constant": 0 } } ]
+    },
+    "Holder.Rotate.MoveModulo": {
+      "ranges": [ { "field": "Position", "min": 0, "max": 360 } ],
+      "onEnter": [ { "svid": 53, "value": { "ecid": 318 } } ],
+      "onLeave": [ { "svid": 53, "value": { "constant": 0 } } ]
+    },
+    "OutsideRing.Rotate.MoveVelocityCW": {
+      "onEnter": [ { "svid": 58, "value": { "ecid": 361 } } ],
+      "onLeave": [ { "svid": 58, "value": { "constant": 0 } } ]
+    },
+    "OutsideRing.Rotate.MoveVelocityCCW": {
+      "onEnter": [ { "svid": 58, "value": { "ecid": 361, "negate": true } } ],
+      "onLeave": [ { "svid": 58, "value": { "constant": 0 } } ]
+    },
+    "Cup[1].Lift.TopPos": {
+      "beforeComplete": [ { "svid": 45, "value": { "ecid": 276 } }, { "svid": 46, "value": { "ecid": 276 } } ]
+    },
+    "Cup[1].Lift.MiddlePos": {
+      "beforeComplete": [ { "svid": 45, "value": { "ecid": 278 } }, { "svid": 46, "value": { "ecid": 278 } } ]
+    },
+    "Cup[1].Lift.DownPos": {
+      "beforeComplete": [ { "svid": 45, "value": { "ecid": 277 } }, { "svid": 46, "value": { "ecid": 277 } } ]
+    },
+    "Cup[1].Lift.IncrementalJog": {
+      "beforeComplete": [ { "svid": 45, "value": { "addParam": "Position" } }, { "svid": 46, "value": { "addParam": "Position" } } ]
+    },
+    "Cup[2].Lift.TopPos": {
+      "beforeComplete": [ { "svid": 47, "value": { "ecid": 288 } }, { "svid": 48, "value": { "ecid": 288 } } ]
+    },
+    "Cup[2].Lift.MiddlePos": {
+      "beforeComplete": [ { "svid": 47, "value": { "ecid": 290 } }, { "svid": 48, "value": { "ecid": 290 } } ]
+    },
+    "Cup[2].Lift.DownPos": {
+      "beforeComplete": [ { "svid": 47, "value": { "ecid": 289 } }, { "svid": 48, "value": { "ecid": 289 } } ]
+    },
+    "Cup[2].Lift.IncrementalJog": {
+      "beforeComplete": [ { "svid": 47, "value": { "addParam": "Position" } }, { "svid": 48, "value": { "addParam": "Position" } } ]
+    },
+    "Cup[3].Lift.TopPos": {
+      "beforeComplete": [ { "svid": 49, "value": { "ecid": 300 } }, { "svid": 50, "value": { "ecid": 300 } } ]
+    },
+    "Cup[3].Lift.MiddlePos": {
+      "beforeComplete": [ { "svid": 49, "value": { "ecid": 302 } }, { "svid": 50, "value": { "ecid": 302 } } ]
+    },
+    "Cup[3].Lift.DownPos": {
+      "beforeComplete": [ { "svid": 49, "value": { "ecid": 301 } }, { "svid": 50, "value": { "ecid": 301 } } ]
+    },
+    "Cup[3].Lift.IncrementalJog": {
+      "beforeComplete": [ { "svid": 49, "value": { "addParam": "Position" } }, { "svid": 50, "value": { "addParam": "Position" } } ]
+    },
+    "Cup[4].Lift.TopPos": {
+      "beforeComplete": [ { "svid": 51, "value": { "ecid": 312 } }, { "svid": 52, "value": { "ecid": 312 } } ]
+    },
+    "Cup[4].Lift.MiddlePos": {
+      "beforeComplete": [ { "svid": 51, "value": { "ecid": 314 } }, { "svid": 52, "value": { "ecid": 314 } } ]
+    },
+    "Cup[4].Lift.DownPos": {
+      "beforeComplete": [ { "svid": 51, "value": { "ecid": 313 } }, { "svid": 52, "value": { "ecid": 313 } } ]
+    },
+    "Cup[4].Lift.IncrementalJog": {
+      "beforeComplete": [ { "svid": 51, "value": { "addParam": "Position" } }, { "svid": 52, "value": { "addParam": "Position" } } ]
     }
   }
 }

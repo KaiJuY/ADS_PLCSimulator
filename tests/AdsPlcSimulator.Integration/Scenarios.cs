@@ -9,7 +9,7 @@ namespace AdsPlcSimulator.Integration;
 
 internal sealed record Scenario(string Id, string Title, Func<PlcSession, Task<Checks>> Run);
 
-/// <summary>Scenarios S1 to S12, S15 and S16 of .adf/scenarios/1.md and S17 and S18 of #13, S19 and S20 of #15 (Chamber.SetConfig) and S21 to S25 of #16 (config/service-behaviors.json); S13 and S14 are browser steps and are not here. S16 runs right after S11 and continues from the Aborted SetMode it leaves; a module Stop (S15) cannot finish while a service stays Aborted, and it leaves module 1 Stopped, so S17 to S25 run before it. S21 to S25 set the Module Mode with Chamber.SetMode and leave it at 1.</summary>
+/// <summary>Scenarios S1 to S12, S15 and S16 of .adf/scenarios/1.md and S17 and S18 of #13, S19 and S20 of #15 (Chamber.SetConfig) S21 to S25 of #16 (config/service-behaviors.json) and S26 to S29 of #17; S13 and S14 are browser steps and are not here. S16 runs right after S11 and continues from the Aborted SetMode it leaves; a module Stop (S15) cannot finish while a service stays Aborted, and it leaves module 1 Stopped, so S17 to S29 run before it. S21 to S25 set the Module Mode with Chamber.SetMode and leave it at 1.</summary>
 internal static class Scenarios
 {
     private const string Gvl = "GVL_Module.Chamber_Control";
@@ -37,6 +37,14 @@ internal static class Scenarios
     private const string ArmTestParam = Module1 + ".ServiceParam.Chamber.ArmTest";
     private const string ArmAlignTestParam = Module1 + ".ServiceParam.Chamber.ArmAlignTest";
     private const uint HolderSpeedSvid = 53;
+    private const string MoveModuloPosition = Module1 + ".ServiceParam.Holder.Rotate.MoveModulo.Position";
+    private const string Cup1JogPosition = Module1 + ".ServiceParam.Cup[1].Lift.IncrementalJog.Position";
+    private const uint OutsideRingSpeedSvid = 58;
+    private const uint OutsideRingSpeedEcid = 361;
+    private const uint Cup1MasterSvid = 45;
+    private const uint Cup1SlaveSvid = 46;
+    private const uint Cup1TopEcid = 276;
+    private const double JogStep = 5;
     private const int VariableScanLength = 64;
     private const uint ParameterOutOfRange = 1;
     private const uint ModeNotAllowed = 2;
@@ -68,6 +76,11 @@ internal static class Scenarios
     private static readonly Endpoint Emgs = Endpoint.Service(1, "Chamber.EMGS");
     private static readonly Endpoint ArmTest = Endpoint.Service(1, "Chamber.ArmTest");
     private static readonly Endpoint ArmAlignTest = Endpoint.Service(1, "Chamber.ArmAlignTest");
+    private static readonly Endpoint OutsideRingCw = Endpoint.Service(1, "OutsideRing.Rotate.MoveVelocityCW");
+    private static readonly Endpoint OutsideRingCcw = Endpoint.Service(1, "OutsideRing.Rotate.MoveVelocityCCW");
+    private static readonly Endpoint MoveModulo = Endpoint.Service(1, "Holder.Rotate.MoveModulo");
+    private static readonly Endpoint Cup1Top = Endpoint.Service(1, "Cup[1].Lift.TopPos");
+    private static readonly Endpoint Cup1Jog = Endpoint.Service(1, "Cup[1].Lift.IncrementalJog");
 
     public static IReadOnlyList<Scenario> All { get; } =
     [
@@ -93,6 +106,10 @@ internal static class Scenarios
         new("S23", "ArmTest ArmIndex 5 is out of range", ArmIndexOutOfRangeAsync),
         new("S24", "ArmAlignTest runs for TestTime", TestTimeAsync),
         new("S25", "Holder speed SVID follows ECID 318", HolderSpeedAsync),
+        new("S26", "OutsideRing speed SVID follows ECID 361", OutsideRingSpeedAsync),
+        new("S27", "MoveModulo checks Position and writes the Holder speed", MoveModuloAsync),
+        new("S28", "Cup1 TopPos writes the lift height before Complete", Cup1TopAsync),
+        new("S29", "Cup1 IncrementalJog adds Position", Cup1JogAsync),
         new("S15", "Module Stop ignores later service commands", ModuleStopAsync),
     ];
 
@@ -738,19 +755,157 @@ internal static class Scenarios
         string before = session.Read<string>(ecidValue);
         try
         {
-            checks.True("SetConfig ECID 318 = 30", await SetConfigToAsync(session, "30"));
-            await CheckSpeedAsync(checks, session, HolderMove, speed, "30");
-            await CheckSpeedAsync(checks, session, HolderMoveCcw, speed, "-30");
+            checks.True("SetConfig ECID 318 = 30", await SetConfigToAsync(session, ConfigEcid, "30"));
+            await CheckSpeedAsync(checks, session, HolderMove, HolderSpeedSvid, speed, "30");
+            await CheckSpeedAsync(checks, session, HolderMoveCcw, HolderSpeedSvid, speed, "-30");
         }
         finally
         {
-            checks.True($"SetConfig ECID 318 back to '{before}'", await SetConfigToAsync(session, before));
+            checks.True($"SetConfig ECID 318 back to '{before}'", await SetConfigToAsync(session, ConfigEcid, before));
         }
 
         return checks;
     }
 
-    private static async Task CheckSpeedAsync(Checks checks, PlcSession session, Endpoint service, string speed, string expected)
+    private static async Task<Checks> OutsideRingSpeedAsync(PlcSession session)
+    {
+        var checks = new Checks();
+        int ecid = FindConfigParam(session, OutsideRingSpeedEcid);
+        int svid = FindVariable(session, OutsideRingSpeedSvid);
+        checks.True($"ECID {OutsideRingSpeedEcid} and SVID {OutsideRingSpeedSvid} are published", ecid > 0 && svid > 0);
+        if (ecid == 0 || svid == 0)
+            return checks;
+
+        string speed = $"{Module1}.ModuleVariableList[{svid}].Value";
+        string before = session.Read<string>($"{ConfigParamEntry(ecid)}.Value");
+        try
+        {
+            checks.True($"SetConfig ECID {OutsideRingSpeedEcid} = 20", await SetConfigToAsync(session, OutsideRingSpeedEcid, "20"));
+            await CheckSpeedAsync(checks, session, OutsideRingCw, OutsideRingSpeedSvid, speed, "20");
+            await CheckSpeedAsync(checks, session, OutsideRingCcw, OutsideRingSpeedSvid, speed, "-20");
+        }
+        finally
+        {
+            checks.True($"SetConfig ECID {OutsideRingSpeedEcid} back to '{before}'", await SetConfigToAsync(session, OutsideRingSpeedEcid, before));
+        }
+
+        return checks;
+    }
+
+    private static async Task<Checks> MoveModuloAsync(PlcSession session)
+    {
+        var checks = new Checks();
+        int ecid = FindConfigParam(session, ConfigEcid);
+        int svid = FindVariable(session, HolderSpeedSvid);
+        checks.True($"ECID {ConfigEcid} and SVID {HolderSpeedSvid} are published", ecid > 0 && svid > 0);
+        if (ecid == 0 || svid == 0)
+            return checks;
+
+        string speed = $"{Module1}.ModuleVariableList[{svid}].Value";
+        double before = session.Read<double>(MoveModuloPosition);
+        try
+        {
+            session.Write(MoveModuloPosition, 400.0);
+            await CheckRefusedAsync(checks, session, MoveModulo, ParameterOutOfRange, 400, "Position out of range (0~360).");
+            session.Write(MoveModuloPosition, 90.0);
+            await CheckModuloRunAsync(checks, session, speed, session.Read<string>($"{ConfigParamEntry(ecid)}.Value"));
+        }
+        finally
+        {
+            session.Write(MoveModuloPosition, before);
+        }
+
+        return checks;
+    }
+
+    private static async Task CheckModuloRunAsync(Checks checks, PlcSession session, string speed, string ecidValue)
+    {
+        if (!await RequireIdleAsync(checks, session, MoveModulo))
+            return;
+
+        session.Send(MoveModulo, PackMLCommand.Start, session.NextRequestId());
+        bool executing = await session.WaitForStateAsync(MoveModulo, PackMLState.Execute, Reaction);
+        session.Release(MoveModulo);
+        checks.True($"{MoveModulo.Name}: reaches Execute", executing, $"state={session.State(MoveModulo)}");
+        checks.Equal($"{MoveModulo.Name}: SVID {HolderSpeedSvid} in Execute", ecidValue, session.Read<string>(speed));
+
+        bool completed = await session.WaitForStateAsync(MoveModulo, PackMLState.Complete, NaturalLate);
+        checks.True($"{MoveModulo.Name}: Complete", completed, $"state={session.State(MoveModulo)}");
+        checks.Equal($"{MoveModulo.Name}: SVID {HolderSpeedSvid} after Complete", "0", session.Read<string>(speed));
+        await session.EnsureIdleAsync(MoveModulo);
+    }
+
+    private static async Task<Checks> Cup1TopAsync(PlcSession session)
+    {
+        var checks = new Checks();
+        int ecid = FindConfigParam(session, Cup1TopEcid);
+        int master = FindVariable(session, Cup1MasterSvid);
+        int slave = FindVariable(session, Cup1SlaveSvid);
+        checks.True($"ECID {Cup1TopEcid} and SVID {Cup1MasterSvid}, {Cup1SlaveSvid} are published", ecid > 0 && master > 0 && slave > 0);
+        if (ecid == 0 || master == 0 || slave == 0)
+            return checks;
+
+        string before = session.Read<string>($"{ConfigParamEntry(ecid)}.Value");
+        try
+        {
+            checks.True($"SetConfig ECID {Cup1TopEcid} = 120", await SetConfigToAsync(session, Cup1TopEcid, "120"));
+            await session.EnsureIdleAsync(Cup1Top);
+            checks.True($"{Cup1Top.Name}: reaches Complete", await RunToCompleteAsync(session, Cup1Top), $"state={session.State(Cup1Top)}");
+            checks.Equal($"SVID {Cup1MasterSvid} after Complete", "120.0", session.Read<string>(VariableValue(master)));
+            checks.Equal($"SVID {Cup1SlaveSvid} after Complete", "120.0", session.Read<string>(VariableValue(slave)));
+            await session.EnsureIdleAsync(Cup1Top);
+        }
+        finally
+        {
+            checks.True($"SetConfig ECID {Cup1TopEcid} back to '{before}'", await SetConfigToAsync(session, Cup1TopEcid, before));
+        }
+
+        return checks;
+    }
+
+    private static async Task<Checks> Cup1JogAsync(PlcSession session)
+    {
+        var checks = new Checks();
+        int master = FindVariable(session, Cup1MasterSvid);
+        int slave = FindVariable(session, Cup1SlaveSvid);
+        checks.True($"SVID {Cup1MasterSvid}, {Cup1SlaveSvid} are published", master > 0 && slave > 0);
+        if (master == 0 || slave == 0 || !await RequireIdleAsync(checks, session, Cup1Jog))
+            return checks;
+
+        double masterBefore = ReadHeight(session, master);
+        double slaveBefore = ReadHeight(session, slave);
+        double positionBefore = session.Read<double>(Cup1JogPosition);
+        try
+        {
+            session.Write(Cup1JogPosition, JogStep);
+            checks.True($"{Cup1Jog.Name}: reaches Complete", await RunToCompleteAsync(session, Cup1Jog), $"state={session.State(Cup1Jog)}");
+            checks.True($"SVID {Cup1MasterSvid} grew by {JogStep}", Math.Abs(ReadHeight(session, master) - masterBefore - JogStep) < 0.001);
+            checks.True($"SVID {Cup1SlaveSvid} grew by {JogStep}", Math.Abs(ReadHeight(session, slave) - slaveBefore - JogStep) < 0.001);
+            await session.EnsureIdleAsync(Cup1Jog);
+        }
+        finally
+        {
+            session.Write(Cup1JogPosition, positionBefore);
+        }
+
+        return checks;
+    }
+
+    private static string VariableValue(int entry) => $"{Module1}.ModuleVariableList[{entry}].Value";
+
+    private static double ReadHeight(PlcSession session, int entry) =>
+        double.Parse(session.Read<string>(VariableValue(entry)), System.Globalization.CultureInfo.InvariantCulture);
+
+    // The caller has made the service Idle and reads the SVIDs before calling EnsureIdleAsync.
+    private static async Task<bool> RunToCompleteAsync(PlcSession session, Endpoint service)
+    {
+        session.Send(service, PackMLCommand.Start, session.NextRequestId());
+        bool completed = await session.WaitForStateAsync(service, PackMLState.Complete, NaturalLate);
+        session.Release(service);
+        return completed;
+    }
+
+    private static async Task CheckSpeedAsync(Checks checks, PlcSession session, Endpoint service, uint svidId, string speed, string expected)
     {
         if (!await RequireIdleAsync(checks, session, service))
             return;
@@ -759,11 +914,11 @@ internal static class Scenarios
         bool executing = await session.WaitForStateAsync(service, PackMLState.Execute, Reaction);
         session.Release(service);
         checks.True($"{service.Name}: reaches Execute", executing, $"state={session.State(service)}");
-        checks.Equal($"{service.Name}: SVID {HolderSpeedSvid} in Execute", expected, session.Read<string>(speed));
+        checks.Equal($"{service.Name}: SVID {svidId} in Execute", expected, session.Read<string>(speed));
 
         bool stopped = await session.RunSettledAsync(service, PackMLCommand.Stop, PackMLState.Stopped);
         checks.True($"{service.Name}: Stopped", stopped, $"state={session.State(service)}");
-        checks.Equal($"{service.Name}: SVID {HolderSpeedSvid} after Stop", "0", session.Read<string>(speed));
+        checks.Equal($"{service.Name}: SVID {svidId} after Stop", "0", session.Read<string>(speed));
         await session.EnsureIdleAsync(service);
     }
 
@@ -796,12 +951,12 @@ internal static class Scenarios
         return completed && session.Read<string>(Svid) == mode.ToString();
     }
 
-    private static async Task<bool> SetConfigToAsync(PlcSession session, string value)
+    private static async Task<bool> SetConfigToAsync(PlcSession session, uint ecid, string value)
     {
         await session.EnsureIdleAsync(SetConfig);
         try
         {
-            WriteBatch(session, ConfigEcid, Integer32, value);
+            WriteBatch(session, ecid, Integer32, value);
             session.Send(SetConfig, PackMLCommand.Start, session.NextRequestId());
             bool completed = await session.WaitForStateAsync(SetConfig, PackMLState.Complete, Reaction);
             session.Release(SetConfig);

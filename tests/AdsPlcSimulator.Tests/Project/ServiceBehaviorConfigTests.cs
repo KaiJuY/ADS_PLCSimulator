@@ -107,6 +107,47 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
 
     [Fact]
     [Trait("AC", "1")]
+    [Trait("AC", "2")]
+    [Trait("AC", "5")]
+    [Trait("AC", "6")]
+    [Trait("AC", "8")]
+    [Trait("AC", "10")]
+    public void The_Polar2_file_has_24_services_with_the_batch_2_rules_and_none_for_services_without_an_SVID()
+    {
+        ModuleConfigFile config = ModuleConfigPublisher.Parse(File.ReadAllText(System.IO.Path.Combine(TestPaths.Polar2Project, "config", "module-config.json")), "module-config.json");
+        ModuleConfigEntry slot = config.Modules!.Single(entry => entry!.Enabled)!;
+        int SvidPosition(uint id) => slot.VariableList!.FindIndex(item => item!.Id == id) + 1;
+        int EcidPosition(uint id) => slot.ConfigParamList!.FindIndex(item => item!.Id == id) + 1;
+
+        IReadOnlyDictionary<string, ServiceBehavior> services = ServiceBehaviorLoader.LoadIfPresent(TestPaths.Polar2Project, s_polar2.Value.Symbols, config)!.For(Module1)!.Services;
+
+        Assert.Equal(24, services.Count);
+        Assert.Equal(new ParamRange("Position", 0, 360), services["Holder.Rotate.MoveModulo"].Ranges.Single());
+        Assert.Equal($"ModuleVariableList[{SvidPosition(53)}].Value", services["Holder.Rotate.MoveModulo"].OnEnter.Single().Target);
+        Assert.Equal(new SvidValue(SvidValueKind.Ecid, 0, $"ModuleConfigParamList[{EcidPosition(361)}].Value", true), services["OutsideRing.Rotate.MoveVelocityCCW"].OnEnter.Single().Value);
+        Assert.Equal($"ModuleVariableList[{SvidPosition(58)}].Value", services["OutsideRing.Rotate.MoveVelocityCW"].OnLeave.Single().Target);
+        Assert.Equal(
+            [$"ModuleVariableList[{SvidPosition(51)}].Value", $"ModuleVariableList[{SvidPosition(52)}].Value"],
+            services["Cup[4].Lift.IncrementalJog"].BeforeComplete.Select(write => write.Target).ToArray());
+        Assert.All(services["Cup[4].Lift.IncrementalJog"].BeforeComplete, write =>
+        {
+            Assert.True(write.IsReal);
+            Assert.Equal(new SvidValue(SvidValueKind.AddParam, 0, "Position", false), write.Value);
+        });
+        Assert.Equal(
+            [$"ModuleConfigParamList[{EcidPosition(312)}].Value", $"ModuleConfigParamList[{EcidPosition(312)}].Value"],
+            services["Cup[4].Lift.TopPos"].BeforeComplete.Select(write => write.Value.Source!).ToArray());
+        Assert.Equal($"ModuleConfigParamList[{EcidPosition(314)}].Value", services["Cup[4].Lift.MiddlePos"].BeforeComplete[1].Value.Source);
+        Assert.Equal($"ModuleConfigParamList[{EcidPosition(289)}].Value", services["Cup[2].Lift.DownPos"].BeforeComplete[0].Value.Source);
+        Assert.Equal($"ModuleVariableList[{SvidPosition(49)}].Value", services["Cup[3].Lift.TopPos"].BeforeComplete[0].Target);
+        Assert.All(services["Cup[1].Lift.TopPos"].BeforeComplete, write => Assert.False(write.DryRunZero));
+        Assert.All(
+            ["Shutter.Open", "Cup[1].Lift.JogPositive", "Cup[2].Drainer.Select3", "Holder.Gripper.Open"],
+            key => Assert.DoesNotContain(key, services.Keys));
+    }
+
+    [Fact]
+    [Trait("AC", "1")]
     public void A_service_entry_is_built_with_ranges_duration_and_typed_SVID_writes()
     {
         const string services = """
