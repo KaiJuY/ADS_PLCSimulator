@@ -12,7 +12,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
     private const string SmallProgram = """
         TYPE ST_ServiceCtrl : STRUCT RequestId : UDINT; END_STRUCT END_TYPE
         TYPE ST_Ctrls : STRUCT A : ST_ServiceCtrl; B : ST_ServiceCtrl; Plain : UDINT; END_STRUCT END_TYPE
-        TYPE ST_ParamA : STRUCT Index : UINT; Count : DINT; Time : TIME; Speed : REAL; Flag : BOOL; Big : ULINT; END_STRUCT END_TYPE
+        TYPE ST_ParamA : STRUCT Index : UINT; Count : DINT; Time : TIME; Speed : REAL; Flag : BOOL; Big : ULINT; Angle : LREAL; END_STRUCT END_TYPE
         TYPE ST_Params : STRUCT A : ST_ParamA; B : ST_ParamA; END_STRUCT END_TYPE
         TYPE ST_ExtDescriptor : STRUCT Id : UDINT; Value : STRING(80); END_STRUCT END_TYPE
         TYPE ST_Module : STRUCT
@@ -186,8 +186,15 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         { Json("""{ "A": { "onEnter": null } }"""), "must not be null" },
         { Json("""{ "A": { "onEnter": [ null ] } }"""), "services.A.onEnter[1] is null" },
         { Json("""{ "A": { "ranges": [ { "field": "Nope", "min": 1, "max": 2 } ] } }"""), "services.A: cannot resolve" },
-        { Json("""{ "A": { "ranges": [ { "field": "Time", "min": 1, "max": 2 } ] } }"""), "TIME, not an integer" },
-        { Json("""{ "A": { "ranges": [ { "field": "Big", "min": 1, "max": 2 } ] } }"""), "ULINT, not an integer" },
+        { Json("""{ "A": { "ranges": [ { "field": "Time", "min": 1, "max": 2 } ] } }"""), "TIME, not an integer or REAL" },
+        { Json("""{ "A": { "ranges": [ { "field": "Big", "min": 1, "max": 2 } ] } }"""), "ULINT, not an integer or REAL" },
+        { Json("""{ "A": { "ranges": [ { "field": "Index", "min": 1.5, "max": 4 } ] } }"""), "UINT, so min and max must be integers" },
+        { Json("""{ "A": { "ranges": [ { "field": "Index", "min": 1, "max": 1e16 } ] } }"""), "so min and max must be integers" },
+        { Json("""{ "A": { "ranges": [ { "field": "Angle", "min": 1e999, "max": 4 } ] } }"""), "services.A.ranges[1]: min and max must be finite numbers" },
+        { Json("""{ "A": { "ranges": [ { "field": "Angle", "min": 0, "max": -1e999 } ] } }"""), "min and max must be finite numbers" },
+        { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "addParam": " " } } ] } }"""), "services.A.onEnter[1]: addParam is empty" },
+        { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "addParam": "Flag" } } ] } }"""), "BOOL, not an integer or REAL" },
+        { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "constant": 1, "addParam": "Speed" } } ] } }"""), "exactly one of constant, param, ecid and addParam" },
         { Json("""{ "A": { "ranges": [ { "field": " ", "min": 1, "max": 2 } ] } }"""), "services.A.ranges[1]: field is empty" },
         { Json("""{ "A": { "ranges": [ { "field": "Index", "min": 3, "max": 2 } ] } }"""), "services.A.ranges[1]: min is greater than max" },
         { Json("""{ "A": { "ranges": [ { "field": "Index", "max": 2 } ] } }"""), "min and max are required" },
@@ -199,8 +206,8 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "ecid": 12 } } ] } }"""), "ECID 12 is BOOL, not DINT or REAL" },
         { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "ecid": 99 } } ] } }"""), "ECID 99 is not in module-config.json" },
         { Json("""{ "A": { "onEnter": [ { "svid": 5 } ] } }"""), "services.A.onEnter[1]: value is missing" },
-        { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": {} } ] } }"""), "exactly one of constant, param and ecid" },
-        { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "constant": 1, "ecid": 10 } } ] } }"""), "exactly one of constant, param and ecid" },
+        { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": {} } ] } }"""), "exactly one of constant, param, ecid and addParam" },
+        { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "constant": 1, "ecid": 10 } } ] } }"""), "exactly one of constant, param, ecid and addParam" },
         { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "param": " " } } ] } }"""), "param is empty" },
         { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "param": "Flag" } } ] } }"""), "BOOL, not an integer or REAL" },
         { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "constant": 2.5 } } ] } }"""), "does not fit a DINT SVID" },
@@ -246,6 +253,35 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         string services = $$"""{ "A": { "onEnter": [ { "svid": 5, "value": { "constant": {{constant}} } } ] } }""";
 
         Assert.Equal((double)constant, Module(Json(services)).Services["A"].OnEnter.Single().Value.Constant);
+    }
+
+    [Theory]
+    [Trait("AC", "3")]
+    [InlineData("Speed", 0.5, 2.5)]
+    [InlineData("Angle", 0, 360)]
+    [InlineData("Angle", -0.25, 1e300)]
+    public void A_REAL_or_LREAL_field_takes_fractional_bounds(string field, double min, double max)
+    {
+        string range = string.Create(System.Globalization.CultureInfo.InvariantCulture, $$"""{ "field": "{{field}}", "min": {{min}}, "max": {{max}} }""");
+        string services = $$"""{ "A": { "ranges": [ {{range}} ] } }""";
+
+        Assert.Equal(new ParamRange(field, min, max), Module(Json(services)).Services["A"].Ranges.Single());
+    }
+
+    [Fact]
+    [Trait("AC", "7")]
+    public void An_addParam_value_is_built_with_the_field_and_the_Negate_flag()
+    {
+        const string services = """
+            { "A": { "beforeComplete": [
+                { "svid": 6, "value": { "addParam": "Speed" } },
+                { "svid": 5, "value": { "addParam": "Angle", "negate": true } } ] } }
+            """;
+
+        IReadOnlyList<SvidWrite> writes = Module(Json(services)).Services["A"].BeforeComplete;
+
+        Assert.Equal(new SvidValue(SvidValueKind.AddParam, 0, "Speed", false), writes[0].Value);
+        Assert.Equal(new SvidValue(SvidValueKind.AddParam, 0, "Angle", true), writes[1].Value);
     }
 
     [Fact]

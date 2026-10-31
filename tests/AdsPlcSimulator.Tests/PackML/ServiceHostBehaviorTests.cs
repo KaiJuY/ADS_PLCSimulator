@@ -373,6 +373,78 @@ public class ServiceHostBehaviorTests
         Assert.False(fixture.Host.IsExecuteRejected(PathA));
     }
 
+    private static ServiceBehaviorTable AngleBehaviors(ParamRange[] ranges, SvidWrite[] beforeComplete) => new(new Dictionary<string, ModuleBehavior>
+    {
+        [Module] = new ModuleBehavior(
+            "ModuleVariableList[1].Value",
+            [new ModeRule(1, "Manual", false, ModeRuleKind.DenyListed, new HashSet<string>())],
+            new Dictionary<string, ServiceBehavior> { ["A"] = new(ranges, "Time", [], beforeComplete, []) }),
+    });
+
+    [Fact]
+    [Trait("AC", "4")]
+    public void An_LREAL_parameter_out_of_range_aborts_with_the_integer_part_and_the_bounds_in_the_message()
+    {
+        HostFixture fixture = Arrange("1", AngleBehaviors([new ParamRange("Angle", 0, 360)], []));
+        fixture.Write($"{Module}.ServiceParam.A.Angle", 400.5);
+
+        StartAndScan(fixture);
+        ReleaseAndScan(fixture);
+
+        Assert.Equal(PackMLState.Aborted, fixture.ServiceState(1, "A"));
+        Assert.Equal(1, ErrorField(fixture, 1, "MainErrorId"));
+        Assert.Equal(400, ErrorField(fixture, 1, "SourceErrorId"));
+        Assert.Equal("Angle out of range (0~360).", fixture.Read($"{ErrorOfA}[1].Message"));
+    }
+
+    private static HostFixture ArrangeAddAngle()
+    {
+        var add = new SvidWrite("ModuleVariableList[3].Value", true, new SvidValue(SvidValueKind.AddParam, 0, "Angle", false), false);
+        HostFixture fixture = Arrange("1", AngleBehaviors([], [add]));
+        fixture.Write($"{Module}.ServiceParam.A.Angle", 5.0);
+        fixture.Write($"{Module}.ModuleVariableList[3].Value", "10.0");
+        return fixture;
+    }
+
+    [Fact]
+    [Trait("AC", "8")]
+    public void AddParam_adds_the_field_once_per_Complete()
+    {
+        HostFixture fixture = ArrangeAddAngle();
+
+        StartAndScan(fixture);
+        ReleaseAndScan(fixture);
+        fixture.Scan(TimeSpan.FromMilliseconds(2000));
+        fixture.Scan();
+        Assert.Equal(PackMLState.Complete, fixture.ServiceState(1, "A"));
+        Assert.Equal("15.0", Svid(fixture, 3));
+
+        fixture.ServiceCommand(1, "A", PackMLCommand.Reset, 2);
+        fixture.Scan();
+        Assert.Equal(PackMLState.Idle, fixture.ServiceState(1, "A"));
+        fixture.ServiceCommand(1, "A", PackMLCommand.Start, 3);
+        fixture.Scan(TimeSpan.FromMilliseconds(2000));
+        fixture.Scan();
+
+        Assert.Equal(PackMLState.Complete, fixture.ServiceState(1, "A"));
+        Assert.Equal("20.0", Svid(fixture, 3));
+    }
+
+    [Fact]
+    [Trait("AC", "8")]
+    public void AddParam_writes_nothing_when_the_service_is_stopped_in_Execute()
+    {
+        HostFixture fixture = ArrangeAddAngle();
+        StartAndScan(fixture);
+        ReleaseAndScan(fixture);
+
+        fixture.SendToService(1, "A", PackMLCommand.Stop, 2);
+        fixture.Scan();
+
+        Assert.NotEqual(PackMLState.Execute, fixture.ServiceState(1, "A"));
+        Assert.Equal("10.0", Svid(fixture, 3));
+    }
+
     [Fact]
     [Trait("AC", "5")]
     public void IsExecuteRejected_refuses_a_path_that_is_not_a_bound_service()
