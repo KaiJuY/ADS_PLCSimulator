@@ -10,6 +10,7 @@ internal sealed class PlcSession(AdsClient client)
     private static readonly TimeSpan ReactionTimeout = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan SettleTimeout = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan NegativeWindow = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan EdgeGap = TimeSpan.FromMilliseconds(30);
 
     private uint _requestId = 1000;
 
@@ -37,6 +38,8 @@ internal sealed class PlcSession(AdsClient client)
     public void Send(Endpoint endpoint, PackMLCommand command, uint requestId)
     {
         Write($"{endpoint.Ctrl}.PackMLIn.bCommandChangeRequest", false);
+        // The PLC sees an edge only if one scan reads the FALSE; a FALSE and TRUE written within one 10 ms scan are lost (S6/S7 failed this way).
+        Thread.Sleep(EdgeGap);
         Write($"{endpoint.Ctrl}.RequestId", requestId);
         Write($"{endpoint.Ctrl}.PackMLIn.eCommand", (short)command);
         Write($"{endpoint.Ctrl}.PackMLIn.bCommandChangeRequest", true);
