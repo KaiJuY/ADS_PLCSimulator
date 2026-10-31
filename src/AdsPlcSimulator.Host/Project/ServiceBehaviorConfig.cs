@@ -49,6 +49,14 @@ internal sealed record RangeConfig
     public double? Min { get; init; }
 
     public double? Max { get; init; }
+
+    internal static readonly (Func<RangeConfig, bool> Invalid, string Message)[] Rules =
+    [
+        (range => string.IsNullOrWhiteSpace(range.Field), "{0}: field is empty."),
+        (range => range.Min is null || range.Max is null, "{0}: min and max are required."),
+        (range => !double.IsFinite(range.Min!.Value) || !double.IsFinite(range.Max!.Value), "{0}: min and max must be finite numbers."),
+        (range => range.Min > range.Max, "{0}: min is greater than max."),
+    ];
 }
 
 internal sealed record SvidWriteConfig
@@ -58,6 +66,16 @@ internal sealed record SvidWriteConfig
     public ValueConfig? Value { get; init; }
 
     public bool DryRunZero { get; init; }
+
+    internal static readonly (Func<SvidWriteConfig, bool> Invalid, string Message)[] Rules =
+    [
+        (write => write.Svid == 0, "{0}: svid must be greater than 0."),
+        (write => write.Value is null, "{0}: value is missing."),
+        (write => write.Value!.SourceCount() != 1, "{0}: value needs exactly one of constant, param, ecid and addParam."),
+        (write => write.Value!.Param is not null && string.IsNullOrWhiteSpace(write.Value.Param), "{0}: param is empty."),
+        (write => write.Value!.AddParam is not null && string.IsNullOrWhiteSpace(write.Value.AddParam), "{0}: addParam is empty."),
+        (write => write.Value!.Constant is { } constant && !double.IsFinite(constant), "{0}: constant must be a finite number."),
+    ];
 }
 
 internal sealed record ValueConfig
@@ -71,6 +89,9 @@ internal sealed record ValueConfig
     public string? AddParam { get; init; }
 
     public bool Negate { get; init; }
+
+    internal int SourceCount() =>
+        (Constant is null ? 0 : 1) + (Param is null ? 0 : 1) + (Ecid is null ? 0 : 1) + (AddParam is null ? 0 : 1);
 }
 
 internal static class ServiceBehaviorLoader
@@ -101,24 +122,6 @@ internal static class ServiceBehaviorLoader
         (mode => mode.Value is < 0 or > MaxModeValue, "{0}: value must be 0..4294967294."),
         (mode => string.IsNullOrWhiteSpace(mode.Name), "{0}: name is empty."),
         (mode => (mode.Allow is null) == (mode.Deny is null), "{0}: exactly one of allow and deny is required."),
-    ];
-
-    private static readonly (Func<RangeConfig, bool> Invalid, string Message)[] RangeRules =
-    [
-        (range => string.IsNullOrWhiteSpace(range.Field), "{0}: field is empty."),
-        (range => range.Min is null || range.Max is null, "{0}: min and max are required."),
-        (range => !double.IsFinite(range.Min!.Value) || !double.IsFinite(range.Max!.Value), "{0}: min and max must be finite numbers."),
-        (range => range.Min > range.Max, "{0}: min is greater than max."),
-    ];
-
-    private static readonly (Func<SvidWriteConfig, bool> Invalid, string Message)[] WriteRules =
-    [
-        (write => write.Svid == 0, "{0}: svid must be greater than 0."),
-        (write => write.Value is null, "{0}: value is missing."),
-        (write => ValueSourceCount(write.Value!) != 1, "{0}: value needs exactly one of constant, param, ecid and addParam."),
-        (write => write.Value!.Param is not null && string.IsNullOrWhiteSpace(write.Value.Param), "{0}: param is empty."),
-        (write => write.Value!.AddParam is not null && string.IsNullOrWhiteSpace(write.Value.AddParam), "{0}: addParam is empty."),
-        (write => write.Value!.Constant is { } constant && !double.IsFinite(constant), "{0}: constant must be a finite number."),
     ];
 
     public static ServiceBehaviorTable? LoadIfPresent(string projectDirectory, SymbolTable symbols, ModuleConfigFile? moduleConfig)
@@ -171,9 +174,6 @@ internal static class ServiceBehaviorLoader
 
         return new ServiceBehaviorTable(byModule);
     }
-
-    private static int ValueSourceCount(ValueConfig value) =>
-        (value.Constant is null ? 0 : 1) + (value.Param is null ? 0 : 1) + (value.Ecid is null ? 0 : 1) + (value.AddParam is null ? 0 : 1);
 
     private static void ValidateModes(List<ModeConfig?> modes, string path)
     {
@@ -233,10 +233,10 @@ internal static class ServiceBehaviorLoader
         if (service.Duration is not null && string.IsNullOrWhiteSpace(service.Duration))
             throw ModuleConfigPublisher.Fail(path, $"{where}: duration is empty.");
 
-        ValidateEach(service.Ranges, $"{where}.ranges", RangeRules, path);
-        ValidateEach(service.OnEnter, $"{where}.onEnter", WriteRules, path);
-        ValidateEach(service.BeforeComplete, $"{where}.beforeComplete", WriteRules, path);
-        ValidateEach(service.OnLeave, $"{where}.onLeave", WriteRules, path);
+        ValidateEach(service.Ranges, $"{where}.ranges", RangeConfig.Rules, path);
+        ValidateEach(service.OnEnter, $"{where}.onEnter", SvidWriteConfig.Rules, path);
+        ValidateEach(service.BeforeComplete, $"{where}.beforeComplete", SvidWriteConfig.Rules, path);
+        ValidateEach(service.OnLeave, $"{where}.onLeave", SvidWriteConfig.Rules, path);
     }
 
     private static void ValidateEach<T>(List<T?> items, string where, (Func<T, bool> Invalid, string Message)[] rules, string path)
