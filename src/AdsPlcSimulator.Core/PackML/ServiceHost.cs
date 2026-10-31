@@ -326,8 +326,6 @@ public sealed class ServiceHost
         bool modeRequestHigh = effective.ModeRequest;
         service.Machine.Scan(effective, state => IsServiceActingStateDone(service, state, image, modeRequestHigh, now));
         service.LastState = service.Machine.State;
-        if (service.Machine.State != PackMLState.Starting)
-            service.ResetStarting();
         if (before != PackMLState.Execute && service.Machine.State == PackMLState.Execute)
             EnterExecute(service, image, now);
         service.OnScanned(before, alive, _alive, now);
@@ -682,6 +680,8 @@ public sealed class ServiceHost
 
         public void OnScanned(PackMLState before, AliveInput input, AliveSettings settings, TimeSpan now)
         {
+            if (Machine.State != PackMLState.Starting)
+                ResetStarting();
             if (Alive is null)
                 return;
             if (Machine.State != PackMLState.Execute)

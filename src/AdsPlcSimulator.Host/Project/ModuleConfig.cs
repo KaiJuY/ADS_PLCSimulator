@@ -236,23 +236,31 @@ internal static class ModuleConfigPublisher
 
     private static void ValidateLimits(DescriptorConfig item, bool isConfigParam, string where, string path)
     {
-        bool hasLower = item.LowerLimit is not null;
-        bool hasUpper = item.UpperLimit is not null;
-        if (!hasLower && !hasUpper)
+        if (item.LowerLimit is null && item.UpperLimit is null)
             return;
-        if (!isConfigParam)
-            throw Fail(path, $"{where}: id {item.Id}: lowerLimit/upperLimit are only for configParamList.");
-        if (hasLower != hasUpper)
-            throw Fail(path, $"{where}: id {item.Id}: lowerLimit and upperLimit must be given together.");
 
-        (double lowerBound, double upperBound)? range = DataTypes[item.DataType!].Range;
-        if (range is null)
-            throw Fail(path, $"{where}: id {item.Id}: BOOL and STRING must not declare limits.");
+        (double Lower, double Upper)? range = DataTypes[item.DataType!].Range;
+        object?[] args = [$"{where}: id {item.Id}: ", range?.Lower, range?.Upper];
+        foreach ((Func<DescriptorConfig, bool, bool> invalid, string message) in LimitRules)
+        {
+            if (invalid(item, isConfigParam))
+                throw Fail(path, string.Format(message, args));
+        }
+    }
 
-        double lower = item.LowerLimit!.Value;
-        double upper = item.UpperLimit!.Value;
-        if (lower > upper || lower < range.Value.lowerBound || upper > range.Value.upperBound)
-            throw Fail(path, $"{where}: id {item.Id}: limits must satisfy lower <= upper within {range.Value.lowerBound}..{range.Value.upperBound}.");
+    /// <summary>Checked in order, after at least one limit is given; {0} prefix, {1} lower bound and {2} upper bound of the data type.</summary>
+    private static readonly (Func<DescriptorConfig, bool, bool> Invalid, string Message)[] LimitRules =
+    [
+        ((_, isConfigParam) => !isConfigParam, "{0}lowerLimit/upperLimit are only for configParamList."),
+        ((item, _) => (item.LowerLimit is null) != (item.UpperLimit is null), "{0}lowerLimit and upperLimit must be given together."),
+        ((item, _) => DataTypes[item.DataType!].Range is null, "{0}BOOL and STRING must not declare limits."),
+        ((item, _) => IsOutsideRange(item), "{0}limits must satisfy lower <= upper within {1}..{2}."),
+    ];
+
+    private static bool IsOutsideRange(DescriptorConfig item)
+    {
+        (double lowerBound, double upperBound) = DataTypes[item.DataType!].Range!.Value;
+        return item.LowerLimit > item.UpperLimit || item.LowerLimit < lowerBound || item.UpperLimit > upperBound;
     }
 
     private static bool IsAscii(string text) => text.All(character => character < 128);

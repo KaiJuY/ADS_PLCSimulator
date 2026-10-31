@@ -43,32 +43,25 @@ internal static class ConfigParamValue
         [11] = UnsignedInteger16,
     };
 
+    private static readonly Dictionary<int, Func<string, bool>> StrictRules = new()
+    {
+        [String80] = value => value.Length <= 80,
+        [Boolean] = value => value is "TRUE" or "FALSE",
+        [Integer8] = value => IsStrictInteger(value, signed: true),
+        [UnsignedInteger8] = value => IsStrictInteger(value, signed: false),
+        [Integer16] = value => IsStrictInteger(value, signed: true),
+        [UnsignedInteger16] = value => IsStrictInteger(value, signed: false),
+        [Integer32] = value => IsStrictInteger(value, signed: true),
+        [UnsignedInteger32] = value => IsStrictInteger(value, signed: false),
+        [Float32] = IsStrictFloat,
+        [Float64] = IsStrictFloat,
+    };
+
     // FW: M_ValidateConfigParamBatch numeric branch
     public static bool IsNumeric(int configDataType) => TypeRanges.ContainsKey(configDataType) || configDataType == Float64;
 
-    public static bool IsStrict(string value, int configDataType)
-    {
-        if (configDataType == String80)
-            return value.Length <= 80;
-        if (configDataType == Boolean)
-            return value is "TRUE" or "FALSE";
-        if (value.Length == 0)
-            return false;
-
-        int start = 0;
-        if (IsSigned(configDataType) && value[0] is ('+' or '-'))
-        {
-            start = 1;
-            if (value.Length == 1)
-                return false;
-        }
-
-        if (configDataType is Integer8 or UnsignedInteger8 or Integer16 or UnsignedInteger16 or Integer32 or UnsignedInteger32)
-            return AllDigits(value, start);
-        if (configDataType is not (Float32 or Float64))
-            return false;
-        return IsStrictFloat(value, start);
-    }
+    public static bool IsStrict(string value, int configDataType) =>
+        StrictRules.TryGetValue(configDataType, out Func<string, bool>? rule) && rule(value);
 
     public static bool IsInTypeRange(double value, int configDataType) =>
         !TypeRanges.TryGetValue(configDataType, out (double Lower, double Upper) range)
@@ -94,24 +87,21 @@ internal static class ConfigParamValue
     public static int? ToConfigDataType(long descriptorType) =>
         FromDescriptor.TryGetValue(descriptorType, out int configType) ? configType : null;
 
-    private static bool IsSigned(int configDataType) =>
-        configDataType is Integer8 or Integer16 or Integer32 or Float32 or Float64;
-
-    private static bool AllDigits(string value, int start)
+    private static bool IsStrictInteger(string value, bool signed)
     {
-        for (int index = start; index < value.Length; index++)
-        {
-            if (!IsDigit(value[index]))
-                return false;
-        }
-
-        return true;
+        int start = SignLength(value, signed);
+        return start < value.Length && AllDigits(value, start);
     }
 
-    private static bool IsDigit(char c) => c is >= '0' and <= '9';
+    private static int SignLength(string value, bool signed) =>
+        signed && value.Length > 0 && value[0] is '+' or '-' ? 1 : 0;
 
-    private static bool IsStrictFloat(string value, int start)
+    private static bool AllDigits(string value, int start) =>
+        value.AsSpan(start).IndexOfAnyExceptInRange('0', '9') < 0;
+
+    private static bool IsStrictFloat(string value)
     {
+        int start = SignLength(value, signed: true);
         var state = new FloatState();
         for (int index = start; index < value.Length; index++)
         {
@@ -122,25 +112,32 @@ internal static class ConfigParamValue
         return state.Digit && (!state.Exponent || state.ExponentDigit);
     }
 
-    private struct FloatState
+    private sealed class FloatState
     {
-        public bool Digit;
-        public bool Dot;
-        public bool Exponent;
-        public bool ExponentDigit;
+        private static readonly Dictionary<char, Func<FloatState, string, int, bool>> Rules = new()
+        {
+            ['.'] = (state, _, _) => state.AcceptDot(),
+            ['e'] = (state, _, _) => state.AcceptExponent(),
+            ['E'] = (state, _, _) => state.AcceptExponent(),
+            ['+'] = (_, value, index) => value[index - 1] is 'e' or 'E',
+            ['-'] = (_, value, index) => value[index - 1] is 'e' or 'E',
+        };
 
+        public bool Digit { get; private set; }
+
+        public bool Dot { get; private set; }
+
+        public bool Exponent { get; private set; }
+
+        public bool ExponentDigit { get; private set; }
+
+        // A sign is valid only right after e/E: that e/E was accepted, so it set Exponent and no exponent digit has followed yet.
         public bool Accept(string value, int index)
         {
             char c = value[index];
-            if (IsDigit(c))
+            if (char.IsAsciiDigit(c))
                 return AcceptDigit();
-            if (c == '.')
-                return AcceptDot();
-            if (c is 'e' or 'E')
-                return AcceptExponent();
-            if (c is '+' or '-')
-                return Exponent && !ExponentDigit && index > 0 && value[index - 1] is ('e' or 'E');
-            return false;
+            return Rules.TryGetValue(c, out Func<FloatState, string, int, bool>? rule) && rule(this, value, index);
         }
 
         private bool AcceptDigit()

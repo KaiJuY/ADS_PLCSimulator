@@ -184,6 +184,40 @@ public class ServiceHostSetConfigTests
 
     [Theory]
     [Trait("AC", "3")]
+    [InlineData(101, Integer32, "2147483648")]
+    [InlineData(102, Float32, "1e39")]
+    public void A_value_outside_the_data_type_range_is_out_of_range(long id, long dataType, string value)
+    {
+        HostFixture fixture = Create();
+        Item(fixture, 1, id, dataType, value);
+
+        StartA(fixture);
+        ReleaseAndScan(fixture);
+
+        Assert.Equal(PackMLState.Aborted, State(fixture));
+        Assert.Equal(926, Number(fixture, $"{ErrorList}.MainErrorId"));
+        Assert.Equal(id, Number(fixture, $"{ErrorList}.SourceErrorId"));
+        Assert.Equal(OriginalValues, Values(fixture));
+    }
+
+    [Fact]
+    [Trait("AC", "3")]
+    public void A_float_that_overflows_to_infinity_is_an_invalid_format_not_out_of_range()
+    {
+        HostFixture fixture = Create();
+        Item(fixture, 1, 102, Float32, "1e999");
+
+        StartA(fixture);
+        ReleaseAndScan(fixture);
+
+        Assert.Equal(PackMLState.Aborted, State(fixture));
+        Assert.Equal(925, Number(fixture, $"{ErrorList}.MainErrorId"));
+        Assert.Equal(102, Number(fixture, $"{ErrorList}.SourceErrorId"));
+        Assert.Equal(OriginalValues, Values(fixture));
+    }
+
+    [Theory]
+    [Trait("AC", "3")]
     [InlineData("101", false)]
     [InlineData("100", true)]
     [InlineData("0", true)]

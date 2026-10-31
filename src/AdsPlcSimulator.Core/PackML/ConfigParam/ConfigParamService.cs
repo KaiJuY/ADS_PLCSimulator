@@ -194,16 +194,9 @@ internal sealed class ConfigParamService
             if (array.Type.Unaliased is not ArrayType { Dimensions.Count: 1 } arrayType || arrayType.ElementType.Unaliased is not StructType element)
                 return null;
 
-            var members = new Dictionary<string, StructMember>(shape.Length);
-            foreach ((string name, Func<PlcType, bool> accepts) in shape)
-            {
-                StructMember? member = PlcLayout.Find(element, name);
-                if (member is null || !accepts(member.Type))
-                    return null;
-                members[name] = member;
-            }
-
-            return new StructArray(array, arrayType.Dimensions[0], element.Size, members);
+            Dictionary<string, StructMember?> found = shape.ToDictionary(rule => rule.Name, rule => PlcLayout.Find(element, rule.Name));
+            bool matches = shape.All(rule => found[rule.Name] is { } member && rule.Accepts(member.Type));
+            return matches ? new StructArray(array, arrayType.Dimensions[0], element.Size, found!) : null;
         }
 
         public SymbolRef Symbol(int index, string member)
