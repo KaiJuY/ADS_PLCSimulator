@@ -67,6 +67,10 @@ internal sealed record DescriptorConfig
     public string? Unit { get; init; }
 
     public string? DataType { get; init; }
+
+    public double? LowerLimit { get; init; }
+
+    public double? UpperLimit { get; init; }
 }
 
 internal static class ModuleConfigPublisher
@@ -79,12 +83,12 @@ internal static class ModuleConfigPublisher
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    private static readonly Dictionary<string, (string EnumMember, string InitialValue)> DataTypes = new(StringComparer.Ordinal)
+    private static readonly Dictionary<string, (string EnumMember, string InitialValue, (double Lower, double Upper)? Range)> DataTypes = new(StringComparer.Ordinal)
     {
-        ["DINT"] = ("Integer_32bit", "0"),
-        ["REAL"] = ("Float_32bit", "0"),
-        ["BOOL"] = ("Boolean", "FALSE"),
-        ["STRING"] = ("String_80byte", ""),
+        ["DINT"] = ("Integer_32bit", "0", (-2147483648d, 2147483647d)),
+        ["REAL"] = ("Float_32bit", "0", (-3.402823466E38, 3.402823466E38)),
+        ["BOOL"] = ("Boolean", "FALSE", null),
+        ["STRING"] = ("String_80byte", "", null),
     };
 
     public static ModuleConfigResult? PublishIfPresent(string projectDirectory, SymbolTable symbols, ProcessImage image)
@@ -146,8 +150,8 @@ internal static class ModuleConfigPublisher
         if (module.ModuleType is not null && !IsAscii(module.ModuleType))
             throw Fail(path, $"slot {module.Slot}: moduleType contains non-ASCII characters.");
 
-        ValidateList(module.VariableList, "variableList", module.Slot, path);
-        ValidateList(module.ConfigParamList, "configParamList", module.Slot, path);
+        ValidateList(module.VariableList, "variableList", isConfigParam: false, module.Slot, path);
+        ValidateList(module.ConfigParamList, "configParamList", isConfigParam: true, module.Slot, path);
         ValidateAlarms(module.AlarmList, module.Slot, path);
     }
 
@@ -199,7 +203,7 @@ internal static class ModuleConfigPublisher
         _ => null,
     };
 
-    private static void ValidateList(List<DescriptorConfig?>? list, string listName, int slot, string path)
+    private static void ValidateList(List<DescriptorConfig?>? list, string listName, bool isConfigParam, int slot, string path)
     {
         if (list is null)
             throw Fail(path, $"slot {slot}: {listName} is null.");
@@ -210,6 +214,7 @@ internal static class ModuleConfigPublisher
             if (item is null)
                 throw Fail(path, $"slot {slot}: {listName} contains a null element.");
             ValidateDescriptor(item, $"slot {slot} {listName}", path);
+            ValidateLimits(item, isConfigParam, $"slot {slot} {listName}", path);
             if (item.Id == 0)
                 throw Fail(path, $"slot {slot} {listName}: id of '{item.Name}' must not be 0.");
             if (!ids.Add(item.Id))
@@ -227,6 +232,27 @@ internal static class ModuleConfigPublisher
             throw Fail(path, $"{where}: name or unit of id {item.Id} contains non-ASCII characters.");
         if (!DataTypes.ContainsKey(item.DataType))
             throw Fail(path, $"{where}: dataType '{item.DataType}' of id {item.Id} is not one of DINT, REAL, BOOL, STRING.");
+    }
+
+    private static void ValidateLimits(DescriptorConfig item, bool isConfigParam, string where, string path)
+    {
+        bool hasLower = item.LowerLimit is not null;
+        bool hasUpper = item.UpperLimit is not null;
+        if (!hasLower && !hasUpper)
+            return;
+        if (!isConfigParam)
+            throw Fail(path, $"{where}: id {item.Id}: lowerLimit/upperLimit are only for configParamList.");
+        if (hasLower != hasUpper)
+            throw Fail(path, $"{where}: id {item.Id}: lowerLimit and upperLimit must be given together.");
+
+        (double lowerBound, double upperBound)? range = DataTypes[item.DataType!].Range;
+        if (range is null)
+            throw Fail(path, $"{where}: id {item.Id}: BOOL and STRING must not declare limits.");
+
+        double lower = item.LowerLimit!.Value;
+        double upper = item.UpperLimit!.Value;
+        if (lower > upper || lower < range.Value.lowerBound || upper > range.Value.upperBound)
+            throw Fail(path, $"{where}: id {item.Id}: limits must satisfy lower <= upper within {range.Value.lowerBound}..{range.Value.upperBound}.");
     }
 
     private static bool IsAscii(string text) => text.All(character => character < 128);
@@ -318,7 +344,7 @@ internal static class ModuleConfigPublisher
 
         private void AddDescriptor(string itemPath, DescriptorConfig item, bool isConfigParam)
         {
-            (string enumMember, string initialValue) = DataTypes[item.DataType!];
+            (string enumMember, string initialValue, (double Lower, double Upper)? range) = DataTypes[item.DataType!];
             CheckLength($"{itemPath}.Name", item.Name!, "name");
             CheckLength($"{itemPath}.Unit", item.Unit!, "unit");
             Add($"{itemPath}.Id", (long)item.Id);
@@ -330,8 +356,12 @@ internal static class ModuleConfigPublisher
                 return;
 
             Add($"{itemPath}.IsBound", true);
-            // Stryker disable once Statement: the process image starts zeroed, so FALSE is already there; the write documents the published value
-            Add($"{itemPath}.HasLimits", false);
+            if (range is null)
+                return;
+
+            Add($"{itemPath}.HasLimits", true);
+            Add($"{itemPath}.LowerLimit", item.LowerLimit ?? range.Value.Lower);
+            Add($"{itemPath}.UpperLimit", item.UpperLimit ?? range.Value.Upper);
         }
 
         private void CheckLength(string symbolPath, string text, string what)

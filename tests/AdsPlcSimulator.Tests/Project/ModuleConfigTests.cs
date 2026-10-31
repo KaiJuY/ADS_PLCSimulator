@@ -329,6 +329,111 @@ public sealed partial class ModuleConfigTests : IDisposable
         Assert.DoesNotContain(names, name => name.StartsWith("Arm4 ", StringComparison.Ordinal) && NozzleTwoOrThree().IsMatch(name));
     }
 
+    private const string TwoEcids = "GVL_Module.Chamber_Control[2].ModuleConfigParamList";
+
+    private ProcessImage PublishEcid(string items)
+    {
+        ProcessImage image = _small.CreateProcessImage();
+        ModuleConfigFile config = ModuleConfigPublisher.Parse(Module($$"""{"enabled":true,"slot":2,"id":7,"configParamList":[{{items}}]}"""), Path);
+        ModuleConfigPublisher.Publish(config, Path, _small.Symbols, image);
+        return image;
+    }
+
+    private static string Ecid(string dataType, string limits = "") =>
+        $$"""{"id":1,"name":"a","unit":"","dataType":"{{dataType}}"{{limits}}}""";
+
+    [Theory]
+    [Trait("AC", "1")]
+    [InlineData("DINT", -2147483648d, 2147483647d)]
+    [InlineData("REAL", -3.402823466E38, 3.402823466E38)]
+    public void Publish_ecid_without_limits_uses_the_type_range(string dataType, double lower, double upper)
+    {
+        ProcessImage image = PublishEcid(Ecid(dataType));
+
+        Assert.Equal(true, Read(image, _small, $"{TwoEcids}[1].HasLimits"));
+        Assert.Equal(lower, Read(image, _small, $"{TwoEcids}[1].LowerLimit"));
+        Assert.Equal(upper, Read(image, _small, $"{TwoEcids}[1].UpperLimit"));
+    }
+
+    [Fact]
+    [Trait("AC", "1")]
+    public void Publish_ecid_with_limits_uses_the_configured_values()
+    {
+        ProcessImage image = PublishEcid(Ecid("DINT", ""","lowerLimit":0,"upperLimit":100"""));
+
+        Assert.Equal(true, Read(image, _small, $"{TwoEcids}[1].HasLimits"));
+        Assert.Equal(0d, Read(image, _small, $"{TwoEcids}[1].LowerLimit"));
+        Assert.Equal(100d, Read(image, _small, $"{TwoEcids}[1].UpperLimit"));
+    }
+
+    [Theory]
+    [Trait("AC", "1")]
+    [InlineData("BOOL")]
+    [InlineData("STRING")]
+    public void Publish_non_numeric_ecid_has_no_limits(string dataType)
+    {
+        ProcessImage image = PublishEcid(Ecid(dataType));
+
+        Assert.Equal(false, Read(image, _small, $"{TwoEcids}[1].HasLimits"));
+        Assert.Equal(0d, Read(image, _small, $"{TwoEcids}[1].LowerLimit"));
+        Assert.Equal(0d, Read(image, _small, $"{TwoEcids}[1].UpperLimit"));
+    }
+
+    [Theory]
+    [Trait("AC", "1")]
+    [InlineData("BOOL", ""","lowerLimit":0,"upperLimit":1""", "BOOL and STRING")]
+    [InlineData("STRING", ""","lowerLimit":0,"upperLimit":1""", "BOOL and STRING")]
+    [InlineData("DINT", ""","lowerLimit":0""", "together")]
+    [InlineData("DINT", ""","upperLimit":0""", "together")]
+    [InlineData("DINT", ""","lowerLimit":5,"upperLimit":4""", "limits must satisfy lower <= upper within -2147483648..2147483647.")]
+    [InlineData("DINT", ""","lowerLimit":0,"upperLimit":3000000000""", "limits must satisfy")]
+    [InlineData("DINT", ""","lowerLimit":-3000000000,"upperLimit":0""", "limits must satisfy")]
+    [InlineData("REAL", ""","lowerLimit":0,"upperLimit":1E39""", "limits must satisfy")]
+    public void Parse_rejects_invalid_ecid_limits(string dataType, string limits, string expected)
+    {
+        ModuleConfigException exception = Assert.Throws<ModuleConfigException>(
+            () => ModuleConfigPublisher.Parse(Module($$"""{"enabled":true,"slot":1,"configParamList":[{{Ecid(dataType, limits)}}]}"""), Path));
+
+        Assert.Contains($"slot 1 configParamList: id 1: ", exception.Message);
+        Assert.Contains(expected, exception.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "1")]
+    public void Publish_accepts_equal_limits()
+    {
+        ProcessImage image = PublishEcid(Ecid("DINT", ""","lowerLimit":7,"upperLimit":7"""));
+
+        Assert.Equal(7d, Read(image, _small, $"{TwoEcids}[1].LowerLimit"));
+        Assert.Equal(7d, Read(image, _small, $"{TwoEcids}[1].UpperLimit"));
+    }
+
+    [Fact]
+    [Trait("AC", "1")]
+    public void Parse_rejects_limits_on_a_variable()
+    {
+        ModuleConfigException exception = Assert.Throws<ModuleConfigException>(() => ModuleConfigPublisher.Parse(
+            Module("""{"enabled":true,"slot":1,"variableList":[{"id":1,"name":"a","unit":"","dataType":"DINT","lowerLimit":0,"upperLimit":1}]}"""), Path));
+
+        Assert.Contains("slot 1 variableList: id 1: lowerLimit/upperLimit are only for configParamList.", exception.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "1")]
+    public void Polar2_config_publishes_the_type_range_for_numeric_ecids()
+    {
+        PlcProgram program = s_polar2.Value;
+        ProcessImage image = program.CreateProcessImage();
+
+        ModuleConfigPublisher.PublishIfPresent(TestPaths.Polar2Project, program.Symbols, image);
+
+        const string ecid = "GVL_Module.Chamber_Control[1].ModuleConfigParamList[318]";
+        Assert.Equal(318L, Read(image, program, $"{ecid}.Id"));
+        Assert.Equal(true, Read(image, program, $"{ecid}.HasLimits"));
+        Assert.Equal(-2147483648d, Read(image, program, $"{ecid}.LowerLimit"));
+        Assert.Equal(2147483647d, Read(image, program, $"{ecid}.UpperLimit"));
+    }
+
     [GeneratedRegex("No(z|zzle)[23]")]
     private static partial Regex NozzleTwoOrThree();
 
