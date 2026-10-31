@@ -1,4 +1,6 @@
 using AdsPlcSimulator.Core.PackML;
+using AdsPlcSimulator.Core.PackML.Alarm;
+using AdsPlcSimulator.Core.PackML.Behavior;
 
 namespace AdsPlcSimulator.Tests.PackML;
 
@@ -19,6 +21,7 @@ public class ServiceHostSetConfigTests
             Unsigned_32bit := 6, Float_64bit := 7, Integer_8bit := 8, Unsigned_8bit := 9, Integer_16bit := 10, Unsigned_16bit := 11) UDINT; END_TYPE
         TYPE ST_SetConfigParamParam : STRUCT Id : UDINT; DataType : E_ConfigDataType; Value : STRING(80); END_STRUCT END_TYPE
         TYPE T_SetConfigParamList : ARRAY[1..5] OF ST_SetConfigParamParam; END_TYPE
+        TYPE ST_ExtDescriptor : STRUCT Id : UDINT; Value : STRING(80); END_STRUCT END_TYPE
         TYPE ST_OldParam : STRUCT Name : STRING(30); Value : STRING(80); END_STRUCT END_TYPE
         TYPE ST_ConfigParamDescriptor : STRUCT
             Id : UDINT;
@@ -38,7 +41,7 @@ public class ServiceHostSetConfigTests
         string text = HostFixture.AlarmDeclarations
             .Replace("A : ST_TestParam;", $"A : {paramA};");
         if (withMetadata)
-            text = text.Replace("TYPE ST_TestModule : STRUCT", "TYPE ST_TestModule : STRUCT ModuleConfigParamList : ARRAY[1..5] OF ST_ConfigParamDescriptor;");
+            text = text.Replace("TYPE ST_TestModule : STRUCT", "TYPE ST_TestModule : STRUCT ModuleVariableList : ARRAY[1..2] OF ST_ExtDescriptor; ModuleConfigParamList : ARRAY[1..5] OF ST_ConfigParamDescriptor;");
         return ConfigTypes + Environment.NewLine + text;
     }
 
@@ -163,6 +166,26 @@ public class ServiceHostSetConfigTests
                 Item(fixture, 1, 101, Integer32, "101");
                 break;
         }
+    }
+
+    [Fact]
+    [Trait("AC", "5")]
+    public void A_batch_that_passes_Starting_is_still_refused_at_Execute_entry_when_the_Mode_forbids_the_service()
+    {
+        HostFixture fixture = Create();
+        var modes = new ModuleBehavior(
+            "ModuleVariableList[1].Value",
+            [new ModeRule(0, "Disable", false, ModeRuleKind.AllowOnly, new HashSet<string>())],
+            new Dictionary<string, ServiceBehavior>());
+        fixture.Host.Initialize(fixture.Image, ConfiguredAlarmTable.Empty, new ServiceBehaviorTable(new Dictionary<string, ModuleBehavior> { [Module] = modes }));
+        fixture.Write($"{Module}.ModuleVariableList[1].Value", "0");
+        Item(fixture, 1, 101, Integer32, "42");
+
+        StartA(fixture);
+
+        Assert.Equal(PackMLState.Execute, State(fixture));
+        Assert.Equal(2, Number(fixture, $"{ErrorList}.MainErrorId"));
+        Assert.Equal(OriginalValues, Values(fixture));
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using AdsPlcSimulator.Core.PackML.Alarm;
+using AdsPlcSimulator.Core.PackML.Behavior;
 using AdsPlcSimulator.Core.PackML.ConfigParam;
 using AdsPlcSimulator.Core.Plc;
 using static AdsPlcSimulator.Core.PackML.PlcLayout;
@@ -16,6 +17,7 @@ public sealed partial class ServiceHost
 
         private ServiceUnit(
             string ctrlPath,
+            string relativePath,
             ServiceIdentity? identity,
             InputLayout input,
             int ctrlOffsetInBlock,
@@ -32,6 +34,7 @@ public sealed partial class ServiceHost
             StatusPath = statusPath;
             Errors = errors;
             CtrlPath = ctrlPath;
+            RelativePath = relativePath;
             Identity = identity;
             _input = input;
             _ctrlOffsetInBlock = ctrlOffsetInBlock;
@@ -42,6 +45,9 @@ public sealed partial class ServiceHost
         }
 
         public string CtrlPath { get; }
+
+        /// <summary>Path below ServiceCtrl, e.g. "Chamber.ArmTest".</summary>
+        public string RelativePath { get; }
 
         public string StatusPath { get; }
 
@@ -83,6 +89,16 @@ public sealed partial class ServiceHost
 
         public bool CompletePending { get; set; }
 
+        public ServiceRules? Rules { get; set; }
+
+        public bool ExecuteRejected { get; set; }
+
+        public bool EntryDryRun { get; set; }
+
+        public TimeSpan? EntryDuration { get; set; }
+
+        public bool ExecuteAbortPending { get; set; }
+
         public static ServiceUnit Create(
             SymbolTable symbols, SymbolRef ctrl, SymbolRef serviceCtrlRoot, SymbolRef serviceStatusRoot, ServiceIdentityTable identities,
             SymbolRef? serviceParamRoot, SymbolRef? configParamList)
@@ -95,6 +111,7 @@ public sealed partial class ServiceHost
             StructMember behavior = Require(status.Type, "CompletionBehavior", status.Path);
             return new ServiceUnit(
                 ctrl.Path,
+                relative,
                 identities.Find(relative),
                 new InputLayout(ctrl.Type, ctrl.Path),
                 ctrl.Offset - serviceCtrlRoot.Offset,
@@ -124,6 +141,14 @@ public sealed partial class ServiceHost
             StartingChecked = false;
             // Stryker disable once Boolean: the flag is read only after StartingChecked was set in the same stay, and the check that sets StartingChecked also sets this flag on failure or leaves Starting on success
             StartingAbortPending = false;
+        }
+
+        public void BeginExecuteEntry()
+        {
+            ExecuteRejected = false;
+            EntryDryRun = false;
+            EntryDuration = null;
+            ExecuteAbortPending = false;
         }
 
         public RawInput ReadInput(byte[] serviceCtrlBlock) =>
@@ -173,6 +198,7 @@ public sealed partial class ServiceHost
             ModeBlocked = false;
             Alive?.Reset();
             ResetStarting();
+            BeginExecuteEntry();
             Generation = 0;
             EntryToken = null;
             // Stryker disable once Boolean: EntryToken is null here, so Complete and TakeCompletion cannot read the flag before EnterExecute resets it
