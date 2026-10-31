@@ -131,7 +131,7 @@ public sealed partial class ModuleConfigTests : IDisposable
     [Theory]
     [Trait("AC", "8")]
     [InlineData("DINT", "Integer_32bit", "0")]
-    [InlineData("REAL", "Float_32bit", "0")]
+    [InlineData("REAL", "Float_32bit", "0.0")]
     [InlineData("BOOL", "Boolean", "FALSE")]
     [InlineData("STRING", "String_80byte", "")]
     public void Publish_maps_each_data_type_to_descriptor_and_initial_value(string dataType, string descriptor, string value)

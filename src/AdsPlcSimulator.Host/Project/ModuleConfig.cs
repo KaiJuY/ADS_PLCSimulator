@@ -86,7 +86,7 @@ internal static class ModuleConfigPublisher
     private static readonly Dictionary<string, (string EnumMember, string InitialValue, (double Lower, double Upper)? Range)> DataTypes = new(StringComparer.Ordinal)
     {
         ["DINT"] = ("Integer_32bit", "0", (-2147483648d, 2147483647d)),
-        ["REAL"] = ("Float_32bit", "0", (-3.402823466E38, 3.402823466E38)),
+        ["REAL"] = ("Float_32bit", "0.0", (-3.402823466E38, 3.402823466E38)),
         ["BOOL"] = ("Boolean", "FALSE", null),
         ["STRING"] = ("String_80byte", "", null),
     };
