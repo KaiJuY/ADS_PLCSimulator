@@ -9,7 +9,7 @@ namespace AdsPlcSimulator.Integration;
 
 internal sealed record Scenario(string Id, string Title, Func<PlcSession, Task<Checks>> Run);
 
-/// <summary>Scenarios S1 to S12, S15 and S16 of .adf/scenarios/1.md and S17 and S18 of #13; S13 and S14 are browser steps and are not here. S16 runs right after S11 and continues from the Aborted SetMode it leaves; a module Stop (S15) cannot finish while a service stays Aborted, and it leaves module 1 Stopped, so S17 and S18 run before it.</summary>
+/// <summary>Scenarios S1 to S12, S15 and S16 of .adf/scenarios/1.md and S17 and S18 of #13 and S19 and S20 of #15 (Chamber.SetConfig); S13 and S14 are browser steps and are not here. S16 runs right after S11 and continues from the Aborted SetMode it leaves; a module Stop (S15) cannot finish while a service stays Aborted, and it leaves module 1 Stopped, so S17 to S20 run before it.</summary>
 internal static class Scenarios
 {
     private const string Gvl = "GVL_Module.Chamber_Control";
@@ -28,6 +28,12 @@ internal static class Scenarios
     private const int AlarmListScanLength = 10;
     private const short AcknowledgeOne = 1;
     private const short DuplicateRequest = 2;
+    private const short AcknowledgeEverything = 2;
+    private const short Integer32 = 2;
+    private const uint ConfigEcid = 318;
+    private const uint UnknownEcid = 4294967000;
+    private const int ConfigParamScanLength = 500;
+    private const string SetConfigParam = Module1 + ".ServiceParam.Chamber.SetConfig";
 
     private static readonly TimeSpan NaturalEarly = TimeSpan.FromSeconds(4);
     private static readonly TimeSpan NaturalLate = TimeSpan.FromSeconds(7);
@@ -48,6 +54,7 @@ internal static class Scenarios
     private static readonly Endpoint UnboundArm = Endpoint.Service(1, "Arm[3].Rotate.NozzlePortPos");
     private static readonly Endpoint SetMode = Endpoint.Service(1, "Chamber.SetMode");
     private static readonly Endpoint Initial = Endpoint.Service(1, "Chamber.Initial");
+    private static readonly Endpoint SetConfig = Endpoint.Service(1, "Chamber.SetConfig");
 
     public static IReadOnlyList<Scenario> All { get; } =
     [
@@ -66,6 +73,8 @@ internal static class Scenarios
         new("S12", "Initial switches mode to 3", InitialAsync),
         new("S17", "Module heartbeat", HeartbeatAsync),
         new("S18", "Service Alive timeout aborts", ServiceAliveAsync),
+        new("S19", "SetConfig writes an ECID", SetConfigSuccessAsync),
+        new("S20", "SetConfig rejects a bad batch", SetConfigFailuresAsync),
         new("S15", "Module Stop ignores later service commands", ModuleStopAsync),
     ];
 
@@ -501,6 +510,120 @@ internal static class Scenarios
 
         return 0;
     }
+
+    private static async Task<Checks> SetConfigSuccessAsync(PlcSession session)
+    {
+        var checks = new Checks();
+        if (!await RequireIdleAsync(checks, session, SetConfig))
+            return checks;
+
+        int entry = FindConfigParam(session, ConfigEcid);
+        checks.True($"ECID {ConfigEcid} is published", entry > 0);
+        if (entry == 0)
+            return checks;
+
+        try
+        {
+            WriteBatch(session, ConfigEcid, Integer32, "30");
+            session.Send(SetConfig, PackMLCommand.Start, session.NextRequestId());
+            bool completed = await session.WaitForStateAsync(SetConfig, PackMLState.Complete, Reaction);
+            session.Release(SetConfig);
+            checks.True("SetConfig reaches Complete", completed, $"state={session.State(SetConfig)}");
+            checks.Equal($"ECID {ConfigEcid} Value", "30", session.Read<string>($"{ConfigParamEntry(entry)}.Value"));
+            checks.Equal("ErrorList[1].MainErrorId", 0u, session.Read<uint>($"{SetConfig.Status}.ErrorList[1].MainErrorId"));
+            bool idle = await session.EnsureIdleAsync(SetConfig);
+            checks.True("Reset reaches Idle", idle, $"state={session.State(SetConfig)}");
+        }
+        finally
+        {
+            ClearBatch(session);
+        }
+
+        return checks;
+    }
+
+    private static async Task<Checks> SetConfigFailuresAsync(PlcSession session)
+    {
+        var checks = new Checks();
+        if (!await RequireIdleAsync(checks, session, SetConfig))
+            return checks;
+
+        int entry = FindConfigParam(session, ConfigEcid);
+        checks.True($"ECID {ConfigEcid} is published", entry > 0);
+        if (entry == 0)
+            return checks;
+
+        string valuePath = $"{ConfigParamEntry(entry)}.Value";
+        string before = session.Read<string>(valuePath);
+        try
+        {
+            ClearBatch(session);
+            await CheckSetConfigRoundAsync(checks, session, "empty batch", 920, 0);
+
+            WriteBatch(session, UnknownEcid, Integer32, "1");
+            await CheckSetConfigRoundAsync(checks, session, "unknown Id", 922, UnknownEcid);
+
+            WriteBatch(session, ConfigEcid, Integer32, "3000000000");
+            await CheckSetConfigRoundAsync(checks, session, "value outside DINT", 926, ConfigEcid);
+        }
+        finally
+        {
+            ClearBatch(session);
+        }
+
+        checks.Equal($"ECID {ConfigEcid} Value unchanged", before, session.Read<string>(valuePath));
+        return checks;
+    }
+
+    private static async Task CheckSetConfigRoundAsync(Checks checks, PlcSession session, string round, uint mainErrorId, uint sourceErrorId)
+    {
+        session.Send(SetConfig, PackMLCommand.Start, session.NextRequestId());
+        bool aborted = await session.WaitForStateAsync(SetConfig, PackMLState.Aborted, Reaction);
+        session.Release(SetConfig);
+        checks.True($"{round}: Aborted", aborted, $"state={session.State(SetConfig)}");
+        checks.Equal($"{round}: MainErrorId", mainErrorId, session.Read<uint>($"{SetConfig.Status}.ErrorList[1].MainErrorId"));
+        checks.Equal($"{round}: SourceErrorId", sourceErrorId, session.Read<uint>($"{SetConfig.Status}.ErrorList[1].SourceErrorId"));
+
+        await AcknowledgeAllAsync(session);
+        await session.RunSettledAsync(SetConfig, PackMLCommand.Clear, PackMLState.Stopped);
+        bool idle = await session.EnsureIdleAsync(SetConfig);
+        checks.True($"{round}: back to Idle", idle, $"state={session.State(SetConfig)}");
+    }
+
+    private static async Task AcknowledgeAllAsync(PlcSession session)
+    {
+        uint requestId = session.NextRequestId();
+        session.Write($"{AckRequest}.bChangeRequest", false);
+        session.Write($"{AckRequest}.RequestId", requestId);
+        session.Write($"{AckRequest}.Command", AcknowledgeEverything);
+        session.Write($"{AckRequest}.MainErrorId", 0u);
+        session.Write($"{AckRequest}.ServiceId", 0u);
+        session.Write($"{AckRequest}.bChangeRequest", true);
+        await session.WaitForAsync(() => session.Read<uint>($"{AlarmStatus}.AckResponseId") == requestId, Reaction);
+        session.Write($"{AckRequest}.bChangeRequest", false);
+    }
+
+    private static string ConfigParamEntry(int entry) => $"{Module1}.ModuleConfigParamList[{entry}]";
+
+    private static int FindConfigParam(PlcSession session, uint id)
+    {
+        for (int entry = 1; entry <= ConfigParamScanLength; entry++)
+        {
+            if (session.Read<uint>($"{ConfigParamEntry(entry)}.Id") == id)
+                return entry;
+        }
+
+        return 0;
+    }
+
+    private static void WriteBatch(PlcSession session, uint id, short dataType, string value)
+    {
+        session.Write($"{SetConfigParam}[1].Id", id);
+        session.Write($"{SetConfigParam}[1].DataType", dataType);
+        session.Write($"{SetConfigParam}[1].Value", value);
+    }
+
+    private static void ClearBatch(PlcSession session) => session.Write($"{SetConfigParam}[1].Id", 0u);
 
     private static async Task<Checks> ModuleStopAsync(PlcSession session)
     {
