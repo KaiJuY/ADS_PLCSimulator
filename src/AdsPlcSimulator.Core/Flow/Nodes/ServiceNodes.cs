@@ -35,7 +35,7 @@ public sealed class ServiceHostNode : HostedNode
         context.Registry.Register(context.Workflow, _host);
         try
         {
-            _host.Initialize(context.Image, context.Registry.ConfiguredAlarms);
+            _host.Initialize(context.Image, context.Registry.ConfiguredAlarms, context.Registry.ServiceBehaviors);
             long start = TimeProvider.System.GetTimestamp();
             using var timer = new PeriodicTimer(ServiceHost.ScanInterval);
             while (await timer.WaitForNextTickAsync(cancellation))
@@ -101,7 +101,7 @@ public sealed class ServiceExecuteTriggerNode : MemoryTriggerNode, IRegistryAwar
         Create);
 
     private readonly IReadOnlyList<ServiceEntry> _entries;
-    private ServiceHostRegistry? _registry;
+    private ServiceHostRegistry _registry = new();
 
     private ServiceExecuteTriggerNode(IReadOnlyList<ServiceEntry> entries)
     {
@@ -122,8 +122,11 @@ public sealed class ServiceExecuteTriggerNode : MemoryTriggerNode, IRegistryAwar
             if (!write.Overlaps(entry.State.Offset, entry.State.Size) || !EntersExecute(write, image, entry.State))
                 continue;
 
+            if (_registry.IsExecuteRejected(entry.CtrlPath))
+                continue;
+
             outputs["index"] = entry.Index;
-            outputs["generation"] = _registry?.FindByService(entry.CtrlPath)?.ExecuteGeneration(entry.CtrlPath);
+            outputs["generation"] = _registry.ExecuteGeneration(entry.CtrlPath);
             return true;
         }
 

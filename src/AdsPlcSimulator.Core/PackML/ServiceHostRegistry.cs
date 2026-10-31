@@ -1,4 +1,5 @@
 using AdsPlcSimulator.Core.PackML.Alarm;
+using AdsPlcSimulator.Core.PackML.Behavior;
 
 namespace AdsPlcSimulator.Core.PackML;
 
@@ -55,11 +56,20 @@ public sealed class ServiceHostRegistry
     /// <summary>Set by SimulatorSession after new FlowRuntime, before workflows load; read only afterwards.</summary>
     public ConfiguredAlarmTable ConfiguredAlarms { get; set; } = ConfiguredAlarmTable.Empty;
 
+    /// <summary>Set by SimulatorSession after new FlowRuntime, before workflows load; read only afterwards.</summary>
+    public ServiceBehaviorTable ServiceBehaviors { get; set; } = ServiceBehaviorTable.Empty;
+
     public ServiceHost? FindByService(string ctrlPath)
     {
         lock (_lock)
             return _hostsByRoot.Values.Select(registration => registration.Host).FirstOrDefault(host => host.Contains(ctrlPath));
     }
+
+    /// <summary>False when no host binds the service.</summary>
+    internal bool IsExecuteRejected(string ctrlPath) => FindByService(ctrlPath)?.IsExecuteRejected(ctrlPath) == true;
+
+    /// <summary>Null when no host binds the service.</summary>
+    internal long? ExecuteGeneration(string ctrlPath) => FindByService(ctrlPath)?.ExecuteGeneration(ctrlPath);
 
     public ServiceHost? FindByModule(string modulePath)
     {

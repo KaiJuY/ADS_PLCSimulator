@@ -9,7 +9,7 @@ namespace AdsPlcSimulator.Integration;
 
 internal sealed record Scenario(string Id, string Title, Func<PlcSession, Task<Checks>> Run);
 
-/// <summary>Scenarios S1 to S12, S15 and S16 of .adf/scenarios/1.md and S17 and S18 of #13 and S19 and S20 of #15 (Chamber.SetConfig); S13 and S14 are browser steps and are not here. S16 runs right after S11 and continues from the Aborted SetMode it leaves; a module Stop (S15) cannot finish while a service stays Aborted, and it leaves module 1 Stopped, so S17 to S20 run before it.</summary>
+/// <summary>Scenarios S1 to S12, S15 and S16 of .adf/scenarios/1.md and S17 and S18 of #13, S19 and S20 of #15 (Chamber.SetConfig) and S21 to S25 of #16 (config/service-behaviors.json); S13 and S14 are browser steps and are not here. S16 runs right after S11 and continues from the Aborted SetMode it leaves; a module Stop (S15) cannot finish while a service stays Aborted, and it leaves module 1 Stopped, so S17 to S25 run before it. S21 to S25 set the Module Mode with Chamber.SetMode and leave it at 1.</summary>
 internal static class Scenarios
 {
     private const string Gvl = "GVL_Module.Chamber_Control";
@@ -34,6 +34,12 @@ internal static class Scenarios
     private const uint UnknownEcid = 4294967000;
     private const int ConfigParamScanLength = 500;
     private const string SetConfigParam = Module1 + ".ServiceParam.Chamber.SetConfig";
+    private const string ArmTestParam = Module1 + ".ServiceParam.Chamber.ArmTest";
+    private const string ArmAlignTestParam = Module1 + ".ServiceParam.Chamber.ArmAlignTest";
+    private const uint HolderSpeedSvid = 53;
+    private const int VariableScanLength = 64;
+    private const uint ParameterOutOfRange = 1;
+    private const uint ModeNotAllowed = 2;
 
     private static readonly TimeSpan NaturalEarly = TimeSpan.FromSeconds(4);
     private static readonly TimeSpan NaturalLate = TimeSpan.FromSeconds(7);
@@ -47,6 +53,9 @@ internal static class Scenarios
     private static readonly TimeSpan AliveBeat = TimeSpan.FromMilliseconds(100);
     private static readonly TimeSpan AliveKeepWindow = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan ReadInterval = TimeSpan.FromMilliseconds(200);
+    private static readonly TimeSpan TestTime = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan TestTimeEarly = TimeSpan.FromSeconds(1.5);
+    private static readonly TimeSpan TestTimeLate = TimeSpan.FromSeconds(3);
 
     private static readonly Endpoint ShutterOpen = Endpoint.Service(1, "Shutter.Open");
     private static readonly Endpoint ShutterClose = Endpoint.Service(1, "Shutter.Close");
@@ -55,6 +64,10 @@ internal static class Scenarios
     private static readonly Endpoint SetMode = Endpoint.Service(1, "Chamber.SetMode");
     private static readonly Endpoint Initial = Endpoint.Service(1, "Chamber.Initial");
     private static readonly Endpoint SetConfig = Endpoint.Service(1, "Chamber.SetConfig");
+    private static readonly Endpoint HolderMoveCcw = Endpoint.Service(1, "Holder.Rotate.MoveVelocityCCW");
+    private static readonly Endpoint Emgs = Endpoint.Service(1, "Chamber.EMGS");
+    private static readonly Endpoint ArmTest = Endpoint.Service(1, "Chamber.ArmTest");
+    private static readonly Endpoint ArmAlignTest = Endpoint.Service(1, "Chamber.ArmAlignTest");
 
     public static IReadOnlyList<Scenario> All { get; } =
     [
@@ -75,6 +88,11 @@ internal static class Scenarios
         new("S18", "Service Alive timeout aborts", ServiceAliveAsync),
         new("S19", "SetConfig writes an ECID", SetConfigSuccessAsync),
         new("S20", "SetConfig rejects a bad batch", SetConfigFailuresAsync),
+        new("S21", "Disable refuses MoveVelocityCW", DisableRefusesAsync),
+        new("S22", "Manual refuses EMGS", ManualRefusesAsync),
+        new("S23", "ArmTest ArmIndex 5 is out of range", ArmIndexOutOfRangeAsync),
+        new("S24", "ArmAlignTest runs for TestTime", TestTimeAsync),
+        new("S25", "Holder speed SVID follows ECID 318", HolderSpeedAsync),
         new("S15", "Module Stop ignores later service commands", ModuleStopAsync),
     ];
 
@@ -624,6 +642,188 @@ internal static class Scenarios
     }
 
     private static void ClearBatch(PlcSession session) => session.Write($"{SetConfigParam}[1].Id", 0u);
+
+    private static async Task<Checks> DisableRefusesAsync(PlcSession session)
+    {
+        var checks = new Checks();
+        try
+        {
+            checks.True("SetMode 0 reaches Complete", await SetModeToAsync(session, 0));
+            await CheckRefusedAsync(checks, session, HolderMove, ModeNotAllowed, 0, "Not allowed in Mode 0 (Disable).");
+        }
+        finally
+        {
+            checks.True("SetMode 1 reaches Complete", await SetModeToAsync(session, 1));
+        }
+
+        return checks;
+    }
+
+    private static async Task<Checks> ManualRefusesAsync(PlcSession session)
+    {
+        var checks = new Checks();
+        checks.True("SetMode 1 reaches Complete", await SetModeToAsync(session, 1));
+        await CheckRefusedAsync(checks, session, Emgs, ModeNotAllowed, 1, "Not allowed in Mode 1 (Manual).");
+        return checks;
+    }
+
+    private static async Task<Checks> ArmIndexOutOfRangeAsync(PlcSession session)
+    {
+        var checks = new Checks();
+        ushort armBefore = session.Read<ushort>($"{ArmTestParam}.ArmIndex");
+        ushort nozzleBefore = session.Read<ushort>($"{ArmTestParam}.NozzleIndex");
+        try
+        {
+            session.Write($"{ArmTestParam}.ArmIndex", (ushort)5);
+            session.Write($"{ArmTestParam}.NozzleIndex", (ushort)1);
+            await CheckRefusedAsync(checks, session, ArmTest, ParameterOutOfRange, 5, "ArmIndex out of range (1~4).");
+        }
+        finally
+        {
+            session.Write($"{ArmTestParam}.ArmIndex", armBefore);
+            session.Write($"{ArmTestParam}.NozzleIndex", nozzleBefore);
+        }
+
+        return checks;
+    }
+
+    private static async Task<Checks> TestTimeAsync(PlcSession session)
+    {
+        var checks = new Checks();
+        if (!await RequireIdleAsync(checks, session, ArmAlignTest))
+            return checks;
+
+        ushort armBefore = session.Read<ushort>($"{ArmAlignTestParam}.ArmIndex");
+        ushort nozzleBefore = session.Read<ushort>($"{ArmAlignTestParam}.NozzleIndex");
+        TimeSpan timeBefore = session.Read<TimeSpan>($"{ArmAlignTestParam}.TestTime");
+        try
+        {
+            session.Write($"{ArmAlignTestParam}.ArmIndex", (ushort)1);
+            session.Write($"{ArmAlignTestParam}.NozzleIndex", (ushort)1);
+            session.Write($"{ArmAlignTestParam}.TestTime", TestTime);
+
+            var clock = Stopwatch.StartNew();
+            session.Send(ArmAlignTest, PackMLCommand.Start, session.NextRequestId());
+            bool executing = await session.WaitForStateAsync(ArmAlignTest, PackMLState.Execute, Reaction);
+            session.Release(ArmAlignTest);
+            checks.True("reaches Execute", executing, $"state={session.State(ArmAlignTest)}");
+
+            bool leftEarly = await session.WaitForAsync(() => session.State(ArmAlignTest) != PackMLState.Execute, TestTimeEarly - clock.Elapsed);
+            checks.Equal("still Execute at 1.5 s", false, leftEarly);
+            bool completed = await session.WaitForStateAsync(ArmAlignTest, PackMLState.Complete, TestTimeLate - clock.Elapsed);
+            checks.True("Complete within 3 s", completed, $"state={session.State(ArmAlignTest)} after {clock.Elapsed.TotalMilliseconds:0} ms");
+            await session.EnsureIdleAsync(ArmAlignTest);
+        }
+        finally
+        {
+            session.Write($"{ArmAlignTestParam}.ArmIndex", armBefore);
+            session.Write($"{ArmAlignTestParam}.NozzleIndex", nozzleBefore);
+            session.Write($"{ArmAlignTestParam}.TestTime", timeBefore);
+        }
+
+        return checks;
+    }
+
+    private static async Task<Checks> HolderSpeedAsync(PlcSession session)
+    {
+        var checks = new Checks();
+        int ecid = FindConfigParam(session, ConfigEcid);
+        int svid = FindVariable(session, HolderSpeedSvid);
+        checks.True($"ECID {ConfigEcid} and SVID {HolderSpeedSvid} are published", ecid > 0 && svid > 0);
+        if (ecid == 0 || svid == 0)
+            return checks;
+
+        string ecidValue = $"{ConfigParamEntry(ecid)}.Value";
+        string speed = $"{Module1}.ModuleVariableList[{svid}].Value";
+        string before = session.Read<string>(ecidValue);
+        try
+        {
+            checks.True("SetConfig ECID 318 = 30", await SetConfigToAsync(session, "30"));
+            await CheckSpeedAsync(checks, session, HolderMove, speed, "30");
+            await CheckSpeedAsync(checks, session, HolderMoveCcw, speed, "-30");
+        }
+        finally
+        {
+            checks.True($"SetConfig ECID 318 back to '{before}'", await SetConfigToAsync(session, before));
+        }
+
+        return checks;
+    }
+
+    private static async Task CheckSpeedAsync(Checks checks, PlcSession session, Endpoint service, string speed, string expected)
+    {
+        if (!await RequireIdleAsync(checks, session, service))
+            return;
+
+        session.Send(service, PackMLCommand.Start, session.NextRequestId());
+        bool executing = await session.WaitForStateAsync(service, PackMLState.Execute, Reaction);
+        session.Release(service);
+        checks.True($"{service.Name}: reaches Execute", executing, $"state={session.State(service)}");
+        checks.Equal($"{service.Name}: SVID {HolderSpeedSvid} in Execute", expected, session.Read<string>(speed));
+
+        bool stopped = await session.RunSettledAsync(service, PackMLCommand.Stop, PackMLState.Stopped);
+        checks.True($"{service.Name}: Stopped", stopped, $"state={session.State(service)}");
+        checks.Equal($"{service.Name}: SVID {HolderSpeedSvid} after Stop", "0", session.Read<string>(speed));
+        await session.EnsureIdleAsync(service);
+    }
+
+    private static async Task CheckRefusedAsync(Checks checks, PlcSession session, Endpoint service, uint mainErrorId, uint sourceErrorId, string message)
+    {
+        if (!await RequireIdleAsync(checks, session, service))
+            return;
+
+        session.Send(service, PackMLCommand.Start, session.NextRequestId());
+        bool aborted = await session.WaitForStateAsync(service, PackMLState.Aborted, Reaction);
+        session.Release(service);
+        checks.True($"{service.Name}: Aborted", aborted, $"state={session.State(service)}");
+        checks.Equal($"{service.Name}: MainErrorId", mainErrorId, session.Read<uint>($"{service.Status}.ErrorList[1].MainErrorId"));
+        checks.Equal($"{service.Name}: SourceErrorId", sourceErrorId, session.Read<uint>($"{service.Status}.ErrorList[1].SourceErrorId"));
+        checks.Equal($"{service.Name}: Message", message, session.Read<string>($"{service.Status}.ErrorList[1].Message"));
+
+        await AcknowledgeAllAsync(session);
+        bool idle = await session.EnsureIdleAsync(service);
+        checks.True($"{service.Name}: back to Idle", idle, $"state={session.State(service)}");
+    }
+
+    private static async Task<bool> SetModeToAsync(PlcSession session, ushort mode)
+    {
+        await session.EnsureIdleAsync(SetMode);
+        session.Write(SetModeTarget, mode);
+        session.Send(SetMode, PackMLCommand.Start, session.NextRequestId());
+        bool completed = await session.WaitForStateAsync(SetMode, PackMLState.Complete, NaturalLate);
+        session.Release(SetMode);
+        await session.EnsureIdleAsync(SetMode);
+        return completed && session.Read<string>(Svid) == mode.ToString();
+    }
+
+    private static async Task<bool> SetConfigToAsync(PlcSession session, string value)
+    {
+        await session.EnsureIdleAsync(SetConfig);
+        try
+        {
+            WriteBatch(session, ConfigEcid, Integer32, value);
+            session.Send(SetConfig, PackMLCommand.Start, session.NextRequestId());
+            bool completed = await session.WaitForStateAsync(SetConfig, PackMLState.Complete, Reaction);
+            session.Release(SetConfig);
+            await session.EnsureIdleAsync(SetConfig);
+            return completed;
+        }
+        finally
+        {
+            ClearBatch(session);
+        }
+    }
+
+    private static int FindVariable(PlcSession session, uint id)
+    {
+        for (int entry = 1; entry <= VariableScanLength; entry++)
+        {
+            if (session.Read<uint>($"{Module1}.ModuleVariableList[{entry}].Id") == id)
+                return entry;
+        }
+
+        return 0;
+    }
 
     private static async Task<Checks> ModuleStopAsync(PlcSession session)
     {

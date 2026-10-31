@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "modeSvid": 1,
+  "modes": [
+    { "value": 0, "name": "Disable", "allow": ["Chamber.SetMode"] },
+    { "value": 1, "name": "Manual", "deny": ["Chamber.SingleProcess", "Chamber.EMGS"] },
+    { "value": 2, "name": "DryRun", "deny": [], "dryRun": true },
+    { "value": 3, "name": "Auto", "deny": [] }
+  ],
+  "services": {
+    "Chamber.ArmAlignTest": {
+      "ranges": [ { "field": "ArmIndex", "min": 1, "max": 4 }, { "field": "NozzleIndex", "min": 1, "max": 3 } ],
+      "duration": "TestTime"
+    },
+    "Chamber.ArmTest": {
+      "ranges": [ { "field": "ArmIndex", "min": 1, "max": 4 }, { "field": "NozzleIndex", "min": 1, "max": 3 } ]
+    },
+    "Chamber.FlowCalibration": {
+      "ranges": [ { "field": "ArmIndex", "min": 1, "max": 4 }, { "field": "ArmNozzleIndex", "min": 1, "max": 3 } ],
+      "duration": "TestTime"
+    },
+    "Holder.Rotate.MoveVelocityCW": {
+      "onEnter": [ { "svid": 53, "value": { "ecid": 318 } } ],
+      "onLeave": [ { "svid": 53, "value": { "constant": 0 } } ]
+    },
+    "Holder.Rotate.MoveVelocityCCW": {
+      "onEnter": [ { "svid": 53, "value": { "ecid": 318, "negate": true } } ],
+      "onLeave": [ { "svid": 53, "value": { "constant": 0 } } ]
+    }
+  }
+}

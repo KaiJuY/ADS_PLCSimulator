@@ -37,6 +37,30 @@ public class ServiceHostRegistryTests
 
     [Fact]
     [Trait("AC", "13")]
+    public void Execute_state_of_a_service_that_no_host_binds_is_not_rejected_and_has_no_generation()
+    {
+        var registry = new ServiceHostRegistry();
+
+        Assert.False(registry.IsExecuteRejected(PathA));
+        Assert.Null(registry.ExecuteGeneration(PathA));
+    }
+
+    [Fact]
+    [Trait("AC", "13")]
+    public void Execute_generation_of_a_bound_service_is_the_one_of_its_host()
+    {
+        var fixture = new HostFixture();
+        var registry = new ServiceHostRegistry();
+        registry.Register("host", fixture.Host);
+        fixture.SendToService(1, "A", PackMLCommand.Start, 1);
+        fixture.Scan();
+
+        Assert.Equal(fixture.Host.ExecuteGeneration(PathA), registry.ExecuteGeneration(PathA));
+        Assert.False(registry.IsExecuteRejected(PathA));
+    }
+
+    [Fact]
+    [Trait("AC", "13")]
     public void Module_is_found_only_when_a_registered_host_runs_it()
     {
         var fixture = new HostFixture();
