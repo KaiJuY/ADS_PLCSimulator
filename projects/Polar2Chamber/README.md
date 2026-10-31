@@ -49,6 +49,16 @@ python projects/Polar2Chamber/spec/spec-to-config.py "projects/Polar2Chamber/spe
 
 腳本只用 Python 3 標準函式庫。遇到不支援的型別、非 ASCII 名稱、名稱縮寫後仍超過 30 byte、重複名稱時，印出原因並以 exit code 1 結束，不寫輸出檔。名稱超過 30 byte 時依固定順序縮寫（例如 `Position` → `Pos`），並在該筆加 `comment` 記錄原名稱。輸出檔為 UTF-8、LF。
 
+ECID 可以手動加 `lowerLimit`、`upperLimit`（JSON 數字），規則照 framework 的 `FB_ModuleConfigurationManager`：
+
+- 兩個要一起寫，只寫一個會讓 Run 失敗。
+- 只有 `configParamList` 可以寫；`variableList`（SVID）寫了會讓 Run 失敗。
+- 只有 DINT 與 REAL 可以寫；BOOL 與 STRING 寫了會讓 Run 失敗。
+- 必須 `lowerLimit <= upperLimit`，且在型別範圍內：DINT 為 -2147483648 到 2147483647，REAL 為 ±3.402823466E38。
+- 數值型 ECID（DINT、REAL）發布時 `HasLimits` 為 TRUE；沒寫上下限就發布型別完整範圍。BOOL 與 STRING 發布 `HasLimits` 為 FALSE。
+
+目前腳本產生的設定檔沒有上下限。用腳本重新產生 `config/module-config.json` 會覆蓋整個檔案，手動加的 `lowerLimit`、`upperLimit` 會消失；重新產生後要再加一次。
+
 ## Framework 升級時重新複製
 
 1. 在 TSMC repo 取得新版本，記下新的 commit SHA。
