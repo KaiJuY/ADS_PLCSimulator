@@ -126,7 +126,7 @@ internal sealed class HostFixture
         .Replace(
             "TYPE ST_TestParam : STRUCT Value : INT; END_STRUCT END_TYPE",
             "TYPE ST_ExtDescriptor : STRUCT Id : UDINT; Value : STRING(80); END_STRUCT END_TYPE" + Environment.NewLine
-            + "TYPE ST_TestParam : STRUCT Value : INT; Index : UINT; Time : TIME; Speed : REAL; END_STRUCT END_TYPE")
+            + "TYPE ST_TestParam : STRUCT Value : INT; Index : UINT; Time : TIME; Speed : REAL; Angle : LREAL; Big : LINT; END_STRUCT END_TYPE")
         .Replace(
             "TYPE ST_TestModule : STRUCT",
             "TYPE ST_TestModule : STRUCT ModuleVariableList : ARRAY[1..4] OF ST_ExtDescriptor; ModuleConfigParamList : ARRAY[1..2] OF ST_ExtDescriptor;");

@@ -91,8 +91,9 @@ internal sealed class ServiceRules
     public static readonly ServiceRules None = new();
 
     private const uint ParamOutOfRangeId = 1;
+    private const uint UnrepresentableSourceId = uint.MaxValue;
 
-    private readonly List<(SymbolRef Symbol, ParamRange Range)> _ranges;
+    private readonly List<ResolvedRange> _ranges;
     private readonly SymbolRef? _duration;
     private readonly string? _durationField;
     private readonly List<ResolvedWrite> _onEnter;
@@ -109,7 +110,7 @@ internal sealed class ServiceRules
     }
 
     private ServiceRules(
-        List<(SymbolRef Symbol, ParamRange Range)> ranges, SymbolRef? duration, string? durationField,
+        List<ResolvedRange> ranges, SymbolRef? duration, string? durationField,
         List<ResolvedWrite> onEnter, List<ResolvedWrite> beforeComplete, List<ResolvedWrite> onLeave)
     {
         _ranges = ranges;
@@ -122,6 +123,9 @@ internal sealed class ServiceRules
 
     private sealed record ResolvedWrite(SymbolRef Target, SvidWrite Write, SymbolRef? Source);
 
+    // Min and Max are the bounds as the field type holds them: a REAL field compares against float bounds.
+    private sealed record ResolvedRange(SymbolRef Symbol, ParamRange Range, bool IsInteger, double Min, double Max);
+
     public static ServiceRules Create(SymbolTable symbols, string modulePath, string relativeService, ServiceBehavior behavior)
     {
         string param = $"{modulePath}.ServiceParam.{relativeService}";
@@ -129,7 +133,7 @@ internal sealed class ServiceRules
             writes.Select(write => ResolveWrite(symbols, modulePath, param, write)).ToList();
 
         return new ServiceRules(
-            behavior.Ranges.Select(range => (ModuleRules.Resolve(symbols, $"{param}.{range.Field}"), range)).ToList(),
+            behavior.Ranges.Select(range => ResolveRange(symbols, param, range)).ToList(),
             behavior.DurationField is null ? null : ModuleRules.Resolve(symbols, $"{param}.{behavior.DurationField}"),
             behavior.DurationField,
             ResolveAll(behavior.OnEnter),
@@ -139,17 +143,52 @@ internal sealed class ServiceRules
 
     public EntryCheck CheckParams(ProcessImage image)
     {
-        foreach ((SymbolRef symbol, ParamRange range) in _ranges)
+        foreach (ResolvedRange range in _ranges)
         {
-            long value = PlcValue.ToInt64(image.ReadValue(symbol));
-            if (value < range.Min || value > range.Max)
-                return new EntryCheck(ParamOutOfRangeId, unchecked((uint)value), $"{range.Field} out of range ({range.Min}~{range.Max}).");
+            EntryCheck check = range.IsInteger ? CheckInteger(range, image) : CheckReal(range, image);
+            if (!check.Passed)
+                return check;
         }
 
         // TIME is an unsigned millisecond count, so "greater than 0" means "not 0".
         if (_duration is { } duration && PlcValue.ToInt64(image.ReadValue(duration)) == 0)
             return new EntryCheck(ParamOutOfRangeId, 0, $"{_durationField} must be greater than 0.");
         return EntryCheck.Pass;
+    }
+
+    private static EntryCheck CheckInteger(ResolvedRange range, ProcessImage image)
+    {
+        long value = PlcValue.ToInt64(image.ReadValue(range.Symbol));
+        long min = (long)range.Min, max = (long)range.Max;
+        return value < min || value > max
+            ? new EntryCheck(ParamOutOfRangeId, unchecked((uint)value), $"{range.Range.Field} out of range ({min}~{max}).")
+            : EntryCheck.Pass;
+    }
+
+    private static EntryCheck CheckReal(ResolvedRange range, ProcessImage image)
+    {
+        double value = PlcValue.ToDouble(image.ReadValue(range.Symbol));
+        bool inRange = value >= range.Min && value <= range.Max;
+        return inRange
+            ? EntryCheck.Pass
+            : new EntryCheck(ParamOutOfRangeId, SourceErrorId(value), $"{range.Range.Field} out of range ({Text(range.Range.Min)}~{Text(range.Range.Max)}).");
+    }
+
+    private static uint SourceErrorId(double value) =>
+        double.IsFinite(value) ? unchecked((uint)(long)Math.Truncate(value)) : UnrepresentableSourceId;
+
+    private static string Text(double bound) => bound.ToString(CultureInfo.InvariantCulture);
+
+    private static ResolvedRange ResolveRange(SymbolTable symbols, string param, ParamRange range)
+    {
+        SymbolRef symbol = ModuleRules.Resolve(symbols, $"{param}.{range.Field}");
+        PrimitiveKind? kind = (symbol.Type.Unaliased as PrimitiveType)?.Kind;
+        return kind switch
+        {
+            PrimitiveKind.Real => new ResolvedRange(symbol, range, false, (float)range.Min, (float)range.Max),
+            PrimitiveKind.LReal => new ResolvedRange(symbol, range, false, range.Min, range.Max),
+            _ => new ResolvedRange(symbol, range, true, range.Min, range.Max),
+        };
     }
 
     public TimeSpan? ReadDuration(ProcessImage image) =>
@@ -166,7 +205,7 @@ internal sealed class ServiceRules
         SymbolRef target = ModuleRules.Resolve(symbols, $"{modulePath}.{write.Target}");
         string? source = write.Value.Kind switch
         {
-            SvidValueKind.Param => $"{param}.{write.Value.Source}",
+            SvidValueKind.Param or SvidValueKind.AddParam => $"{param}.{write.Value.Source}",
             SvidValueKind.Ecid => $"{modulePath}.{write.Value.Source}",
             _ => null,
         };
@@ -185,16 +224,27 @@ internal sealed class ServiceRules
             return 0;
 
         SvidValue value = write.Write.Value;
+        if (value.Kind == SvidValueKind.AddParam)
+            return ParseNumber((string)image.ReadValue(write.Target)) + FieldAddend(write, image);   // SVID Value is STRING(80)
+
         double number = value.Kind switch
         {
             SvidValueKind.Param => PlcValue.ToDouble(image.ReadValue(write.Source!.Value)),
-            SvidValueKind.Ecid => ParseEcid((string)image.ReadValue(write.Source!.Value)),
+            SvidValueKind.Ecid => ParseNumber((string)image.ReadValue(write.Source!.Value)),
             _ => value.Constant,
         };
         return value.Negate && number != 0 ? -number : number;
     }
 
-    private static double ParseEcid(string text) =>
+    private static double FieldAddend(ResolvedWrite write, ProcessImage image)
+    {
+        double field = PlcValue.ToDouble(image.ReadValue(write.Source!.Value));
+        if (!double.IsFinite(field))
+            return 0;
+        return write.Write.Value.Negate ? -field : field;
+    }
+
+    private static double ParseNumber(string text) =>
         double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double number) && double.IsFinite(number) ? number : 0;
 
     private static string Format(ResolvedWrite write, double number)

@@ -70,7 +70,14 @@ Polar2 的規則：
 - Mode 2（DryRun）、3（Auto）：全部允許。
 - `Chamber.ArmAlignTest`、`Chamber.ArmTest`：`ArmIndex` 1..4、`NozzleIndex` 1..3；`Chamber.FlowCalibration`：`ArmIndex` 1..4、`ArmNozzleIndex` 1..3。
 - `Chamber.ArmAlignTest`、`Chamber.FlowCalibration` 以 `TestTime` 為執行時間（為 0 時 MainErrorId 1）；`Chamber.ArmTest` 沒有 TestTime，用 `service.host` 的 `defaultDelayMs`。
-- `Holder.Rotate.MoveVelocityCW` 進入 Execute 時把 SVID 53 寫成 ECID 318，`MoveVelocityCCW` 寫成負值；離開 Execute（Stop、Abort、Hold）時寫回 0。
+- `Holder.Rotate.MoveVelocityCW` 進入 Execute 時把 SVID 53 寫成 ECID 318，`MoveVelocityCCW` 寫成負值；任何離開 Execute（Complete、Stop、Abort、Hold、Suspend）時寫回 0；Unhold、Unsuspend 回到 Execute 時再寫一次。
+- `Holder.Rotate.MoveModulo`：`Position`（LREAL）須在 0..360（含兩端），超出時 MainErrorId 1、`SourceErrorId` = `Position` 的整數部分（負值為 `unchecked` 的 UDINT；NaN、∞ 為 4294967295）、訊息 `Position out of range (0~360).`。進入 Execute 時 SVID 53 寫成 ECID 318，離開 Execute 寫回 0（5000 ms 後 Complete）。
+- `OutsideRing.Rotate.MoveVelocityCW` 進入 Execute 時把 SVID 58 寫成 ECID 361，`MoveVelocityCCW` 寫成負值；離開 Execute 時寫回 0（同上，任何離開都寫）。
+- `Cup[1..4].Lift.TopPos`、`MiddlePos`、`DownPos`：在 Complete 之前（5000 ms 到時）把該 Cup 的 Master、Slave 高度 SVID 寫成對應的 ECID（Top／Down／Middle Pos）。Cup1 是 SVID 45／46、ECID 276／277／278，Cup2 是 47／48、288／289／290，Cup3 是 49／50、300／301／302，Cup4 是 51／52、312／313／314。
+- `Cup[1..4].Lift.IncrementalJog`：在 Complete 之前，Master、Slave 高度 SVID 各自加上 `Position`（mm，可為負）；不檢查上下限。Execute 中被 Stop 或 Abort 時高度不變。
+- DryRun（Mode 2）不影響以上各項（沒有標 `dryRunZero`）。
+
+`ranges` 可以用整數、REAL、LREAL 欄位，`min`、`max` 可為小數（REAL 欄位的界線以 REAL 數值比較，兩端皆含）。寫入值多一種 `addParam`：寫入「目前 SVID 值 + 該 ServiceParam 欄位」（`negate` 只對欄位值生效）；目前值不是數字或不是有限值時以 0 計，欄位值是 NaN、∞ 時加 0。高度 SVID 只存在 process image，Run 時重設為 `"0.0"`。
 
 注意：
 
