@@ -177,6 +177,69 @@ public class ExecuteEntryRulesTests
         Assert.Equal(new EntryCheck(1, 5, "Index out of range (1~4)."), rules.CheckParams(_image));
     }
 
+    [Theory]
+    [Trait("AC", "3")]
+    [Trait("AC", "4")]
+    [InlineData(0.5, true, 0)]
+    [InlineData(2.5, true, 0)]
+    [InlineData(0.49, false, 0)]
+    [InlineData(2.6, false, 2)]
+    public void A_REAL_range_includes_both_bounds_and_reports_the_integer_part(double speed, bool passes, uint source)
+    {
+        ServiceRules rules = RulesOf("A", Behavior([new ParamRange("Speed", 0.5, 2.5)]));
+        Write("ServiceParam.A.Speed", speed);
+
+        EntryCheck check = rules.CheckParams(_image);
+
+        Assert.Equal(passes, check.Passed);
+        if (!passes)
+            Assert.Equal(new EntryCheck(1, source, "Speed out of range (0.5~2.5)."), check);
+    }
+
+    [Theory]
+    [Trait("AC", "3")]
+    [InlineData(0.1, true)]
+    [InlineData(0.11, false)]
+    public void A_REAL_range_compares_with_the_bounds_as_REAL_numbers(double speed, bool passes)
+    {
+        ServiceRules rules = RulesOf("A", Behavior([new ParamRange("Speed", 0, 0.1)]));
+        Write("ServiceParam.A.Speed", speed);
+
+        Assert.Equal(passes, rules.CheckParams(_image).Passed);
+    }
+
+    [Theory]
+    [Trait("AC", "4")]
+    [InlineData(0.0, true, 0u)]
+    [InlineData(360.0, true, 0u)]
+    [InlineData(360.5, false, 360u)]
+    [InlineData(-0.5, false, 0u)]
+    [InlineData(-5.0, false, 4294967291u)]
+    public void An_LREAL_range_includes_both_bounds_and_reports_the_integer_part(double angle, bool passes, uint source)
+    {
+        ServiceRules rules = RulesOf("A", Behavior([new ParamRange("Angle", 0, 360)]));
+        Write("ServiceParam.A.Angle", angle);
+
+        EntryCheck check = rules.CheckParams(_image);
+
+        Assert.Equal(passes, check.Passed);
+        if (!passes)
+            Assert.Equal(new EntryCheck(1, source, "Angle out of range (0~360)."), check);
+    }
+
+    [Theory]
+    [Trait("AC", "4")]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    [InlineData(double.NegativeInfinity)]
+    public void An_LREAL_value_that_is_not_finite_is_out_of_range_with_source_4294967295(double angle)
+    {
+        ServiceRules rules = RulesOf("A", Behavior([new ParamRange("Angle", 0, 360)]));
+        Write("ServiceParam.A.Angle", angle);
+
+        Assert.Equal(new EntryCheck(1, 4294967295, "Angle out of range (0~360)."), rules.CheckParams(_image));
+    }
+
     private string Written(SvidValue value, bool isReal = false, bool dryRunZero = false, bool dryRun = false)
     {
         ServiceRules rules = RulesOf("A", Behavior(null, null, new SvidWrite(Target, isReal, value, dryRunZero)));
@@ -246,6 +309,78 @@ public class ExecuteEntryRulesTests
         rules.WriteOnEnter(_image, false);
 
         Assert.Equal("-4", Text(Target));
+    }
+
+    private static SvidValue Add(string field, bool negate = false) => new(SvidValueKind.AddParam, 0, field, negate);
+
+    [Fact]
+    [Trait("AC", "7")]
+    public void AddParam_adds_the_field_to_the_current_REAL_SVID_each_time()
+    {
+        Write(Target, "120.0");
+        Write("ServiceParam.A.Speed", 5);
+
+        Assert.Equal("125.0", Written(Add("Speed"), isReal: true));
+        Assert.Equal("130.0", Written(Add("Speed"), isReal: true));
+    }
+
+    [Fact]
+    [Trait("AC", "7")]
+    public void AddParam_rounds_the_sum_for_a_DINT_SVID()
+    {
+        Write(Target, "7");
+        Write("ServiceParam.A.Speed", 2.6);
+
+        Assert.Equal("10", Written(Add("Speed")));
+    }
+
+    [Theory]
+    [Trait("AC", "7")]
+    [InlineData("abc")]
+    [InlineData("")]
+    [InlineData("NaN")]
+    [InlineData("1e999")]
+    public void AddParam_counts_a_current_value_that_is_not_a_finite_number_as_0(string current)
+    {
+        Write(Target, current);
+        Write("ServiceParam.A.Angle", 5.5);
+
+        Assert.Equal("5.5", Written(Add("Angle"), isReal: true));
+    }
+
+    [Theory]
+    [Trait("AC", "7")]
+    [InlineData(double.NaN, "120", "120.0")]
+    [InlineData(double.PositiveInfinity, "120", "120.0")]
+    [InlineData(double.NaN, "abc", "0.0")]
+    public void AddParam_adds_0_when_the_field_is_not_finite(double field, string current, string expected)
+    {
+        Write(Target, current);
+        Write("ServiceParam.A.Angle", field);
+
+        Assert.Equal(expected, Written(Add("Angle"), isReal: true));
+    }
+
+    [Fact]
+    [Trait("AC", "7")]
+    public void AddParam_with_Negate_subtracts_the_field()
+    {
+        Write(Target, "10.0");
+        Write("ServiceParam.A.Speed", 3);
+
+        Assert.Equal("7.0", Written(Add("Speed", negate: true), isReal: true));
+    }
+
+    [Theory]
+    [Trait("AC", "9")]
+    [InlineData(true, "0.0")]
+    [InlineData(false, "15.0")]
+    public void AddParam_is_zero_in_DryRun_only_when_marked_DryRunZero(bool dryRunZero, string expected)
+    {
+        Write(Target, "10.0");
+        Write("ServiceParam.A.Speed", 5);
+
+        Assert.Equal(expected, Written(Add("Speed"), isReal: true, dryRunZero: dryRunZero, dryRun: true));
     }
 
     [Fact]

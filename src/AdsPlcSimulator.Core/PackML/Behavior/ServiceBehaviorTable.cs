@@ -30,15 +30,17 @@ public sealed record ServiceBehavior(
     IReadOnlyList<SvidWrite> BeforeComplete,
     IReadOnlyList<SvidWrite> OnLeave);
 
-/// <param name="Field">Integer field relative to ServiceParam.&lt;service&gt;, e.g. "ArmIndex".</param>
-public sealed record ParamRange(string Field, long Min, long Max);
+/// <param name="Field">Number field relative to ServiceParam.&lt;service&gt;, e.g. "ArmIndex" or "Position".</param>
+public sealed record ParamRange(string Field, double Min, double Max);
 
 /// <param name="Target">SVID Value relative to the module, e.g. "ModuleVariableList[53].Value".</param>
 /// <param name="IsReal">The SVID is REAL (text like "2.0"); false = DINT (integer text).</param>
 /// <param name="DryRunZero">Write 0 when the Mode at Execute entry has DryRun.</param>
 public sealed record SvidWrite(string Target, bool IsReal, SvidValue Value, bool DryRunZero);
 
-/// <param name="Source">Param: field relative to ServiceParam.&lt;service&gt;; Ecid: ECID Value relative to the module, e.g. "ModuleConfigParamList[318].Value"; Constant: null.</param>
+/// <param name="Source">Param and AddParam: field relative to ServiceParam.&lt;service&gt;; Ecid: ECID Value relative to the module, e.g. "ModuleConfigParamList[318].Value"; Constant: null.</param>
+/// <param name="Negate">Param, Ecid, Constant: the value is negated. AddParam: only the field value is negated before it is added.</param>
 public sealed record SvidValue(SvidValueKind Kind, double Constant, string? Source, bool Negate);
 
-public enum SvidValueKind { Constant, Param, Ecid }
+/// <summary>AddParam: the current value of the target SVID plus the field.</summary>
+public enum SvidValueKind { Constant, Param, Ecid, AddParam }

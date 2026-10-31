@@ -46,9 +46,9 @@ internal sealed record RangeConfig
 {
     public string? Field { get; init; }
 
-    public long? Min { get; init; }
+    public double? Min { get; init; }
 
-    public long? Max { get; init; }
+    public double? Max { get; init; }
 }
 
 internal sealed record SvidWriteConfig
@@ -68,6 +68,8 @@ internal sealed record ValueConfig
 
     public uint? Ecid { get; init; }
 
+    public string? AddParam { get; init; }
+
     public bool Negate { get; init; }
 }
 
@@ -77,6 +79,7 @@ internal static class ServiceBehaviorLoader
 
     private const int SupportedSchemaVersion = 1;
     private const long MaxModeValue = 4294967294;
+    private const double MaxExactInteger = 9007199254740992;   // 2^53: every integer up to here is a double
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -104,6 +107,7 @@ internal static class ServiceBehaviorLoader
     [
         (range => string.IsNullOrWhiteSpace(range.Field), "{0}: field is empty."),
         (range => range.Min is null || range.Max is null, "{0}: min and max are required."),
+        (range => !double.IsFinite(range.Min!.Value) || !double.IsFinite(range.Max!.Value), "{0}: min and max must be finite numbers."),
         (range => range.Min > range.Max, "{0}: min is greater than max."),
     ];
 
@@ -111,8 +115,9 @@ internal static class ServiceBehaviorLoader
     [
         (write => write.Svid == 0, "{0}: svid must be greater than 0."),
         (write => write.Value is null, "{0}: value is missing."),
-        (write => ValueSourceCount(write.Value!) != 1, "{0}: value needs exactly one of constant, param and ecid."),
+        (write => ValueSourceCount(write.Value!) != 1, "{0}: value needs exactly one of constant, param, ecid and addParam."),
         (write => write.Value!.Param is not null && string.IsNullOrWhiteSpace(write.Value.Param), "{0}: param is empty."),
+        (write => write.Value!.AddParam is not null && string.IsNullOrWhiteSpace(write.Value.AddParam), "{0}: addParam is empty."),
         (write => write.Value!.Constant is { } constant && !double.IsFinite(constant), "{0}: constant must be a finite number."),
     ];
 
@@ -168,7 +173,7 @@ internal static class ServiceBehaviorLoader
     }
 
     private static int ValueSourceCount(ValueConfig value) =>
-        (value.Constant is null ? 0 : 1) + (value.Param is null ? 0 : 1) + (value.Ecid is null ? 0 : 1);
+        (value.Constant is null ? 0 : 1) + (value.Param is null ? 0 : 1) + (value.Ecid is null ? 0 : 1) + (value.AddParam is null ? 0 : 1);
 
     private static void ValidateModes(List<ModeConfig?> modes, string path)
     {
@@ -300,8 +305,11 @@ internal static class ServiceBehaviorLoader
 
         private ParamRange BuildRange(RangeConfig range, string param, string where)
         {
-            RequireField($"{param}.{range.Field}", where, "an integer", IsInteger);
-            return new ParamRange(range.Field!, range.Min!.Value, range.Max!.Value);
+            SymbolRef field = RequireField($"{param}.{range.Field}", where, "an integer or REAL", IsNumber);
+            double min = range.Min!.Value, max = range.Max!.Value;
+            if (IsInteger(field.Type.Unaliased) && !(IsExactInteger(min) && IsExactInteger(max)))
+                throw Fail(where, $"{param}.{range.Field} is {field.Type.Name}, so min and max must be integers from -{MaxExactInteger:F0} to {MaxExactInteger:F0}.");
+            return new ParamRange(range.Field!, min, max);
         }
 
         private List<SvidWrite> BuildWrites(List<SvidWriteConfig?> writes, string param, string where) =>
@@ -327,6 +335,12 @@ internal static class ServiceBehaviorLoader
             {
                 RequireField($"{param}.{field}", where, "an integer or REAL", IsNumber);
                 return new SvidValue(SvidValueKind.Param, 0, field, value.Negate);
+            }
+
+            if (value.AddParam is { } addField)
+            {
+                RequireField($"{param}.{addField}", where, "an integer or REAL", IsNumber);
+                return new SvidValue(SvidValueKind.AddParam, 0, addField, value.Negate);
             }
 
             double constant = value.Constant!.Value;
@@ -365,12 +379,15 @@ internal static class ServiceBehaviorLoader
                 throw Fail(where, $"{full} is {symbol.Type.Name}, not ST_ServiceCtrl.");
         }
 
-        private void RequireField(string relative, string where, string expected, Func<PlcType, bool> accepts)
+        private SymbolRef RequireField(string relative, string where, string expected, Func<PlcType, bool> accepts)
         {
             SymbolRef symbol = ResolveSymbol($"{ModulePath}.{relative}", where);
             if (!accepts(symbol.Type.Unaliased))
                 throw Fail(where, $"{relative} is {symbol.Type.Name}, not {expected}.");
+            return symbol;
         }
+
+        private static bool IsExactInteger(double value) => double.IsInteger(value) && Math.Abs(value) <= MaxExactInteger;
 
         private static bool IsInteger(PlcType type) => type is PrimitiveType primitive && IntegerKinds.Contains(primitive.Kind);
 
