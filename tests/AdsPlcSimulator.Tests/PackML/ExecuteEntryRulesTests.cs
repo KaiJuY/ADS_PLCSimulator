@@ -240,6 +240,19 @@ public class ExecuteEntryRulesTests
         Assert.Equal(new EntryCheck(1, 4294967295, "Angle out of range (0~360)."), rules.CheckParams(_image));
     }
 
+    [Fact]
+    [Trait("AC", "4")]
+    public void An_integer_field_above_2_pow_53_is_compared_as_a_long()
+    {
+        // As a double, 2^53 + 1 rounds to 2^53 and would pass the bound.
+        ServiceRules rules = RulesOf("A", Behavior([new ParamRange("Big", 0, 9007199254740992)]));
+        Write("ServiceParam.A.Big", 9007199254740993L);
+
+        Assert.Equal(
+            new EntryCheck(1, unchecked((uint)9007199254740993L), "Big out of range (0~9007199254740992)."),
+            rules.CheckParams(_image));
+    }
+
     private string Written(SvidValue value, bool isReal = false, bool dryRunZero = false, bool dryRun = false)
     {
         ServiceRules rules = RulesOf("A", Behavior(null, null, new SvidWrite(Target, isReal, value, dryRunZero)));

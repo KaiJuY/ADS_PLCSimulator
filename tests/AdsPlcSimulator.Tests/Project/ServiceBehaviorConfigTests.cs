@@ -286,6 +286,15 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         Assert.Equal(new ParamRange("Index", 3, 3), Module(Json(services)).Services["A"].Ranges.Single());
     }
 
+    [Fact]
+    [Trait("AC", "3")]
+    public void An_integer_range_takes_bounds_of_plus_and_minus_2_pow_53()
+    {
+        const string services = """{ "A": { "ranges": [ { "field": "Index", "min": -9007199254740992, "max": 9007199254740992 } ] } }""";
+
+        Assert.Equal(new ParamRange("Index", -9007199254740992, 9007199254740992), Module(Json(services)).Services["A"].Ranges.Single());
+    }
+
     [Theory]
     [Trait("AC", "2")]
     [InlineData(2147483647)]
