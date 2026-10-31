@@ -91,6 +91,7 @@ internal sealed class ServiceRules
     public static readonly ServiceRules None = new();
 
     private const uint ParamOutOfRangeId = 1;
+    private const uint UnrepresentableSourceId = uint.MaxValue;
 
     private readonly List<ResolvedRange> _ranges;
     private readonly SymbolRef? _duration;
@@ -155,7 +156,6 @@ internal sealed class ServiceRules
         return EntryCheck.Pass;
     }
 
-    // The Host allows only integers within +-2^53 as bounds of an integer field, so the long casts are exact.
     private static EntryCheck CheckInteger(ResolvedRange range, ProcessImage image)
     {
         long value = PlcValue.ToInt64(image.ReadValue(range.Symbol));
@@ -165,18 +165,17 @@ internal sealed class ServiceRules
             : EntryCheck.Pass;
     }
 
-    // NaN fails both comparisons, so it is out of range.
     private static EntryCheck CheckReal(ResolvedRange range, ProcessImage image)
     {
         double value = PlcValue.ToDouble(image.ReadValue(range.Symbol));
-        return value >= range.Min && value <= range.Max
+        bool inRange = value >= range.Min && value <= range.Max;
+        return inRange
             ? EntryCheck.Pass
             : new EntryCheck(ParamOutOfRangeId, SourceErrorId(value), $"{range.Range.Field} out of range ({Text(range.Range.Min)}~{Text(range.Range.Max)}).");
     }
 
-    // A value that is not finite has no integer part; 4294967295 is the same "cannot be shown" id as an invalid Mode text.
     private static uint SourceErrorId(double value) =>
-        double.IsFinite(value) ? unchecked((uint)(long)Math.Truncate(value)) : uint.MaxValue;
+        double.IsFinite(value) ? unchecked((uint)(long)Math.Truncate(value)) : UnrepresentableSourceId;
 
     private static string Text(double bound) => bound.ToString(CultureInfo.InvariantCulture);
 
@@ -226,7 +225,7 @@ internal sealed class ServiceRules
 
         SvidValue value = write.Write.Value;
         if (value.Kind == SvidValueKind.AddParam)
-            return ParseNumber((string)image.ReadValue(write.Target)) + Step(write, image);   // SVID Value is STRING(80); Negate is applied inside Step only
+            return ParseNumber((string)image.ReadValue(write.Target)) + FieldAddend(write, image);   // SVID Value is STRING(80)
 
         double number = value.Kind switch
         {
@@ -237,8 +236,7 @@ internal sealed class ServiceRules
         return value.Negate && number != 0 ? -number : number;
     }
 
-    // The field value to add; a NaN or infinite field adds 0.
-    private static double Step(ResolvedWrite write, ProcessImage image)
+    private static double FieldAddend(ResolvedWrite write, ProcessImage image)
     {
         double field = PlcValue.ToDouble(image.ReadValue(write.Source!.Value));
         if (!double.IsFinite(field))

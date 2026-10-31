@@ -42,5 +42,12 @@ public sealed record SvidWrite(string Target, bool IsReal, SvidValue Value, bool
 /// <param name="Negate">Param, Ecid, Constant: the value is negated. AddParam: only the field value is negated before it is added.</param>
 public sealed record SvidValue(SvidValueKind Kind, double Constant, string? Source, bool Negate);
 
-/// <summary>AddParam: the current value of the target SVID plus the field.</summary>
-public enum SvidValueKind { Constant, Param, Ecid, AddParam }
+public enum SvidValueKind
+{
+    Constant,
+    Param,
+    Ecid,
+
+    /// <summary>The current value of the target SVID plus the field.</summary>
+    AddParam,
+}

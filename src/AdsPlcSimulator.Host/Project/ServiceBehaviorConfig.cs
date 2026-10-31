@@ -79,7 +79,7 @@ internal static class ServiceBehaviorLoader
 
     private const int SupportedSchemaVersion = 1;
     private const long MaxModeValue = 4294967294;
-    private const double MaxExactInteger = 9007199254740992;   // 2^53: every integer up to here is a double
+    private const double MaxExactInteger = 1L << 53;
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {

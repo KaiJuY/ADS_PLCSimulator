@@ -231,6 +231,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         { Json("""{ "A": { "ranges": [ { "field": "Big", "min": 1, "max": 2 } ] } }"""), "ULINT, not an integer or REAL" },
         { Json("""{ "A": { "ranges": [ { "field": "Index", "min": 1.5, "max": 4 } ] } }"""), "UINT, so min and max must be integers" },
         { Json("""{ "A": { "ranges": [ { "field": "Index", "min": 1, "max": 1e16 } ] } }"""), "so min and max must be integers" },
+        { Json("""{ "A": { "ranges": [ { "field": "Index", "min": 1, "max": 9007199254740994 } ] } }"""), "so min and max must be integers from -9007199254740992 to 9007199254740992" },
         { Json("""{ "A": { "ranges": [ { "field": "Angle", "min": 1e999, "max": 4 } ] } }"""), "services.A.ranges[1]: min and max must be finite numbers" },
         { Json("""{ "A": { "ranges": [ { "field": "Angle", "min": 0, "max": -1e999 } ] } }"""), "min and max must be finite numbers" },
         { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "addParam": " " } } ] } }"""), "services.A.onEnter[1]: addParam is empty" },
