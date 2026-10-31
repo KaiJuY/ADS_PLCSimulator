@@ -116,7 +116,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
     [Trait("AC", "6")]
     [Trait("AC", "8")]
     [Trait("AC", "10")]
-    public void The_Polar2_file_has_86_services_with_the_batch_2_rules_and_none_for_services_without_an_SVID()
+    public void The_Polar2_file_has_88_services_with_the_batch_2_rules_and_none_for_services_without_an_SVID()
     {
         ModuleConfigFile config = ModuleConfigPublisher.Parse(File.ReadAllText(System.IO.Path.Combine(TestPaths.Polar2Project, "config", "module-config.json")), "module-config.json");
         ModuleConfigEntry slot = config.Modules!.Single(entry => entry!.Enabled)!;
@@ -125,7 +125,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
 
         IReadOnlyDictionary<string, ServiceBehavior> services = ServiceBehaviorLoader.LoadIfPresent(TestPaths.Polar2Project, s_polar2.Value.Symbols, config)!.For(Module1)!.Services;
 
-        Assert.Equal(86, services.Count);
+        Assert.Equal(88, services.Count);
         Assert.Equal(new ParamRange("Position", 0, 360), services["Holder.Rotate.MoveModulo"].Ranges.Single());
         Assert.Equal($"ModuleVariableList[{SvidPosition(53)}].Value", services["Holder.Rotate.MoveModulo"].OnEnter.Single().Target);
         Assert.Equal(new SvidValue(SvidValueKind.Ecid, 0, $"ModuleConfigParamList[{EcidPosition(361)}].Value", true), services["OutsideRing.Rotate.MoveVelocityCCW"].OnEnter.Single().Value);
@@ -207,6 +207,56 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
 
         Assert.All(
             ["Arm[1].Rotate.MoveRecipe", "Arm[2].NozzlePort.DrainSelect1", "Exhaust.Damper.AEX", "SideVent[1].Open"],
+            key => Assert.DoesNotContain(key, services.Keys));
+    }
+
+    [Fact]
+    [Trait("AC", "1")]
+    [Trait("AC", "12")]
+    [Trait("AC", "13")]
+    public void The_Polar2_process_services_have_the_checks_and_SVID_writes_of_the_spec()
+    {
+        ModuleConfigFile config = ModuleConfigPublisher.Parse(File.ReadAllText(System.IO.Path.Combine(TestPaths.Polar2Project, "config", "module-config.json")), "module-config.json");
+        ModuleConfigEntry slot = config.Modules!.Single(entry => entry!.Enabled)!;
+        string Svid(uint id) => $"ModuleVariableList[{slot.VariableList!.FindIndex(item => item!.Id == id) + 1}].Value";
+        string Ecid(uint id) => $"ModuleConfigParamList[{slot.ConfigParamList!.FindIndex(item => item!.Id == id) + 1}].Value";
+
+        IReadOnlyDictionary<string, ServiceBehavior> services = ServiceBehaviorLoader.LoadIfPresent(TestPaths.Polar2Project, s_polar2.Value.Symbols, config)!.For(Module1)!.Services;
+
+        ProcessBehavior single = services["Chamber.SingleProcess"].Process!;
+        ProcessBehavior clean = services["Chamber.CupChamberClean"].Process!;
+        Assert.Equal(("ProcessStepCount", 50, "ProcessSteps[i].ProcessTime"), (single.CountField, single.MaxCount, single.TimeField));
+        Assert.Equal(new ProcessCycle("ProcessSteps[i].CycleControl", 1, 2, "ProcessSteps[i].CycleCount"), single.Cycle);
+        Assert.Equal((9, 6), (single.Checks.Count, single.Writes.Count));
+        Assert.Equal((11, 8), (clean.Checks.Count, clean.Writes.Count));
+        Assert.Equal(single.Checks.Select(check => check.Field), clean.Checks.Take(9).Select(check => check.Field));
+        Assert.Equal(
+            single.Writes.Select(write => write.Value.Field),
+            clean.Writes.Take(6).Select(write => write.Value.Field));
+        Assert.Equal(new SvidTarget(Svid(53), false), single.Writes[0].Target.Choices[""]);
+        Assert.Equal(new ProcessCondition("ProcessSteps[i].RotateDirection", 2), single.Writes[0].Value.NegateWhen);
+
+        ProcessWrite armNozzle = single.Writes[1];
+        Assert.Equal(9, armNozzle.Target.Choices.Count);
+        Assert.Equal(["ProcessSteps[i].ArmIndex", "ProcessSteps[i].ArmNozzleIndex"], armNozzle.Target.KeyFields);
+        Assert.Equal(new SvidTarget(Svid(35), false), armNozzle.Target.Choices["3,2"]);
+        Assert.Equal(new SvidTarget(Svid(43), false), armNozzle.Target.Choices["4,1"]);
+        Assert.True(armNozzle.DryRunZero);
+        Assert.Equal(
+            [Svid(54), Svid(55), Svid(56), Svid(57)],
+            single.Writes.Skip(2).Select(write => write.Target.Choices[""].Target).ToArray());
+        Assert.All(single.Writes.Skip(2), write => Assert.True(write.DryRunZero));
+
+        ProcessWrite master = clean.Writes[6], slave = clean.Writes[7];
+        Assert.Equal(new SvidTarget(Svid(47), true), master.Target.Choices["2"]);
+        Assert.Equal(new SvidTarget(Svid(48), true), slave.Target.Choices["2"]);
+        Assert.Equal(Ecid(288), master.Value.Ecid!.Choices["2"]);
+        Assert.Equal(Ecid(288), slave.Value.Ecid!.Choices["2"]);
+        Assert.Equal((true, true), (master.Keep, slave.Keep));
+        Assert.Equal(new ProcessCondition("CleanSettings[i].CleanType", 1), master.When);
+        Assert.All(["Chamber.ArmTest", "Chamber.FlowCalibration"], key => Assert.Null(services[key].Process));
+        Assert.All(
+            ["Chamber.MoveRecipe", "Chamber.EMGS", "Chamber.DoNozzleClean", "Chamber.DoNozzlePreflush"],
             key => Assert.DoesNotContain(key, services.Keys));
     }
 

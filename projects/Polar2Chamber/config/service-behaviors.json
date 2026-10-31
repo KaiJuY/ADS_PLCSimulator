@@ -19,6 +19,64 @@
       "ranges": [ { "field": "ArmIndex", "min": 1, "max": 4 }, { "field": "ArmNozzleIndex", "min": 1, "max": 3 } ],
       "duration": "TestTime"
     },
+    "Chamber.SingleProcess": {
+      "process": {
+        "count": "ProcessStepCount",
+        "maxCount": 50,
+        "time": "ProcessSteps[i].ProcessTime",
+        "cycle": { "control": "ProcessSteps[i].CycleControl", "start": 1, "end": 2, "count": "ProcessSteps[i].CycleCount" },
+        "checks": [
+          { "field": "ProcessSteps[i].ArmIndex", "min": 1, "max": 4 },
+          { "field": "ProcessSteps[i].RecipeIndex", "min": 1, "maxField": "RecipeCount" },
+          { "field": "ProcessSteps[i].ArmNozzleIndex", "min": 1, "maxBy": { "key": [ "ProcessSteps[i].ArmIndex" ], "values": { "1": 3, "2": 3, "3": 2, "4": 1 } } },
+          { "field": "ProcessSteps[i].ProcessTime", "greaterThan": 0 },
+          { "field": "ProcessSteps[i].RotateDirection", "min": 1, "max": 2 },
+          { "field": "ProcessSteps[i].RotateSpeed", "greaterThan": 0 },
+          { "field": "ProcessSteps[i].CupDrainIndex", "min": 1, "max": 3 },
+          { "field": "ProcessSteps[i].CycleControl", "min": 0, "max": 2 },
+          { "field": "ProcessSteps[i].CycleCount", "greaterThan": 0, "when": { "field": "ProcessSteps[i].CycleControl", "equals": 1 } }
+        ],
+        "writes": [
+          { "svid": 53, "value": { "field": "ProcessSteps[i].RotateSpeed", "negateWhen": { "field": "ProcessSteps[i].RotateDirection", "equals": 2 } } },
+          { "svidBy": { "key": [ "ProcessSteps[i].ArmIndex", "ProcessSteps[i].ArmNozzleIndex" ], "values": { "1,1": 9, "1,2": 10, "1,3": 11, "2,1": 22, "2,2": 23, "2,3": 24, "3,1": 34, "3,2": 35, "4,1": 43 } }, "value": { "field": "ProcessSteps[i].ArmNozzleSetpoint" }, "dryRunZero": true },
+          { "svid": 54, "value": { "field": "ProcessSteps[i].FixedNozzleSetpoint[1]" }, "dryRunZero": true },
+          { "svid": 55, "value": { "field": "ProcessSteps[i].FixedNozzleSetpoint[2]" }, "dryRunZero": true },
+          { "svid": 56, "value": { "field": "ProcessSteps[i].FixedNozzleSetpoint[3]" }, "dryRunZero": true },
+          { "svid": 57, "value": { "field": "ProcessSteps[i].FixedNozzleSetpoint[4]" }, "dryRunZero": true }
+        ]
+      }
+    },
+    "Chamber.CupChamberClean": {
+      "process": {
+        "count": "ProcessStepCount",
+        "maxCount": 50,
+        "time": "ProcessSteps[i].ProcessTime",
+        "cycle": { "control": "ProcessSteps[i].CycleControl", "start": 1, "end": 2, "count": "ProcessSteps[i].CycleCount" },
+        "checks": [
+          { "field": "ProcessSteps[i].ArmIndex", "min": 1, "max": 4 },
+          { "field": "ProcessSteps[i].RecipeIndex", "min": 1, "maxField": "RecipeCount" },
+          { "field": "ProcessSteps[i].ArmNozzleIndex", "min": 1, "maxBy": { "key": [ "ProcessSteps[i].ArmIndex" ], "values": { "1": 3, "2": 3, "3": 2, "4": 1 } } },
+          { "field": "ProcessSteps[i].ProcessTime", "greaterThan": 0 },
+          { "field": "ProcessSteps[i].RotateDirection", "min": 1, "max": 2 },
+          { "field": "ProcessSteps[i].RotateSpeed", "greaterThan": 0 },
+          { "field": "ProcessSteps[i].CupDrainIndex", "min": 1, "max": 3 },
+          { "field": "ProcessSteps[i].CycleControl", "min": 0, "max": 2 },
+          { "field": "ProcessSteps[i].CycleCount", "greaterThan": 0, "when": { "field": "ProcessSteps[i].CycleControl", "equals": 1 } },
+          { "field": "CleanSettings[i].TargetCupIndex", "min": 1, "max": 4 },
+          { "field": "CleanSettings[i].CleanType", "min": 1, "max": 2 }
+        ],
+        "writes": [
+          { "svid": 53, "value": { "field": "ProcessSteps[i].RotateSpeed", "negateWhen": { "field": "ProcessSteps[i].RotateDirection", "equals": 2 } } },
+          { "svidBy": { "key": [ "ProcessSteps[i].ArmIndex", "ProcessSteps[i].ArmNozzleIndex" ], "values": { "1,1": 9, "1,2": 10, "1,3": 11, "2,1": 22, "2,2": 23, "2,3": 24, "3,1": 34, "3,2": 35, "4,1": 43 } }, "value": { "field": "ProcessSteps[i].ArmNozzleSetpoint" }, "dryRunZero": true },
+          { "svid": 54, "value": { "field": "ProcessSteps[i].FixedNozzleSetpoint[1]" }, "dryRunZero": true },
+          { "svid": 55, "value": { "field": "ProcessSteps[i].FixedNozzleSetpoint[2]" }, "dryRunZero": true },
+          { "svid": 56, "value": { "field": "ProcessSteps[i].FixedNozzleSetpoint[3]" }, "dryRunZero": true },
+          { "svid": 57, "value": { "field": "ProcessSteps[i].FixedNozzleSetpoint[4]" }, "dryRunZero": true },
+          { "svidBy": { "key": [ "CleanSettings[i].TargetCupIndex" ], "values": { "1": 45, "2": 47, "3": 49, "4": 51 } }, "value": { "ecidBy": { "key": [ "CleanSettings[i].TargetCupIndex" ], "values": { "1": 276, "2": 288, "3": 300, "4": 312 } } }, "keep": true, "when": { "field": "CleanSettings[i].CleanType", "equals": 1 } },
+          { "svidBy": { "key": [ "CleanSettings[i].TargetCupIndex" ], "values": { "1": 46, "2": 48, "3": 50, "4": 52 } }, "value": { "ecidBy": { "key": [ "CleanSettings[i].TargetCupIndex" ], "values": { "1": 276, "2": 288, "3": 300, "4": 312 } } }, "keep": true, "when": { "field": "CleanSettings[i].CleanType", "equals": 1 } }
+        ]
+      }
+    },
     "Holder.Rotate.MoveVelocityCW": {
       "onEnter": [ { "svid": 53, "value": { "ecid": 318 } } ],
       "onLeave": [ { "svid": 53, "value": { "constant": 0 } } ]

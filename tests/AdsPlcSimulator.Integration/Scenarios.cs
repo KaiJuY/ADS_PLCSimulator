@@ -9,7 +9,7 @@ namespace AdsPlcSimulator.Integration;
 
 internal sealed record Scenario(string Id, string Title, Func<PlcSession, Task<Checks>> Run);
 
-/// <summary>Scenarios S1 to S12, S15 and S16 of .adf/scenarios/1.md and S17 and S18 of #13, S19 and S20 of #15 (Chamber.SetConfig), S21 to S25 of #16 (config/service-behaviors.json), S26 to S29 of #17 and S30 to S33 of #18; S13 and S14 are browser steps and are not here. S16 runs right after S11 and continues from the Aborted SetMode it leaves; a module Stop (S15) cannot finish while a service stays Aborted, and it leaves module 1 Stopped, so S17 to S33 run before it. S21 to S25 set the Module Mode with Chamber.SetMode and leave it at 1.</summary>
+/// <summary>Scenarios S1 to S12, S15 and S16 of .adf/scenarios/1.md and S17 and S18 of #13, S19 and S20 of #15 (Chamber.SetConfig), S21 to S25 of #16 (config/service-behaviors.json), S26 to S29 of #17, S30 to S33 of #18 and S34 to S37 of #19; S13 and S14 are browser steps and are not here. S16 runs right after S11 and continues from the Aborted SetMode it leaves; a module Stop (S15) cannot finish while a service stays Aborted, and it leaves module 1 Stopped, so S17 to S37 run before it. S21 to S25 set the Module Mode with Chamber.SetMode and leave it at 1.</summary>
 internal static partial class Scenarios
 {
     private const string Gvl = "GVL_Module.Chamber_Control";
@@ -114,6 +114,10 @@ internal static partial class Scenarios
         new("S31", "Arm1 Nozzle1 supply writes the setpoint, but not in DryRun", Arm1SupplyAsync),
         new("S32", "Arm1 JogNegative writes the negative jog speed", Arm1JogAsync),
         new("S33", "Exhaust fan 1 writes the target pressure", ExhaustFanAsync),
+        new("S34", "SingleProcess steps write speed and supply", SingleProcessStepsAsync),
+        new("S35", "SingleProcess refuses ArmIndex 5", SingleProcessCheckAsync),
+        new("S36", "SingleProcess repeats a cycle", SingleProcessCycleAsync),
+        new("S37", "CupChamberClean FixedAtTop writes the cup height", CupCleanAsync),
         new("S15", "Module Stop ignores later service commands", ModuleStopAsync),
     ];
 
