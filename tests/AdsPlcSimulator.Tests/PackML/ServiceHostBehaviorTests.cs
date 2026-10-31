@@ -466,4 +466,130 @@ public class ServiceHostBehaviorTests
         Assert.Equal(PackMLState.Execute, fixture.ServiceState(2, "A"));
         Assert.False(fixture.Host.IsExecuteRejected(HostFixture.CtrlPath(2, "A")));
     }
+
+    private static ServiceBehaviorTable ProcessBehaviors() => new(new Dictionary<string, ModuleBehavior>
+    {
+        [Module] = new ModuleBehavior(
+            "ModuleVariableList[1].Value",
+            [new ModeRule(1, "Manual", false, ModeRuleKind.DenyListed, new HashSet<string>())],
+            new Dictionary<string, ServiceBehavior>
+            {
+                ["A"] = new([], null, [], [], [], new ProcessBehavior(
+                    "Count", 6, "Steps[i].Time", null,
+                    [new ProcessCheck("Steps[i].Kind", ProcessCheckKind.Range, 1, new ProcessBound(4, null, null), null)],
+                    [new ProcessWrite(
+                        new KeyedChoice<SvidTarget>([], new Dictionary<string, SvidTarget> { [""] = new("ModuleVariableList[2].Value", false) }),
+                        new ProcessValue(ProcessValueKind.Field, "Steps[i].Kind", null, null), false, false, null)])),
+            }),
+    });
+
+    private static HostFixture ArrangeProcess(int count, int timeMs, int firstKind = 1)
+    {
+        var fixture = new HostFixture(declarations: HostFixture.ProcessDeclarations, initialize: false);
+        fixture.Write(ModeValue, "1");
+        fixture.Write($"{Module}.ServiceParam.A.Count", (long)count);
+        for (int step = 1; step <= count; step++)
+        {
+            fixture.Write($"{Module}.ServiceParam.A.Steps[{step}].Kind", (long)(step == 1 ? firstKind : step));
+            fixture.Write($"{Module}.ServiceParam.A.Steps[{step}].Time", (long)timeMs);
+        }
+        fixture.Host.Initialize(fixture.Image, ConfiguredAlarmTable.Empty, ProcessBehaviors());
+        return fixture;
+    }
+
+    [Fact]
+    [Trait("AC", "5")]
+    public void A_step_parameter_out_of_range_aborts_the_service_with_the_step_error()
+    {
+        HostFixture fixture = ArrangeProcess(1, 1000, firstKind: 9);
+
+        StartAndScan(fixture);
+        ReleaseAndScan(fixture);
+
+        Assert.Equal(PackMLState.Aborted, fixture.ServiceState(1, "A"));
+        Assert.Equal(1, ErrorField(fixture, 1, "MainErrorId"));
+        Assert.Equal(9, ErrorField(fixture, 1, "SourceErrorId"));
+        Assert.Equal("Steps[1].Kind out of range (1~4).", fixture.Read($"{ErrorOfA}[1].Message"));
+    }
+
+    [Fact]
+    [Trait("AC", "11")]
+    public void The_step_times_decide_when_the_service_completes_not_the_default_delay()
+    {
+        HostFixture fixture = ArrangeProcess(2, 250);
+        StartAndScan(fixture);
+        ReleaseAndScan(fixture);
+
+        ScanUpTo(fixture, TimeSpan.FromMilliseconds(400));
+        PackMLState during = fixture.ServiceState(1, "A");
+        string svid = Svid(fixture, 2);
+        ScanUpTo(fixture, TimeSpan.FromMilliseconds(600));
+        fixture.Scan();
+
+        Assert.Equal(PackMLState.Execute, during);
+        Assert.Equal("2", svid);
+        Assert.Equal(PackMLState.Complete, fixture.ServiceState(1, "A"));
+        Assert.Equal("0", Svid(fixture, 2));
+    }
+
+    [Fact]
+    [Trait("AC", "14")]
+    public void Hold_zeroes_the_step_SVID_and_Unhold_writes_it_again_and_restarts_the_step_time()
+    {
+        HostFixture fixture = ArrangeProcess(1, 1000);
+        StartAndScan(fixture);
+        ReleaseAndScan(fixture);
+        ScanUpTo(fixture, TimeSpan.FromMilliseconds(800));
+
+        fixture.ServiceCommand(1, "A", PackMLCommand.Hold, 2);
+        string held = Svid(fixture, 2);
+        fixture.ServiceCommand(1, "A", PackMLCommand.Unhold, 3);
+        string resumed = Svid(fixture, 2);
+        ScanUpTo(fixture, TimeSpan.FromMilliseconds(1700));
+        PackMLState beforeEnd = fixture.ServiceState(1, "A");
+        ScanUpTo(fixture, TimeSpan.FromMilliseconds(1900));
+        fixture.Scan();
+
+        Assert.Equal("0", held);
+        Assert.Equal("1", resumed);
+        Assert.Equal(PackMLState.Execute, beforeEnd);
+        Assert.Equal(PackMLState.Complete, fixture.ServiceState(1, "A"));
+    }
+
+    [Fact]
+    [Trait("AC", "14")]
+    [Trait("AC", "15")]
+    public void Stop_zeroes_the_step_SVID_and_a_new_Start_begins_at_the_first_step()
+    {
+        HostFixture fixture = ArrangeProcess(2, 1000);
+        StartAndScan(fixture);
+        ReleaseAndScan(fixture);
+        ScanUpTo(fixture, TimeSpan.FromMilliseconds(1200));
+        string secondStep = Svid(fixture, 2);
+
+        fixture.ServiceCommand(1, "A", PackMLCommand.Stop, 2);
+        string stopped = Svid(fixture, 2);
+        fixture.ServiceCommand(1, "A", PackMLCommand.Reset, 3);
+        fixture.ServiceCommand(1, "A", PackMLCommand.Start, 4);
+
+        Assert.Equal("2", secondStep);
+        Assert.Equal("0", stopped);
+        Assert.Equal(PackMLState.Execute, fixture.ServiceState(1, "A"));
+        Assert.Equal("1", Svid(fixture, 2));
+    }
+
+    [Fact]
+    [Trait("AC", "16")]
+    public void A_service_a_workflow_took_over_runs_no_steps()
+    {
+        HostFixture fixture = ArrangeProcess(1, 1000);
+        fixture.SetOverrideToken(1, "A", new object());
+
+        StartAndScan(fixture);
+        ReleaseAndScan(fixture);
+        ScanUpTo(fixture, TimeSpan.FromMilliseconds(1500));
+
+        Assert.Equal(PackMLState.Execute, fixture.ServiceState(1, "A"));
+        Assert.Equal("", Svid(fixture, 2));
+    }
 }

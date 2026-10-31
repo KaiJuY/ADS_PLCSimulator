@@ -90,8 +90,8 @@ internal sealed class ServiceRules
 {
     public static readonly ServiceRules None = new();
 
-    private const uint ParamOutOfRangeId = 1;
-    private const uint UnrepresentableSourceId = uint.MaxValue;
+    internal const uint ParamOutOfRangeId = 1;
+    internal const uint UnrepresentableSourceId = uint.MaxValue;
 
     private readonly List<ResolvedRange> _ranges;
     private readonly SymbolRef? _duration;
@@ -99,6 +99,7 @@ internal sealed class ServiceRules
     private readonly List<ResolvedWrite> _onEnter;
     private readonly List<ResolvedWrite> _beforeComplete;
     private readonly List<ResolvedWrite> _onLeave;
+    private readonly ProcessRules? _process;
 
     // Stryker disable once Block: ServiceRules.None is a static instance created once per test process, so the per-test mutant switch of Stryker cannot reach this constructor
     private ServiceRules()
@@ -111,7 +112,7 @@ internal sealed class ServiceRules
 
     private ServiceRules(
         List<ResolvedRange> ranges, SymbolRef? duration, string? durationField,
-        List<ResolvedWrite> onEnter, List<ResolvedWrite> beforeComplete, List<ResolvedWrite> onLeave)
+        List<ResolvedWrite> onEnter, List<ResolvedWrite> beforeComplete, List<ResolvedWrite> onLeave, ProcessRules? process)
     {
         _ranges = ranges;
         _duration = duration;
@@ -119,6 +120,7 @@ internal sealed class ServiceRules
         _onEnter = onEnter;
         _beforeComplete = beforeComplete;
         _onLeave = onLeave;
+        _process = process;
     }
 
     private sealed record ResolvedWrite(SymbolRef Target, SvidWrite Write, SymbolRef? Source);
@@ -138,7 +140,8 @@ internal sealed class ServiceRules
             behavior.DurationField,
             ResolveAll(behavior.OnEnter),
             ResolveAll(behavior.BeforeComplete),
-            ResolveAll(behavior.OnLeave));
+            ResolveAll(behavior.OnLeave),
+            behavior.Process is null ? null : ProcessRules.Create(symbols, modulePath, param, behavior.Process));
     }
 
     public EntryCheck CheckParams(ProcessImage image)
@@ -153,8 +156,12 @@ internal sealed class ServiceRules
         // TIME is an unsigned millisecond count, so "greater than 0" means "not 0".
         if (_duration is { } duration && PlcValue.ToInt64(image.ReadValue(duration)) == 0)
             return new EntryCheck(ParamOutOfRangeId, 0, $"{_durationField} must be greater than 0.");
-        return EntryCheck.Pass;
+        if (_process is null)
+            return EntryCheck.Pass;
+        return _process.Check(image);
     }
+
+    public ProcessRun? StartProcess(ProcessImage image, TimeSpan now, bool dryRun) => _process?.Start(image, now, dryRun);
 
     private static EntryCheck CheckInteger(ResolvedRange range, ProcessImage image)
     {
@@ -174,10 +181,10 @@ internal sealed class ServiceRules
             : new EntryCheck(ParamOutOfRangeId, SourceErrorId(value), $"{range.Range.Field} out of range ({Text(range.Range.Min)}~{Text(range.Range.Max)}).");
     }
 
-    private static uint SourceErrorId(double value) =>
+    internal static uint SourceErrorId(double value) =>
         double.IsFinite(value) ? unchecked((uint)(long)Math.Truncate(value)) : UnrepresentableSourceId;
 
-    private static string Text(double bound) => bound.ToString(CultureInfo.InvariantCulture);
+    internal static string Text(double bound) => bound.ToString(CultureInfo.InvariantCulture);
 
     private static ResolvedRange ResolveRange(SymbolTable symbols, string param, ParamRange range)
     {
@@ -215,7 +222,7 @@ internal sealed class ServiceRules
     private static void WriteAll(List<ResolvedWrite> writes, ProcessImage image, bool dryRun)
     {
         foreach (ResolvedWrite write in writes)
-            image.WriteValue(write.Target, Format(write, Number(write, image, dryRun)), WriteSource.Workflow);
+            image.WriteValue(write.Target, Format(write.Write.IsReal, Number(write, image, dryRun)), WriteSource.Workflow);
     }
 
     private static double Number(ResolvedWrite write, ProcessImage image, bool dryRun)
@@ -244,12 +251,14 @@ internal sealed class ServiceRules
         return write.Write.Value.Negate ? -field : field;
     }
 
-    private static double ParseNumber(string text) =>
+    internal static double ParseNumber(string text) =>
         double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double number) && double.IsFinite(number) ? number : 0;
 
-    private static string Format(ResolvedWrite write, double number)
+    internal static string Format(bool isReal, double number)
     {
-        if (write.Write.IsReal)
+        if (!double.IsFinite(number))
+            number = 0;
+        if (isReal)
             return ConfigParamValue.FormatFloat32(number);
 
         double rounded = Math.Clamp(Math.Round(number, MidpointRounding.AwayFromZero), int.MinValue, int.MaxValue);

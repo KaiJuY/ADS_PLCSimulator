@@ -28,7 +28,8 @@ public sealed record ServiceBehavior(
     string? DurationField,
     IReadOnlyList<SvidWrite> OnEnter,
     IReadOnlyList<SvidWrite> BeforeComplete,
-    IReadOnlyList<SvidWrite> OnLeave);
+    IReadOnlyList<SvidWrite> OnLeave,
+    ProcessBehavior? Process = null);
 
 /// <param name="Field">Number field relative to ServiceParam.&lt;service&gt;, e.g. "ArmIndex" or "Position".</param>
 public sealed record ParamRange(string Field, double Min, double Max);
