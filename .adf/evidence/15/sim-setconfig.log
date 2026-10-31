@@ -1,0 +1,231 @@
+12:50:03.280 == port 25860, root GVL_Module.Chamber_Control[1], service Chamber.SetConfig, ADS state=Run
+12:50:11.237 438 ECID with Id != 0
+12:50:11.241 PICK Id=3 DescriptorType=1 (DINT) Value="0" Lower=-2147483648 Upper=2147483647 HasLimits=True
+12:50:11.241 PICK Id=17 DescriptorType=2 (REAL) Value="0" Lower=-3.402823466E+38 Upper=3.402823466E+38 HasLimits=True
+12:50:11.264 originals written to .\25860-original.json
+12:50:11.357 raw saved: GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId=00000000.., GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn=0000000000000000.., GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest=000000000000000000000000.., GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1]=000000000000000000000000.., GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[2]=000000000000000000000000..
+12:50:11.365 == success Id=3 value 1
+12:50:11.369 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Id = 3
+12:50:11.376 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].DataType = 2
+12:50:11.380 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Value = 1
+12:50:11.386 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[2].Id = 0
+12:50:11.391 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:11.397 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958079
+12:50:11.400 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 2
+12:50:11.405 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:11.467 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:11.494 state=Complete readback="1" ErrorList[1].Main=0
+12:50:11.499 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:11.501 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958080
+12:50:11.503 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 1
+12:50:11.506 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:11.547 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:11.550 == success Id=17 value 1.5
+12:50:11.550 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Id = 17
+12:50:11.553 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].DataType = 4
+12:50:11.556 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Value = 1.5
+12:50:11.559 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[2].Id = 0
+12:50:11.561 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:11.565 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958081
+12:50:11.568 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 2
+12:50:11.570 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:11.611 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:11.679 state=Complete readback="1.5" ErrorList[1].Main=0
+12:50:11.685 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:11.687 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958082
+12:50:11.690 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 1
+12:50:11.693 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:11.738 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:11.741 == success Id=17 value 0.1
+12:50:11.741 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Id = 17
+12:50:11.743 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].DataType = 4
+12:50:11.745 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Value = 0.1
+12:50:11.748 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[2].Id = 0
+12:50:11.750 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:11.754 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958083
+12:50:11.757 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 2
+12:50:11.760 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:11.800 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:11.866 state=Complete readback="0.1" ErrorList[1].Main=0
+12:50:11.872 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:11.874 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958084
+12:50:11.876 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 1
+12:50:11.880 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:11.908 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:11.910 == success Id=17 value +2
+12:50:11.910 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Id = 17
+12:50:11.913 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].DataType = 4
+12:50:11.915 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Value = +2
+12:50:11.919 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[2].Id = 0
+12:50:11.921 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:11.924 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958085
+12:50:11.926 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 2
+12:50:11.929 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:11.973 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:12.040 state=Complete readback="2" ErrorList[1].Main=0
+12:50:12.047 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:12.049 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958086
+12:50:12.053 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 1
+12:50:12.056 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:12.097 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:12.100 == success Id=17 value 1e2
+12:50:12.100 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Id = 17
+12:50:12.102 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].DataType = 4
+12:50:12.104 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Value = 1e2
+12:50:12.107 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[2].Id = 0
+12:50:12.109 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:12.113 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958087
+12:50:12.116 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 2
+12:50:12.118 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:12.160 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:12.227 state=Complete readback="100" ErrorList[1].Main=0
+12:50:12.233 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:12.236 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958088
+12:50:12.238 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 1
+12:50:12.242 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:12.270 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:12.287 == failure empty batch (920)
+12:50:12.287 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Id = 0
+12:50:12.290 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:12.293 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958089
+12:50:12.295 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 2
+12:50:12.298 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:12.335 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:12.340 state=Aborted
+12:50:12.352 ErrorList[1] Main=920 Source=0 Message="Config Param batch is empty."
+12:50:12.381 ModuleAlarmList[1] Main=920 Source=0 ServiceId=5 Active=True Ack=False
+12:50:12.439 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.bChangeRequest = False
+12:50:12.446 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.RequestId = 102958090
+12:50:12.451 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.Command = 2
+12:50:12.456 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.MainErrorId = 0
+12:50:12.462 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.ServiceId = 0
+12:50:12.468 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.bChangeRequest = True
+12:50:12.976 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.bChangeRequest = False
+12:50:12.984 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:12.996 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958091
+12:50:13.005 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 9
+12:50:13.009 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:13.056 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:13.074 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:13.078 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958092
+12:50:13.080 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 1
+12:50:13.084 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:13.121 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:13.132 state=Idle Idle=True Value="1" unchanged=True
+12:50:13.134 == failure unknown Id (922)
+12:50:13.134 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Id = 4294967000
+12:50:13.138 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].DataType = 2
+12:50:13.141 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Value = 1
+12:50:13.145 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[2].Id = 0
+12:50:13.147 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:13.150 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958093
+12:50:13.153 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 2
+12:50:13.156 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:13.199 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:13.206 state=Aborted
+12:50:13.219 ErrorList[1] Main=922 Source=4294967000 Message="Config Param metadata was not found."
+12:50:13.235 ModuleAlarmList[1] Main=922 Source=4294967000 ServiceId=5 Active=True Ack=False
+12:50:13.286 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.bChangeRequest = False
+12:50:13.292 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.RequestId = 102958094
+12:50:13.298 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.Command = 2
+12:50:13.302 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.MainErrorId = 0
+12:50:13.306 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.ServiceId = 0
+12:50:13.310 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.bChangeRequest = True
+12:50:13.826 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.bChangeRequest = False
+12:50:13.827 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:13.830 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958095
+12:50:13.833 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 9
+12:50:13.836 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:13.875 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:13.881 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:13.884 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958096
+12:50:13.887 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 1
+12:50:13.890 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:13.922 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:13.930 state=Idle Idle=True Value="1" unchanged=True
+12:50:13.933 == failure above limit (926) 3000000000
+12:50:13.933 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Id = 3
+12:50:13.936 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].DataType = 2
+12:50:13.939 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Value = 3000000000
+12:50:13.942 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[2].Id = 0
+12:50:13.944 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:13.947 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958097
+12:50:13.950 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 2
+12:50:13.953 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:13.985 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:13.992 state=Aborted
+12:50:14.001 ErrorList[1] Main=926 Source=3 Message="Config Param value is outside its type or metadata limits."
+12:50:14.016 ModuleAlarmList[1] Main=926 Source=3 ServiceId=5 Active=True Ack=False
+12:50:14.044 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.bChangeRequest = False
+12:50:14.048 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.RequestId = 102958098
+12:50:14.049 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.Command = 2
+12:50:14.052 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.MainErrorId = 0
+12:50:14.056 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.ServiceId = 0
+12:50:14.058 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.bChangeRequest = True
+12:50:14.568 WRITE GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest.bChangeRequest = False
+12:50:14.571 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:14.574 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958099
+12:50:14.577 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 9
+12:50:14.580 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:14.585 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:14.590 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:14.593 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958100
+12:50:14.596 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 1
+12:50:14.599 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:14.633 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:14.642 state=Idle Idle=True Value="1" unchanged=True
+12:50:14.645 == restore
+12:50:14.647 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Id = 3
+12:50:14.650 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].DataType = 2
+12:50:14.654 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Value = 0
+12:50:14.656 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[2].Id = 0
+12:50:14.660 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:14.663 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958101
+12:50:14.666 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 2
+12:50:14.668 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:14.711 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:14.726 RESTORE Id=3 complete=True readback="0" original="0" -> OK
+12:50:14.731 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:14.733 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958102
+12:50:14.736 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 1
+12:50:14.739 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:14.773 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:14.776 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Id = 17
+12:50:14.779 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].DataType = 4
+12:50:14.782 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Value = 0
+12:50:14.785 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[2].Id = 0
+12:50:14.788 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:14.792 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958103
+12:50:14.795 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 2
+12:50:14.798 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:14.836 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:14.890 RESTORE Id=17 complete=True readback="0" original="0" -> OK
+12:50:14.896 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:14.900 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId = 102958104
+12:50:14.903 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.eCommand = 1
+12:50:14.905 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = True
+12:50:14.945 WRITE GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn.bCommandChangeRequest = False
+12:50:14.948 WRITE GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1].Id = 0
+12:50:14.950 WRITE raw GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn (restore)
+12:50:14.957 raw restored GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.PackMLIn: True
+12:50:14.957 WRITE raw GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest (restore)
+12:50:14.964 raw restored GVL_Module.Chamber_Control[1].ModuleCtrl.AlarmAckRequest: True
+12:50:14.964 WRITE raw GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1] (restore)
+12:50:14.969 raw restored GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[1]: True
+12:50:14.969 WRITE raw GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[2] (restore)
+12:50:14.974 raw restored GVL_Module.Chamber_Control[1].ServiceParam.Chamber.SetConfig[2]: True
+12:50:14.974 WRITE raw GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId (restore)
+12:50:14.979 raw restored GVL_Module.Chamber_Control[1].ServiceCtrl.Chamber.SetConfig.RequestId: True
+12:50:14.979 restore result: OK
+
+round                             Main     Source      final state  Value
+success 3 1                       0        0           Complete     1
+success 17 1.5                    0        0           Complete     1.5
+success 17 0.1                    0        0           Complete     0.1
+success 17 +2                     0        0           Complete     2
+success 17 1e2                    0        0           Complete     100
+empty batch (920)                 920      0           Idle         1
+unknown Id (922)                  922      4294967000  Idle         1
+above limit (926) 3000000000      926      3           Idle         1
+restore 3                                              Complete     0
+restore 17                                             Complete     0

@@ -1,0 +1,10 @@
+[
+  {
+    "Id": 1,
+    "DescriptorType": 2,
+    "Value": "100.0",
+    "LowerLimit": 0,
+    "UpperLimit": 123.5,
+    "HasLimits": true
+  }
+]

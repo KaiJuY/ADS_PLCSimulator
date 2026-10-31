@@ -1,0 +1,46 @@
+12:50:59.823 == port 853, root GVL_Module.Chamber1_Control[1], service SetConfigParam, ADS state=Run
+12:51:00.751 2 ECID with Id != 0
+12:51:00.755 PICK Id=1 DescriptorType=2 (REAL) Value="100.0" Lower=0 Upper=123.5 HasLimits=True
+12:51:00.755 No bound DINT ECID: DINT not measured; failure rounds use the REAL ECID.
+12:51:00.779 originals written to .\853-original.json
+12:51:00.873 raw saved: GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.RequestId=00000000.., GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.PackMLIn=0000000000000000.., GVL_Module.Chamber1_Control[1].ModuleCtrl.AlarmAckRequest=000000000000000000000000.., GVL_Module.Chamber1_Control[1].ServiceParam.SetConfigParam[1]=000000000000000000000000.., GVL_Module.Chamber1_Control[1].ServiceParam.SetConfigParam[2]=000000000000000000000000..
+12:51:00.879 == success Id=1 value 1.5
+12:51:00.883 WRITE GVL_Module.Chamber1_Control[1].ServiceParam.SetConfigParam[1].Id = 1
+12:51:00.889 WRITE GVL_Module.Chamber1_Control[1].ServiceParam.SetConfigParam[1].DataType = 4
+12:51:00.891 WRITE GVL_Module.Chamber1_Control[1].ServiceParam.SetConfigParam[1].Value = 1.5
+12:51:00.895 WRITE GVL_Module.Chamber1_Control[1].ServiceParam.SetConfigParam[2].Id = 0
+12:51:00.899 WRITE GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.PackMLIn.bCommandChangeRequest = False
+12:51:00.903 WRITE GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.RequestId = 103014610
+12:51:00.904 WRITE GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.PackMLIn.eCommand = 2
+12:51:00.907 WRITE GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.PackMLIn.bCommandChangeRequest = True
+12:51:01.010 WRITE GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.PackMLIn.bCommandChangeRequest = False
+12:51:01.022 state=Complete readback="1.5" ErrorList[1].Main=0
+12:51:01.025 WRITE GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.PackMLIn.bCommandChangeRequest = False
+12:51:01.026 WRITE GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.RequestId = 103014611
+12:51:01.027 WRITE GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.PackMLIn.eCommand = 1
+12:51:01.028 WRITE GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.PackMLIn.bCommandChangeRequest = True
+12:51:06.052 WRITE GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.PackMLIn.bCommandChangeRequest = False
+12:51:06.054 ERROR InvalidOperationException: Reset did not reach Idle
+12:51:06.054 == restore
+12:51:06.056 WRITE GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.PackMLIn.bCommandChangeRequest = False
+12:51:06.058 WRITE GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.RequestId = 103014612
+12:51:06.059 WRITE GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.PackMLIn.eCommand = 1
+12:51:06.060 WRITE GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.PackMLIn.bCommandChangeRequest = True
+12:51:11.068 WRITE GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.PackMLIn.bCommandChangeRequest = False
+12:51:11.072 restore: service not Idle (Complete)
+12:51:11.072 WRITE GVL_Module.Chamber1_Control[1].ServiceParam.SetConfigParam[1].Id = 0
+12:51:11.074 WRITE raw GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.PackMLIn (restore)
+12:51:11.078 raw restored GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.PackMLIn: True
+12:51:11.078 WRITE raw GVL_Module.Chamber1_Control[1].ModuleCtrl.AlarmAckRequest (restore)
+12:51:11.081 raw restored GVL_Module.Chamber1_Control[1].ModuleCtrl.AlarmAckRequest: True
+12:51:11.081 WRITE raw GVL_Module.Chamber1_Control[1].ServiceParam.SetConfigParam[1] (restore)
+12:51:11.083 raw restored GVL_Module.Chamber1_Control[1].ServiceParam.SetConfigParam[1]: True
+12:51:11.083 WRITE raw GVL_Module.Chamber1_Control[1].ServiceParam.SetConfigParam[2] (restore)
+12:51:11.086 raw restored GVL_Module.Chamber1_Control[1].ServiceParam.SetConfigParam[2]: True
+12:51:11.086 WRITE raw GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.RequestId (restore)
+12:51:11.089 raw restored GVL_Module.Chamber1_Control[1].ServiceCtrl.SetConfigParam.RequestId: True
+12:51:11.089 restore result: FAILED (run --restore)
+
+round                             Main     Source      final state  Value
+success 1 1.5                     0        0           Complete     1.5
+12:51:11.089 ERROR InvalidOperationException: Reset did not reach Idle

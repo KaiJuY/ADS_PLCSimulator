@@ -1,0 +1,18 @@
+[
+  {
+    "Id": 3,
+    "DescriptorType": 1,
+    "Value": "0",
+    "LowerLimit": -2147483648,
+    "UpperLimit": 2147483647,
+    "HasLimits": true
+  },
+  {
+    "Id": 17,
+    "DescriptorType": 2,
+    "Value": "0.0",
+    "LowerLimit": -3.402823466E+38,
+    "UpperLimit": 3.402823466E+38,
+    "HasLimits": true
+  }
+]
