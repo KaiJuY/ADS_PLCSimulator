@@ -14,7 +14,9 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
     private const string SmallProgram = """
         TYPE ST_ServiceCtrl : STRUCT RequestId : UDINT; END_STRUCT END_TYPE
         TYPE ST_Ctrls : STRUCT A : ST_ServiceCtrl; B : ST_ServiceCtrl; Plain : UDINT; END_STRUCT END_TYPE
-        TYPE ST_ParamA : STRUCT Index : UINT; Count : DINT; Time : TIME; Speed : REAL; Flag : BOOL; Big : ULINT; Angle : LREAL; END_STRUCT END_TYPE
+        TYPE E_Dir : (Up := 1, Down := 2) UINT; END_TYPE
+        TYPE ST_Step : STRUCT Kind : UINT; Pick : UINT; Time : TIME; Dir : E_Dir; Speed : REAL; END_STRUCT END_TYPE
+        TYPE ST_ParamA : STRUCT Index : UINT; Count : DINT; Time : TIME; Speed : REAL; Flag : BOOL; Big : ULINT; Angle : LREAL; N : UINT; Limit : UINT; Steps : ARRAY[1..5] OF ST_Step; END_STRUCT END_TYPE
         TYPE ST_Params : STRUCT A : ST_ParamA; B : ST_ParamA; END_STRUCT END_TYPE
         TYPE ST_ExtDescriptor : STRUCT Id : UDINT; Value : STRING(80); END_STRUCT END_TYPE
         TYPE ST_Module : STRUCT
@@ -114,7 +116,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
     [Trait("AC", "6")]
     [Trait("AC", "8")]
     [Trait("AC", "10")]
-    public void The_Polar2_file_has_86_services_with_the_batch_2_rules_and_none_for_services_without_an_SVID()
+    public void The_Polar2_file_has_88_services_with_the_batch_2_rules_and_none_for_services_without_an_SVID()
     {
         ModuleConfigFile config = ModuleConfigPublisher.Parse(File.ReadAllText(System.IO.Path.Combine(TestPaths.Polar2Project, "config", "module-config.json")), "module-config.json");
         ModuleConfigEntry slot = config.Modules!.Single(entry => entry!.Enabled)!;
@@ -123,7 +125,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
 
         IReadOnlyDictionary<string, ServiceBehavior> services = ServiceBehaviorLoader.LoadIfPresent(TestPaths.Polar2Project, s_polar2.Value.Symbols, config)!.For(Module1)!.Services;
 
-        Assert.Equal(86, services.Count);
+        Assert.Equal(88, services.Count);
         Assert.Equal(new ParamRange("Position", 0, 360), services["Holder.Rotate.MoveModulo"].Ranges.Single());
         Assert.Equal($"ModuleVariableList[{SvidPosition(53)}].Value", services["Holder.Rotate.MoveModulo"].OnEnter.Single().Target);
         Assert.Equal(new SvidValue(SvidValueKind.Ecid, 0, $"ModuleConfigParamList[{EcidPosition(361)}].Value", true), services["OutsideRing.Rotate.MoveVelocityCCW"].OnEnter.Single().Value);
@@ -205,6 +207,56 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
 
         Assert.All(
             ["Arm[1].Rotate.MoveRecipe", "Arm[2].NozzlePort.DrainSelect1", "Exhaust.Damper.AEX", "SideVent[1].Open"],
+            key => Assert.DoesNotContain(key, services.Keys));
+    }
+
+    [Fact]
+    [Trait("AC", "1")]
+    [Trait("AC", "12")]
+    [Trait("AC", "13")]
+    public void The_Polar2_process_services_have_the_checks_and_SVID_writes_of_the_spec()
+    {
+        ModuleConfigFile config = ModuleConfigPublisher.Parse(File.ReadAllText(System.IO.Path.Combine(TestPaths.Polar2Project, "config", "module-config.json")), "module-config.json");
+        ModuleConfigEntry slot = config.Modules!.Single(entry => entry!.Enabled)!;
+        string Svid(uint id) => $"ModuleVariableList[{slot.VariableList!.FindIndex(item => item!.Id == id) + 1}].Value";
+        string Ecid(uint id) => $"ModuleConfigParamList[{slot.ConfigParamList!.FindIndex(item => item!.Id == id) + 1}].Value";
+
+        IReadOnlyDictionary<string, ServiceBehavior> services = ServiceBehaviorLoader.LoadIfPresent(TestPaths.Polar2Project, s_polar2.Value.Symbols, config)!.For(Module1)!.Services;
+
+        ProcessBehavior single = services["Chamber.SingleProcess"].Process!;
+        ProcessBehavior clean = services["Chamber.CupChamberClean"].Process!;
+        Assert.Equal(("ProcessStepCount", 50, "ProcessSteps[i].ProcessTime"), (single.CountField, single.MaxCount, single.TimeField));
+        Assert.Equal(new ProcessCycle("ProcessSteps[i].CycleControl", 1, 2, "ProcessSteps[i].CycleCount"), single.Cycle);
+        Assert.Equal((9, 6), (single.Checks.Count, single.Writes.Count));
+        Assert.Equal((11, 8), (clean.Checks.Count, clean.Writes.Count));
+        Assert.Equal(single.Checks.Select(check => check.Field), clean.Checks.Take(9).Select(check => check.Field));
+        Assert.Equal(
+            single.Writes.Select(write => write.Value.Field),
+            clean.Writes.Take(6).Select(write => write.Value.Field));
+        Assert.Equal(new SvidTarget(Svid(53), false), single.Writes[0].Target.Choices[""]);
+        Assert.Equal(new ProcessCondition("ProcessSteps[i].RotateDirection", 2), single.Writes[0].Value.NegateWhen);
+
+        ProcessWrite armNozzle = single.Writes[1];
+        Assert.Equal(9, armNozzle.Target.Choices.Count);
+        Assert.Equal(["ProcessSteps[i].ArmIndex", "ProcessSteps[i].ArmNozzleIndex"], armNozzle.Target.KeyFields);
+        Assert.Equal(new SvidTarget(Svid(35), false), armNozzle.Target.Choices["3,2"]);
+        Assert.Equal(new SvidTarget(Svid(43), false), armNozzle.Target.Choices["4,1"]);
+        Assert.True(armNozzle.DryRunZero);
+        Assert.Equal(
+            [Svid(54), Svid(55), Svid(56), Svid(57)],
+            single.Writes.Skip(2).Select(write => write.Target.Choices[""].Target).ToArray());
+        Assert.All(single.Writes.Skip(2), write => Assert.True(write.DryRunZero));
+
+        ProcessWrite master = clean.Writes[6], slave = clean.Writes[7];
+        Assert.Equal(new SvidTarget(Svid(47), true), master.Target.Choices["2"]);
+        Assert.Equal(new SvidTarget(Svid(48), true), slave.Target.Choices["2"]);
+        Assert.Equal(Ecid(288), master.Value.Ecid!.Choices["2"]);
+        Assert.Equal(Ecid(288), slave.Value.Ecid!.Choices["2"]);
+        Assert.Equal((true, true), (master.Keep, slave.Keep));
+        Assert.Equal(new ProcessCondition("CleanSettings[i].CleanType", 1), master.When);
+        Assert.All(["Chamber.ArmTest", "Chamber.FlowCalibration"], key => Assert.Null(services[key].Process));
+        Assert.All(
+            ["Chamber.MoveRecipe", "Chamber.EMGS", "Chamber.DoNozzleClean", "Chamber.DoNozzlePreflush"],
             key => Assert.DoesNotContain(key, services.Keys));
     }
 
@@ -381,10 +433,68 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         { Json("""{ "A": { "beforeComplete": [ { "svid": 99, "value": { "constant": 1 } } ] } }"""), "services.A.beforeComplete[1]: SVID 99 is not in module-config.json" },
         { Json("""{ "A": { "onLeave": [ { "svid": 99, "value": { "constant": 1 } } ] } }"""), "services.A.onLeave[1]: SVID 99 is not in module-config.json" },
         { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "constant": 2147483648 } } ] } }"""), "does not fit a DINT SVID" },
+        { Json("""{ "A": { "duration": "Time", "process": { "count": "N", "maxCount": 5, "time": "Steps[i].Time" } } }"""), "services.A: process and duration cannot both be set." },
+        { Proc(head: """ "maxCount": 5, "time": "Steps[i].Time" """), "services.A.process: count and time are required." },
+        { Proc(head: """ "count": "N", "maxCount": 5, "time": " " """), "services.A.process: count and time are required." },
+        { Proc(head: """ "count": "N", "maxCount": 0, "time": "Steps[i].Time" """), "services.A.process: maxCount must be 1 or more." },
+        { Proc(head: """ "count": "N", "time": "Steps[i].Time" """), "services.A.process: maxCount must be 1 or more." },
+        { Proc(checks: "null"), "services.A.process: checks and writes must not be null." },
+        { Proc(writes: "null"), "services.A.process: checks and writes must not be null." },
+        { Proc(checks: "[ null ]"), "services.A.process.checks[1] is null." },
+        { Proc(writes: "[ null ]"), "services.A.process.writes[1] is null." },
+        { Proc(cycle: """{ "control": "Steps[i].Kind", "start": 1, "count": "Steps[i].Pick" }"""), "services.A.process.cycle: control, start, end and count are required and start must differ from end." },
+        { Proc(cycle: """{ "control": "Steps[i].Kind", "start": 1, "end": 1, "count": "Steps[i].Pick" }"""), "services.A.process.cycle: control, start, end and count are required and start must differ from end." },
+        { Proc(cycle: """{ "control": " ", "start": 1, "end": 2, "count": "Steps[i].Pick" }"""), "services.A.process.cycle: control, start, end and count are required" },
+        { Proc(checks: """[ { "field": " ", "min": 1, "max": 2 } ]"""), "services.A.process.checks[1]: field is empty." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "greaterThan": 0, "max": 2 } ]"""), "services.A.process.checks[1]: greaterThan cannot be used with min, max, maxField or maxBy." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "greaterThan": 0, "min": 0 } ]"""), "services.A.process.checks[1]: greaterThan cannot be used with min, max, maxField or maxBy." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "max": 2 } ]"""), "services.A.process.checks[1]: min is required." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 1 } ]"""), "services.A.process.checks[1]: exactly one of max, maxField and maxBy is required." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 1, "max": 2, "maxField": "Limit" } ]"""), "services.A.process.checks[1]: exactly one of max, maxField and maxBy is required." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 1e999, "max": 2 } ]"""), "services.A.process.checks[1]: min, max and greaterThan must be finite numbers." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "greaterThan": 1e999 } ]"""), "services.A.process.checks[1]: min, max and greaterThan must be finite numbers." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 3, "max": 2 } ]"""), "services.A.process.checks[1]: min is greater than max." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 1, "maxBy": { "key": [], "values": { "1": 2 } } } ]"""), "services.A.process.checks[1].maxBy: key is empty or has an empty field." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 1, "maxBy": { "key": [ " " ], "values": { "1": 2 } } } ]"""), "services.A.process.checks[1].maxBy: key is empty or has an empty field." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 1, "maxBy": { "key": [ "Steps[i].Kind" ], "values": {} } } ]"""), "services.A.process.checks[1].maxBy: values is empty." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 1, "maxBy": { "key": [ "Steps[i].Kind" ], "values": { "1,3": 2 } } } ]"""), "services.A.process.checks[1].maxBy: '1,3' is not 1 integers separated by ','." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 1, "maxBy": { "key": [ "Steps[i].Kind" ], "values": { "01": 2 } } } ]"""), "services.A.process.checks[1].maxBy: '01' is not 1 integers separated by ','." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 1, "maxBy": { "key": [ "Steps[i].Kind" ], "values": { "+1": 2 } } } ]"""), "'+1' is not 1 integers separated by ','." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 1, "maxBy": { "key": [ "Steps[i].Kind", "Steps[i].Pick" ], "values": { "1, 3": 2 } } } ]"""), "'1, 3' is not 2 integers separated by ','." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 1, "maxBy": { "key": [ "Steps[i].Kind" ], "values": { "x": 2 } } } ]"""), "'x' is not 1 integers separated by ','." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "greaterThan": 0, "when": { "field": "Steps[i].Dir" } } ]"""), "services.A.process.checks[1].when: field and equals are required." },
+        { Proc(writes: """[ { "svid": 5, "svidBy": { "key": [ "Steps[i].Kind" ], "values": { "1": 5 } }, "value": { "field": "Steps[i].Speed" } } ]"""), "services.A.process.writes[1]: exactly one of svid and svidBy is required." },
+        { Proc(writes: """[ { "value": { "field": "Steps[i].Speed" } } ]"""), "services.A.process.writes[1]: exactly one of svid and svidBy is required." },
+        { Proc(writes: """[ { "svid": 0, "value": { "field": "Steps[i].Speed" } } ]"""), "services.A.process.writes[1]: svid must be greater than 0." },
+        { Proc(writes: """[ { "svid": 5 } ]"""), "services.A.process.writes[1]: value is missing." },
+        { Proc(writes: """[ { "svid": 5, "value": {} } ]"""), "services.A.process.writes[1].value: exactly one of field, ecid and ecidBy is required." },
+        { Proc(writes: """[ { "svid": 5, "value": { "field": "Steps[i].Speed", "ecid": 10 } } ]"""), "services.A.process.writes[1].value: exactly one of field, ecid and ecidBy is required." },
+        { Proc(writes: """[ { "svid": 5, "value": { "field": " " } } ]"""), "services.A.process.writes[1].value: field is empty." },
+        { Proc(writes: """[ { "svid": 5, "value": { "ecidBy": { "key": [ "Steps[i].Kind" ], "values": {} } } } ]"""), "services.A.process.writes[1].value.ecidBy: values is empty." },
+        { Proc(writes: """[ { "svidBy": { "key": [ "Steps[i].Kind" ], "values": {} }, "value": { "field": "Steps[i].Speed" } } ]"""), "services.A.process.writes[1].svidBy: values is empty." },
+        { Proc(writes: """[ { "svid": 5, "value": { "field": "Steps[i].Speed" }, "when": { "equals": 1 } } ]"""), "services.A.process.writes[1].when: field and equals are required." },
+        { Proc(writes: """[ { "svid": 5, "value": { "field": "Steps[i].Speed", "negateWhen": { "field": "Steps[i].Dir" } } } ]"""), "services.A.process.writes[1].value.negateWhen: field and equals are required." },
+        { Proc(head: """ "count": "N", "maxCount": 5, "time": "Steps[i].Kind" """), "Steps[1].Kind is UINT, not a TIME." },
+        { Proc(head: """ "count": "Steps[1].Speed", "maxCount": 5, "time": "Steps[i].Time" """), "Steps[1].Speed is REAL, not an integer or enum." },
+        { Proc(head: """ "count": "N", "maxCount": 6, "time": "Steps[i].Time" """), "services.A.process: cannot resolve GVL_Module.Chamber_Control[1].ServiceParam.A.Steps[6].Time" },
+        { Proc(cycle: """{ "control": "Steps[i].Speed", "start": 1, "end": 2, "count": "Steps[i].Pick" }"""), "Steps[1].Speed is REAL, not an integer or enum." },
+        { Proc(cycle: """{ "control": "Steps[i].Kind", "start": 1, "end": 2, "count": "Steps[i].Speed" }"""), "Steps[1].Speed is REAL, not an integer or enum." },
+        { Proc(checks: """[ { "field": "Flag", "min": 1, "max": 2 } ]"""), "Flag is BOOL, not a number, enum or TIME." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 1, "maxField": "Flag" } ]"""), "Flag is BOOL, not a number." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 1, "maxBy": { "key": [ "Steps[i].Speed" ], "values": { "1": 2 } } } ]"""), "Steps[1].Speed is REAL, not an integer or enum." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "greaterThan": 0, "when": { "field": "Steps[i].Speed", "equals": 1 } } ]"""), "Steps[1].Speed is REAL, not an integer or enum." },
+        { Proc(writes: """[ { "svid": 5, "value": { "field": "Flag" } } ]"""), "Flag is BOOL, not a number or enum." },
+        { Proc(writes: """[ { "svid": 99, "value": { "field": "Steps[i].Speed" } } ]"""), "services.A.process.writes[1]: SVID 99 is not in module-config.json" },
+        { Proc(writes: """[ { "svid": 7, "value": { "field": "Steps[i].Speed" } } ]"""), "SVID 7 is STRING, not DINT or REAL" },
+        { Proc(writes: """[ { "svidBy": { "key": [ "Steps[i].Kind" ], "values": { "1": 99 } }, "value": { "field": "Steps[i].Speed" } } ]"""), "SVID 99 is not in module-config.json" },
+        { Proc(writes: """[ { "svid": 5, "value": { "ecid": 99 } } ]"""), "ECID 99 is not in module-config.json" },
+        { Proc(writes: """[ { "svid": 5, "value": { "ecidBy": { "key": [ "Steps[i].Kind" ], "values": { "1": 12 } } } } ]"""), "ECID 12 is BOOL, not DINT or REAL" },
+        { Proc(writes: """[ { "svid": 5, "value": { "ecidBy": { "key": [ "Nope[i]" ], "values": { "1": 10 } } } } ]"""), "services.A.process.writes[1].value.ecidBy: cannot resolve" },
     };
 
     [Theory]
     [Trait("AC", "2")]
+    [Trait("AC", "3")]
     [MemberData(nameof(Failures))]
     public void An_invalid_file_fails_the_Run_with_the_place_and_the_reason(string json, string expected)
     {
@@ -392,6 +502,76 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
 
         Assert.Contains(expected, exception.Message);
         Assert.Contains(Path, exception.Message);
+    }
+
+    private const string ProcessHead = """ "count": "N", "maxCount": 5, "time": "Steps[i].Time" """;
+
+    private static string Proc(string checks = "[]", string writes = "[]", string cycle = "", string head = ProcessHead) =>
+        Json($$"""{ "A": { "process": { {{head}}, "checks": {{checks}}, "writes": {{writes}}{{(cycle.Length == 0 ? "" : ", \"cycle\": " + cycle)}} } } }""");
+
+    [Fact]
+    [Trait("AC", "2")]
+    public void A_process_section_is_built_with_paths_as_written_and_SVIDs_typed_by_module_config()
+    {
+        const string cycle = """{ "control": "Steps[i].Kind", "start": 1, "end": 2, "count": "Steps[i].Pick" }""";
+        const string checks = """
+            [ { "field": "Steps[i].Kind", "min": 1, "maxField": "Limit" },
+              { "field": "Steps[i].Pick", "min": 1, "maxBy": { "key": [ "Steps[i].Kind" ], "values": { "1": 3 } } },
+              { "field": "Steps[i].Time", "min": 1, "max": 9 },
+              { "field": "Steps[i].Speed", "greaterThan": 0, "when": { "field": "Steps[i].Dir", "equals": 2 } } ]
+            """;
+        const string writes = """
+            [ { "svid": 5, "value": { "field": "Steps[i].Speed", "negateWhen": { "field": "Steps[i].Dir", "equals": 2 } } },
+              { "svidBy": { "key": [ "Steps[i].Kind", "Steps[i].Pick" ], "values": { "1,1": 5, "1,2": 6 } },
+                "value": { "ecidBy": { "key": [ "Steps[i].Kind" ], "values": { "1": 10, "2": 11 } } },
+                "dryRunZero": true, "keep": true, "when": { "field": "Steps[i].Dir", "equals": 1 } },
+              { "svid": 6, "value": { "ecid": 11 } } ]
+            """;
+
+        ProcessBehavior process = Module(Proc(checks, writes, cycle)).Services["A"].Process!;
+
+        Assert.Equal(("N", 5, "Steps[i].Time"), (process.CountField, process.MaxCount, process.TimeField));
+        Assert.Equal(new ProcessCycle("Steps[i].Kind", 1, 2, "Steps[i].Pick"), process.Cycle);
+        Assert.Equal(("Steps[i].Kind", ProcessCheckKind.Range, 1d, "Limit"), (process.Checks[0].Field, process.Checks[0].Kind, process.Checks[0].Min, process.Checks[0].Max!.Field));
+        KeyedChoice<double> lookup = process.Checks[1].Max!.Lookup!;
+        Assert.Equal(["Steps[i].Kind"], lookup.KeyFields);
+        Assert.Equal(3d, lookup.Choices["1"]);
+        Assert.Equal(9d, process.Checks[2].Max!.Constant);
+        Assert.Equal((ProcessCheckKind.GreaterThan, 0d, null), (process.Checks[3].Kind, process.Checks[3].Min, process.Checks[3].Max));
+        Assert.Equal(new ProcessCondition("Steps[i].Dir", 2), process.Checks[3].When);
+
+        Assert.Equal(new SvidTarget("ModuleVariableList[1].Value", false), process.Writes[0].Target.Choices.Single().Value);
+        Assert.Equal("", process.Writes[0].Target.Choices.Single().Key);
+        Assert.Empty(process.Writes[0].Target.KeyFields);
+        Assert.Equal(new ProcessValue(ProcessValueKind.Field, "Steps[i].Speed", null, new ProcessCondition("Steps[i].Dir", 2)), process.Writes[0].Value);
+        Assert.Equal(["Steps[i].Kind", "Steps[i].Pick"], process.Writes[1].Target.KeyFields);
+        Assert.Equal(new SvidTarget("ModuleVariableList[1].Value", false), process.Writes[1].Target.Choices["1,1"]);
+        Assert.Equal(new SvidTarget("ModuleVariableList[2].Value", true), process.Writes[1].Target.Choices["1,2"]);
+        Assert.Equal("ModuleConfigParamList[2].Value", process.Writes[1].Value.Ecid!.Choices["2"]);
+        Assert.Equal((true, true, new ProcessCondition("Steps[i].Dir", 1)), (process.Writes[1].DryRunZero, process.Writes[1].Keep, process.Writes[1].When));
+        Assert.Equal("ModuleConfigParamList[2].Value", process.Writes[2].Value.Ecid!.Choices[""]);
+        Assert.False(process.Writes[2].Keep);
+    }
+
+    [Fact]
+    [Trait("AC", "3")]
+    public void A_service_without_a_process_section_has_no_Process()
+    {
+        Assert.Null(Module(Json("""{ "A": {} }""")).Services["A"].Process);
+    }
+
+    [Fact]
+    [Trait("AC", "3")]
+    public void An_enum_field_passes_the_type_checks_of_control_condition_and_value()
+    {
+        const string cycle = """{ "control": "Steps[i].Dir", "start": 1, "end": 2, "count": "Steps[i].Pick" }""";
+        const string checks = """[ { "field": "Steps[i].Dir", "min": 1, "max": 2, "when": { "field": "Steps[i].Dir", "equals": 1 } } ]""";
+        const string writes = """[ { "svid": 5, "value": { "field": "Steps[i].Dir", "negateWhen": { "field": "Steps[i].Dir", "equals": 2 } } } ]""";
+
+        ProcessBehavior process = Module(Proc(checks, writes, cycle)).Services["A"].Process!;
+
+        Assert.Equal("Steps[i].Dir", process.Cycle!.ControlField);
+        Assert.Equal("Steps[i].Dir", process.Writes[0].Value.Field);
     }
 
     [Fact]

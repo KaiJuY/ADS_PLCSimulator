@@ -411,10 +411,19 @@ public sealed partial class ServiceHost
         if (service.IsOverridden(_overrideToken))
             return service.TakeCompletion();
 
-        bool done = service.ConfigParams is not null || IsNaturalDelayElapsed(service, now);
+        bool done = IsExecuteDone(service, image, now);
         if (done)
             service.Rules.WriteBeforeComplete(image, service.EntryDryRun);
         return done;
+    }
+
+    private bool IsExecuteDone(ServiceUnit service, ProcessImage image, TimeSpan now)
+    {
+        if (service.ConfigParams is not null)
+            return true;
+        if (service.Process is not null)
+            return service.Process.Advance(image, now);
+        return IsNaturalDelayElapsed(service, now);
     }
 
     private bool IsNaturalDelayElapsed(ServiceUnit service, TimeSpan now) =>
@@ -465,8 +474,11 @@ public sealed partial class ServiceHost
         if (!freshEntry)
         {
             service.EntryToken = token;
-            if (token is null)
-                service.Rules.WriteOnEnter(image, service.EntryDryRun);
+            if (token is not null)
+                return;
+
+            service.Rules.WriteOnEnter(image, service.EntryDryRun);
+            service.Process?.Resume(image, now);
             return;
         }
 
@@ -486,6 +498,8 @@ public sealed partial class ServiceHost
 
         service.EntryDuration = service.Rules.ReadDuration(image);
         service.Rules.WriteOnEnter(image, dryRun);
+        if (service.ConfigParams is null)
+            service.Process = service.Rules.StartProcess(image, now, dryRun);
     }
 
     // The table covers only the Mode for a service without an entry, and only the Mode for an overridden service (a workflow owns its run).
@@ -512,6 +526,7 @@ public sealed partial class ServiceHost
         if (service.ExecuteRejected || service.EntryToken is not null)
             return;
 
+        service.Process?.Leave(image);
         service.Rules.WriteOnLeave(image, service.EntryDryRun);
     }
 

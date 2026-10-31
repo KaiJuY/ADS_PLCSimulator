@@ -96,6 +96,8 @@ public sealed partial class ServiceHost
 
         public TimeSpan? EntryDuration { get; set; }
 
+        public ProcessRun? Process { get; set; }
+
         public bool ExecuteAbortPending { get; set; }
 
         public static ServiceUnit Create(
@@ -147,6 +149,7 @@ public sealed partial class ServiceHost
             ExecuteRejected = false;
             EntryDryRun = false;
             EntryDuration = null;
+            Process = null;
             // Stryker disable once Boolean: only RetryRejectedAbort reads the flag, and only when ExecuteRejected is true; every refusal sets the flag again and LeaveExecute clears it
             ExecuteAbortPending = false;
         }
