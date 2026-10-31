@@ -76,12 +76,16 @@ internal static class ConfigParamValue
         return configDataType switch
         {
             // Stryker disable once String: ToString("") on float formats like "R" (shortest round-trip text) in .NET Core 3.0 and later, so the output is the same
-            Float32 => ((float)number).ToString("R", CultureInfo.InvariantCulture),
+            Float32 => WithWholeNumberSuffix(((float)number).ToString("R", CultureInfo.InvariantCulture)),
             // Stryker disable once String: ToString("") on double formats like "R" (shortest round-trip text) in .NET Core 3.0 and later, so the output is the same
-            Float64 => number.ToString("R", CultureInfo.InvariantCulture),
+            Float64 => WithWholeNumberSuffix(number.ToString("R", CultureInfo.InvariantCulture)),
             _ => ((long)number).ToString(CultureInfo.InvariantCulture),
         };
     }
+
+    // TwinCAT REAL_TO_STRING publishes a whole number as "2.0". Exponent form (e.g. 1E+20) was not measured, so it keeps the "R" text.
+    private static string WithWholeNumberSuffix(string text) =>
+        AllDigits(text, SignLength(text, signed: true)) ? text + ".0" : text;
 
     public static double ParseNumber(string value) =>
         double.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
