@@ -9,7 +9,7 @@ namespace AdsPlcSimulator.Integration;
 
 internal sealed record Scenario(string Id, string Title, Func<PlcSession, Task<Checks>> Run);
 
-/// <summary>Scenarios S1 to S12, S15 and S16 of .adf/scenarios/1.md and S17 and S18 of #13, S19 and S20 of #15 (Chamber.SetConfig), S21 to S25 of #16 (config/service-behaviors.json) and S26 to S29 of #17; S13 and S14 are browser steps and are not here. S16 runs right after S11 and continues from the Aborted SetMode it leaves; a module Stop (S15) cannot finish while a service stays Aborted, and it leaves module 1 Stopped, so S17 to S29 run before it. S21 to S25 set the Module Mode with Chamber.SetMode and leave it at 1.</summary>
+/// <summary>Scenarios S1 to S12, S15 and S16 of .adf/scenarios/1.md and S17 and S18 of #13, S19 and S20 of #15 (Chamber.SetConfig), S21 to S25 of #16 (config/service-behaviors.json), S26 to S29 of #17 and S30 to S33 of #18; S13 and S14 are browser steps and are not here. S16 runs right after S11 and continues from the Aborted SetMode it leaves; a module Stop (S15) cannot finish while a service stays Aborted, and it leaves module 1 Stopped, so S17 to S33 run before it. S21 to S25 set the Module Mode with Chamber.SetMode and leave it at 1.</summary>
 internal static partial class Scenarios
 {
     private const string Gvl = "GVL_Module.Chamber_Control";
@@ -110,6 +110,10 @@ internal static partial class Scenarios
         new("S27", "MoveModulo checks Position and writes the Holder speed", MoveModuloAsync),
         new("S28", "Cup1 TopPos writes the lift height before Complete", Cup1TopAsync),
         new("S29", "Cup1 IncrementalJog adds Position", Cup1JogAsync),
+        new("S30", "Arm1 Noz1CenterPos writes position and speed", Arm1CenterAsync),
+        new("S31", "Arm1 Nozzle1 supply writes the setpoint, but not in DryRun", Arm1SupplyAsync),
+        new("S32", "Arm1 JogNegative writes the negative jog speed", Arm1JogAsync),
+        new("S33", "Exhaust fan 1 writes the target pressure", ExhaustFanAsync),
         new("S15", "Module Stop ignores later service commands", ModuleStopAsync),
     ];
 
@@ -767,7 +771,7 @@ internal static partial class Scenarios
         return checks;
     }
 
-    private static async Task CheckSpeedAsync(Checks checks, PlcSession session, Endpoint service, uint svidId, string speed, string expected)
+    private static async Task CheckSpeedAsync(Checks checks, PlcSession session, Endpoint service, uint svidId, string speed, string expected, string afterStop = "0")
     {
         if (!await RequireIdleAsync(checks, session, service))
             return;
@@ -780,7 +784,7 @@ internal static partial class Scenarios
 
         bool stopped = await session.RunSettledAsync(service, PackMLCommand.Stop, PackMLState.Stopped);
         checks.True($"{service.Name}: Stopped", stopped, $"state={session.State(service)}");
-        checks.Equal($"{service.Name}: SVID {svidId} after Stop", "0", session.Read<string>(speed));
+        checks.Equal($"{service.Name}: SVID {svidId} after Stop", afterStop, session.Read<string>(speed));
         await session.EnsureIdleAsync(service);
     }
 

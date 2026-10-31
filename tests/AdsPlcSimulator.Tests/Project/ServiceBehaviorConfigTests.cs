@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+using AdsPlcSimulator.Core.PackML;
 using AdsPlcSimulator.Core.PackML.Behavior;
 using AdsPlcSimulator.Core.Plc;
 using AdsPlcSimulator.Host.Project;
@@ -112,7 +114,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
     [Trait("AC", "6")]
     [Trait("AC", "8")]
     [Trait("AC", "10")]
-    public void The_Polar2_file_has_24_services_with_the_batch_2_rules_and_none_for_services_without_an_SVID()
+    public void The_Polar2_file_has_86_services_with_the_batch_2_rules_and_none_for_services_without_an_SVID()
     {
         ModuleConfigFile config = ModuleConfigPublisher.Parse(File.ReadAllText(System.IO.Path.Combine(TestPaths.Polar2Project, "config", "module-config.json")), "module-config.json");
         ModuleConfigEntry slot = config.Modules!.Single(entry => entry!.Enabled)!;
@@ -121,7 +123,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
 
         IReadOnlyDictionary<string, ServiceBehavior> services = ServiceBehaviorLoader.LoadIfPresent(TestPaths.Polar2Project, s_polar2.Value.Symbols, config)!.For(Module1)!.Services;
 
-        Assert.Equal(24, services.Count);
+        Assert.Equal(86, services.Count);
         Assert.Equal(new ParamRange("Position", 0, 360), services["Holder.Rotate.MoveModulo"].Ranges.Single());
         Assert.Equal($"ModuleVariableList[{SvidPosition(53)}].Value", services["Holder.Rotate.MoveModulo"].OnEnter.Single().Target);
         Assert.Equal(new SvidValue(SvidValueKind.Ecid, 0, $"ModuleConfigParamList[{EcidPosition(361)}].Value", true), services["OutsideRing.Rotate.MoveVelocityCCW"].OnEnter.Single().Value);
@@ -145,6 +147,121 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
             ["Shutter.Open", "Cup[1].Lift.JogPositive", "Cup[2].Drainer.Select3", "Holder.Gripper.Open"],
             key => Assert.DoesNotContain(key, services.Keys));
     }
+
+    [Fact]
+    [Trait("AC", "2")]
+    [Trait("AC", "3")]
+    [Trait("AC", "4")]
+    [Trait("AC", "5")]
+    [Trait("AC", "8")]
+    [Trait("AC", "9")]
+    public void The_Polar2_batch_3_rules_write_the_SVIDs_of_the_spec()
+    {
+        ModuleConfigFile config = ModuleConfigPublisher.Parse(File.ReadAllText(System.IO.Path.Combine(TestPaths.Polar2Project, "config", "module-config.json")), "module-config.json");
+        ModuleConfigEntry slot = config.Modules!.Single(entry => entry!.Enabled)!;
+        string Svid(uint id) => $"ModuleVariableList[{slot.VariableList!.FindIndex(item => item!.Id == id) + 1}].Value";
+        string Ecid(uint id) => $"ModuleConfigParamList[{slot.ConfigParamList!.FindIndex(item => item!.Id == id) + 1}].Value";
+
+        IReadOnlyDictionary<string, ServiceBehavior> services = ServiceBehaviorLoader.LoadIfPresent(TestPaths.Polar2Project, s_polar2.Value.Symbols, config)!.For(Module1)!.Services;
+
+        ServiceBehavior lift = services["Arm[2].Lift.DownPos"];
+        Assert.Equal(Svid(17), lift.OnEnter.Single().Target);
+        Assert.Equal(Ecid(84), lift.OnEnter.Single().Value.Source);
+        Assert.Equal(Svid(15), lift.BeforeComplete.Single().Target);
+        Assert.True(lift.BeforeComplete.Single().IsReal);
+        Assert.Equal(Ecid(91), lift.BeforeComplete.Single().Value.Source);
+        Assert.Equal(Svid(17), lift.OnLeave.Single().Target);
+        Assert.Equal(new SvidValue(SvidValueKind.Constant, 0, null, false), lift.OnLeave.Single().Value);
+
+        ServiceBehavior center = services["Arm[3].Rotate.Noz2CenterPos"];
+        Assert.Equal(Ecid(171), center.OnEnter.Single().Value.Source);
+        Assert.Equal(Svid(29), center.BeforeComplete.Single().Target);
+        Assert.Equal(Ecid(180), center.BeforeComplete.Single().Value.Source);
+
+        ServiceBehavior jog = services["Arm[4].Rotate.JogNegative"];
+        Assert.Equal(Svid(41), jog.OnEnter.Single().Target);
+        Assert.Equal(new SvidValue(SvidValueKind.Ecid, 0, Ecid(234), true), jog.OnEnter.Single().Value);
+        Assert.Empty(jog.BeforeComplete);
+
+        SvidWrite increment = services["Arm[1].Rotate.IncrementalJog"].BeforeComplete.Single();
+        Assert.Equal(Svid(3), increment.Target);
+        Assert.Equal(new SvidValue(SvidValueKind.AddParam, 0, "Position", false), increment.Value);
+
+        ServiceBehavior port = services["Arm[1].NozzlePort.Nozzle[3].Supply"];
+        Assert.Equal(Svid(14), port.OnEnter.Single().Target);
+        Assert.Equal(new SvidValue(SvidValueKind.Param, 0, "Setpoint", false), port.OnEnter.Single().Value);
+        Assert.True(port.OnEnter.Single().DryRunZero);
+        Assert.Equal(new SvidValue(SvidValueKind.Constant, 0, null, false), port.OnLeave.Single().Value);
+        Assert.False(port.OnLeave.Single().DryRunZero);
+
+        Assert.Equal(Svid(57), services["FixedNozzle[4].ChemicalSupply"].OnEnter.Single().Target);
+        Assert.True(services["FixedNozzle[4].ChemicalSupply"].OnEnter.Single().DryRunZero);
+
+        SvidWrite fan = services["Exhaust.Fan[2].SupplyFlowPID"].OnEnter.Single();
+        Assert.Equal(Svid(60), fan.Target);
+        Assert.True(fan.IsReal);
+        Assert.Equal(Ecid(369), fan.Value.Source);
+        Assert.False(fan.DryRunZero);
+
+        Assert.All(
+            ["Arm[1].Rotate.MoveRecipe", "Arm[2].NozzlePort.DrainSelect1", "Exhaust.Damper.AEX", "SideVent[1].Open"],
+            key => Assert.DoesNotContain(key, services.Keys));
+    }
+
+    [Fact]
+    [Trait("AC", "11")]
+    public void Every_Polar2_service_entry_is_a_bound_service()
+    {
+        ModuleConfigFile config = ModuleConfigPublisher.Parse(File.ReadAllText(System.IO.Path.Combine(TestPaths.Polar2Project, "config", "module-config.json")), "module-config.json");
+        IReadOnlyDictionary<string, ServiceBehavior> services = ServiceBehaviorLoader.LoadIfPresent(TestPaths.Polar2Project, s_polar2.Value.Symbols, config)!.For(Module1)!.Services;
+        string implementation = File.ReadAllText(System.IO.Path.Combine(TestPaths.Polar2Project, "plc", "ServiceIdentity", "F_InitializePolarIIChamberServiceStatus.TcPOU"));
+
+        ServiceIdentityTable identities = ServiceIdentityTable.Parse(implementation, name => s_polar2.Value.Symbols.TryGetEnumValue(name, out long value) ? value : null);
+
+        Assert.All(services.Keys, key =>
+        {
+            ServiceIdentity? identity = identities.Find(key);
+            Assert.NotNull(identity);
+            Assert.NotEqual(0u, identity.ServiceId);
+        });
+    }
+
+    [Fact]
+    [Trait("AC", "11")]
+    public void Every_batch_3_write_uses_the_SVIDs_and_ECIDs_of_its_own_device()
+    {
+        ModuleConfigFile config = ModuleConfigPublisher.Parse(File.ReadAllText(System.IO.Path.Combine(TestPaths.Polar2Project, "config", "module-config.json")), "module-config.json");
+        ModuleConfigEntry slot = config.Modules!.Single(entry => entry!.Enabled)!;
+        IReadOnlyDictionary<string, ServiceBehavior> services = ServiceBehaviorLoader.LoadIfPresent(TestPaths.Polar2Project, s_polar2.Value.Symbols, config)!.For(Module1)!.Services;
+        Dictionary<string, string> devices = new() { ["Arm"] = "Arm{0} ", ["FixedNozzle"] = "FixNozzle{0} ", ["Exhaust.Fan"] = "ExhaustFan{0} " };
+        Dictionary<string, string> positions = new()
+        {
+            [".Lift.TopPos"] = "Lift Top Pos", [".Lift.DownPos"] = "Lift Down Pos",
+            [".Rotate.NegLimitPos"] = "Rotate Neg Limit Pos", [".Rotate.PosLimitPos"] = "Rotate Pos Limit Pos",
+            [".Rotate.NozzlePortPos"] = "Rotate Nozzle Port Pos", [".Rotate.Noz1CenterPos"] = "Rotate Noz1 Center Pos",
+            [".Rotate.Noz2CenterPos"] = "Rotate Noz2 Center Pos", [".Rotate.Noz3CenterPos"] = "Rotate Noz3 Center Pos",
+        };
+        string VariableName(string path) => slot.VariableList![PositionOf(path) - 1]!.Name!;
+        string EcidName(string path) => slot.ConfigParamList![PositionOf(path) - 1]!.Name!;
+        (string Key, string Prefix)[] batch = [.. services.Keys
+            .Select(key => (Key: key, Match: Regex.Match(key, @"^(Arm|FixedNozzle|Exhaust\.Fan)\[(\d)\]")))
+            .Where(item => item.Match.Success)
+            .Select(item => (item.Key, string.Format(devices[item.Match.Groups[1].Value], item.Match.Groups[2].Value)))];
+
+        Assert.Equal(62, batch.Length);
+        foreach ((string key, string prefix) in batch)
+        {
+            ServiceBehavior service = services[key];
+            IEnumerable<SvidWrite> writes = [.. service.OnEnter, .. service.BeforeComplete, .. service.OnLeave];
+            Assert.All(writes, write => Assert.StartsWith(prefix, VariableName(write.Target)));
+            Assert.All(writes.Where(write => write.Value.Kind == SvidValueKind.Ecid), write => Assert.StartsWith(prefix, EcidName(write.Value.Source!)));
+            Assert.All(
+                positions.Where(pair => key.EndsWith(pair.Key)),
+                pair => Assert.EndsWith(pair.Value, EcidName(service.BeforeComplete.Single().Value.Source!)));
+        }
+    }
+
+    private static int PositionOf(string path) => int.Parse(Regex.Match(path, @"\[(\d+)\]").Groups[1].Value);
 
     [Fact]
     [Trait("AC", "1")]
