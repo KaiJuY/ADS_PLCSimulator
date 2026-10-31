@@ -1,19 +1,18 @@
-using System.Globalization;
 using AdsPlcSimulator.Core.Plc;
 
 namespace AdsPlcSimulator.Core.PackML.ConfigParam;
 
-/// <summary>E_ConfigParamAccessError values that a batch check can return (FW E_ConfigParamAccessError).</summary>
+// FW: E_FrameworkServiceErrorCode ConfigParam_*
 internal enum ConfigParamError
 {
     None = 0,
-    EmptyBatch = 2,
-    DuplicateId = 3,
-    MetadataNotFound = 4,
-    NotBound = 5,
-    DataTypeMismatch = 6,
-    InvalidValueFormat = 7,
-    OutOfRange = 8,
+    EmptyBatch = 920,
+    DuplicateId = 921,
+    MetadataNotFound = 922,
+    NotBound = 923,
+    DataTypeMismatch = 924,
+    InvalidValueFormat = 925,
+    OutOfRange = 926,
 }
 
 internal readonly record struct ConfigParamCheck(ConfigParamError Error, uint ParamId)
@@ -31,13 +30,12 @@ internal readonly record struct ConfigParamCheck(ConfigParamError Error, uint Pa
 
     public bool Passed => Error == ConfigParamError.None;
 
-    // E_ConfigParamAccessError starts at 2 for EmptyBatch (1 is RegistryNotReady, which the simulator never reports), so 918 + 2 = 920.
-    public uint MainErrorId => 918 + (uint)Error;
+    public uint MainErrorId => (uint)Error;
 
     public string Message => Messages[Error];
 }
 
-/// <summary>FB_SetConfigParamService for one service whose Param is T_SetConfigParamList.</summary>
+// FW: FB_SetConfigParamService; the service Param is T_SetConfigParamList
 internal sealed class ConfigParamService
 {
     private static readonly (string Name, Func<PlcType, bool> Accepts)[] BatchShape =
@@ -61,7 +59,7 @@ internal sealed class ConfigParamService
         _metadata = metadata;
     }
 
-    /// <returns>null when serviceParam or configParamList does not have the shape below (#12 R6: the feature is off for this service).</returns>
+    // Returns null when serviceParam or configParamList does not have the shape below (#12 R6: the feature is off for this service).
     public static ConfigParamService? TryCreate(SymbolRef serviceParam, SymbolRef configParamList)
     {
         StructArray? batch = StructArray.TryCreate(serviceParam, BatchShape);
@@ -69,8 +67,8 @@ internal sealed class ConfigParamService
         return batch is null || metadata is null ? null : new ConfigParamService(batch, metadata);
     }
 
-    /// <summary>Clears the snapshot, reads the batch, keeps the passing items as the snapshot, and checks it (M_ValidateConfigParamBatch). On failure the snapshot stays empty.</summary>
-    public ConfigParamCheck Validate(ProcessImage image)
+    // FW: M_ValidateConfigParamBatch. Clears the snapshot first; it stays empty on failure.
+    public ConfigParamCheck ValidateAndStage(ProcessImage image)
     {
         _snapshot.Clear();
         if (ReadId(image, _batch, 0) == 0)
@@ -95,16 +93,12 @@ internal sealed class ConfigParamService
         return new ConfigParamCheck(ConfigParamError.None, 0);
     }
 
-    /// <summary>Writes each snapshot item to ModuleConfigParamList[n].Value, then clears the snapshot. Does nothing when the snapshot is empty.</summary>
     public void Apply(ProcessImage image)
     {
         foreach (Item item in _snapshot)
             image.WriteValue(_metadata.Symbol(item.MetadataIndex, "Value"), ConfigParamValue.Format(item.Value, item.DataType), WriteSource.Workflow);
         _snapshot.Clear();
     }
-
-    /// <summary>Clears the snapshot (service reset).</summary>
-    public void Clear() => _snapshot.Clear();
 
     private static bool IsUdint(PlcType type) => PlcLayout.IsKind(type, PrimitiveKind.UDInt);
 
@@ -119,9 +113,6 @@ internal sealed class ConfigParamService
 
     private static uint ReadId(ProcessImage image, StructArray array, int index) =>
         (uint)PlcValue.ToInt64(image.ReadValue(array.Symbol(index, "Id")));
-
-    private static double ParseNumber(string value) =>
-        double.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
 
     private ConfigParamError CheckItem(
         ProcessImage image, int index, uint id, HashSet<uint> seen, Dictionary<uint, int> metadataById, out Item item)
@@ -151,7 +142,7 @@ internal sealed class ConfigParamService
         if (!ConfigParamValue.IsNumeric(item.DataType))
             return ConfigParamError.None;
 
-        double number = ParseNumber(item.Value);
+        double number = ConfigParamValue.ParseNumber(item.Value);
         if (!double.IsFinite(number))
             return ConfigParamError.InvalidValueFormat;
         if (!ConfigParamValue.IsInTypeRange(number, item.DataType))
@@ -178,7 +169,6 @@ internal sealed class ConfigParamService
 
     private readonly record struct Item(int DataType, string Value, int MetadataIndex);
 
-    /// <summary>A one-dimensional array of structs; members are located once, elements are addressed by position.</summary>
     private sealed class StructArray
     {
         private readonly string _path;
@@ -216,7 +206,6 @@ internal sealed class ConfigParamService
             return new StructArray(array, arrayType.Dimensions[0], element.Size, members);
         }
 
-        /// <param name="index">Zero-based position in the array.</param>
         public SymbolRef Symbol(int index, string member)
         {
             StructMember field = _members[member];

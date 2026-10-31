@@ -396,7 +396,7 @@ public sealed class ServiceHost
         if (!service.StartingChecked)
         {
             service.StartingChecked = true;
-            ConfigParamCheck check = service.ConfigParams.Validate(image);
+            ConfigParamCheck check = service.ConfigParams.ValidateAndStage(image);
             if (check.Passed)
                 return true;
 
@@ -712,7 +712,6 @@ public sealed class ServiceHost
             ModeBlocked = false;
             Alive?.Reset();
             ResetStarting();
-            ConfigParams?.Clear();
             Generation = 0;
             EntryToken = null;
             // Stryker disable once Boolean: EntryToken is null here, so Complete and TakeCompletion cannot read the flag before EnterExecute resets it

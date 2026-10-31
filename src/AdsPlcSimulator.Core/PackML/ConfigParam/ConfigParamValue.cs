@@ -2,8 +2,8 @@ using System.Globalization;
 
 namespace AdsPlcSimulator.Core.PackML.ConfigParam;
 
-/// <summary>Public only so the test project can reach it (Core has no InternalsVisibleTo). Strict value text and number rules (F_IsStrictConfigParamValue, the numeric part of M_ValidateConfigParamBatch, and the *_TO_STRING output).</summary>
-public static class ConfigParamValue
+/// <summary>Strict value text and number rules (F_IsStrictConfigParamValue, the numeric part of M_ValidateConfigParamBatch, and the *_TO_STRING output).</summary>
+internal static class ConfigParamValue
 {
     // E_ConfigDataType
     private const int Boolean = 1;
@@ -43,7 +43,7 @@ public static class ConfigParamValue
         [11] = UnsignedInteger16,
     };
 
-    /// <summary>True for the 8 numeric config types (everything except Boolean and String80 that the framework validates as numbers).</summary>
+    // FW: M_ValidateConfigParamBatch numeric branch
     public static bool IsNumeric(int configDataType) => TypeRanges.ContainsKey(configDataType) || configDataType == Float64;
 
     public static bool IsStrict(string value, int configDataType)
@@ -56,7 +56,7 @@ public static class ConfigParamValue
             return false;
 
         int start = 0;
-        if (IsSigned(configDataType) && value[0] is '+' or '-')
+        if (IsSigned(configDataType) && value[0] is ('+' or '-'))
         {
             start = 1;
             if (value.Length == 1)
@@ -79,7 +79,7 @@ public static class ConfigParamValue
         if (!IsNumeric(configDataType))
             return value;
 
-        double number = double.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
+        double number = ParseNumber(value);
         return configDataType switch
         {
             Float32 => ((float)number).ToString("R", CultureInfo.InvariantCulture),
@@ -87,6 +87,9 @@ public static class ConfigParamValue
             _ => ((long)number).ToString(CultureInfo.InvariantCulture),
         };
     }
+
+    public static double ParseNumber(string value) =>
+        double.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
 
     public static int? ToConfigDataType(long descriptorType) =>
         FromDescriptor.TryGetValue(descriptorType, out int configType) ? configType : null;
@@ -136,7 +139,7 @@ public static class ConfigParamValue
             if (c is 'e' or 'E')
                 return AcceptExponent();
             if (c is '+' or '-')
-                return Exponent && !ExponentDigit && index > 0 && value[index - 1] is 'e' or 'E';
+                return Exponent && !ExponentDigit && index > 0 && value[index - 1] is ('e' or 'E');
             return false;
         }
 
@@ -162,7 +165,6 @@ public static class ConfigParamValue
             if (!Digit || Exponent)
                 return false;
             Exponent = true;
-            ExponentDigit = false;
             return true;
         }
     }
