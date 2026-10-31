@@ -1,4 +1,5 @@
 using AdsPlcSimulator.Core.PackML.Alarm;
+using AdsPlcSimulator.Core.PackML.ConfigParam;
 using AdsPlcSimulator.Core.Plc;
 using static AdsPlcSimulator.Core.PackML.PlcLayout;
 
@@ -322,10 +323,13 @@ public sealed class ServiceHost
         service.LastModeRequest = effective.ModeRequest;
 
         PackMLState before = service.Machine.State;
-        service.Machine.Scan(effective, state => IsServiceActingStateDone(service, state, now));
+        bool modeRequestHigh = effective.ModeRequest;
+        service.Machine.Scan(effective, state => IsServiceActingStateDone(service, state, image, modeRequestHigh, now));
         service.LastState = service.Machine.State;
+        if (service.Machine.State != PackMLState.Starting)
+            service.ResetStarting();
         if (before != PackMLState.Execute && service.Machine.State == PackMLState.Execute)
-            EnterExecute(service, now);
+            EnterExecute(service, image, now);
         service.OnScanned(before, alive, _alive, now);
         if (PassedThroughClearingThisScan(before, service.Machine))
             service.ClearErrors(image);
@@ -369,23 +373,49 @@ public sealed class ServiceHost
         };
     }
 
-    private bool IsServiceActingStateDone(ServiceUnit service, PackMLState state, TimeSpan now)
+    private bool IsServiceActingStateDone(ServiceUnit service, PackMLState state, ProcessImage image, bool modeRequestHigh, TimeSpan now)
     {
+        if (state == PackMLState.Starting)
+            return IsStartingDone(service, image, modeRequestHigh);
         if (state != PackMLState.Execute)
             return true;
         if (service.IsOverridden(_overrideToken))
             return service.TakeCompletion();
+        if (service.ConfigParams is not null)
+            return true;
         if (service.Behavior != CompletionBehavior.NaturalCompletion)
             return false;
         return now - service.ExecuteEntered >= _defaultDelay;
     }
 
-    private void EnterExecute(ServiceUnit service, TimeSpan now)
+    private bool IsStartingDone(ServiceUnit service, ProcessImage image, bool modeRequestHigh)
+    {
+        if (service.ConfigParams is null)
+            return true;
+
+        if (!service.StartingChecked)
+        {
+            service.StartingChecked = true;
+            ConfigParamCheck check = service.ConfigParams.Validate(image);
+            if (check.Passed)
+                return true;
+
+            AddFrameworkError(service, image, check.MainErrorId, check.ParamId, check.Message);
+            service.StartingAbortPending = true;
+        }
+
+        if (service.StartingAbortPending && service.Machine.RequestCommand(PackMLCommand.Abort, modeRequestHigh))
+            service.StartingAbortPending = false;
+        return false;
+    }
+
+    private void EnterExecute(ServiceUnit service, ProcessImage image, TimeSpan now)
     {
         service.ExecuteEntered = now;
         service.Generation = Interlocked.Increment(ref s_generationCounter);
         service.EntryToken = _overrideToken(service.CtrlPath);
         service.CompletePending = false;
+        service.ConfigParams?.Apply(image);
     }
 
     private readonly record struct RawInput(long RequestId, PackMLInput PackML);
@@ -536,8 +566,10 @@ public sealed class ServiceHost
             SymbolRef behaviorSymbol,
             string statusPath,
             ServiceErrorList? errors,
-            ServiceAliveMonitor? alive)
+            ServiceAliveMonitor? alive,
+            ConfigParamService? configParams)
         {
+            ConfigParams = configParams;
             Alive = alive;
             StatusPath = statusPath;
             Errors = errors;
@@ -558,6 +590,12 @@ public sealed class ServiceHost
         public ServiceErrorList? Errors { get; }
 
         public ServiceAliveMonitor? Alive { get; }
+
+        public ConfigParamService? ConfigParams { get; }
+
+        public bool StartingChecked { get; set; }
+
+        public bool StartingAbortPending { get; set; }
 
         public ServiceIdentity? Identity { get; }
 
@@ -587,7 +625,9 @@ public sealed class ServiceHost
 
         public bool CompletePending { get; set; }
 
-        public static ServiceUnit Create(SymbolTable symbols, SymbolRef ctrl, SymbolRef serviceCtrlRoot, SymbolRef serviceStatusRoot, ServiceIdentityTable identities)
+        public static ServiceUnit Create(
+            SymbolTable symbols, SymbolRef ctrl, SymbolRef serviceCtrlRoot, SymbolRef serviceStatusRoot, ServiceIdentityTable identities,
+            SymbolRef? serviceParamRoot, SymbolRef? configParamList)
         {
             string relative = ctrl.Path[(serviceCtrlRoot.Path.Length + 1)..];
             if (!symbols.TryResolve($"{serviceStatusRoot.Path}.{relative}", out SymbolRef status, out _) || status.Type.Unaliased.Name != "ST_ServiceStatus")
@@ -606,8 +646,25 @@ public sealed class ServiceHost
                 new SymbolRef($"{status.Path}.CompletionBehavior", behavior.Type, status.Offset + behavior.Offset),
                 status.Path,
                 ServiceErrorList.TryCreate(status),
-                ServiceAliveMonitor.TryCreate(ctrl, ctrl.Offset - serviceCtrlRoot.Offset));
+                ServiceAliveMonitor.TryCreate(ctrl, ctrl.Offset - serviceCtrlRoot.Offset),
+                TryCreateConfigParams(symbols, relative, serviceParamRoot, configParamList));
             // Stryker restore String
+        }
+
+        private static ConfigParamService? TryCreateConfigParams(SymbolTable symbols, string relative, SymbolRef? serviceParamRoot, SymbolRef? configParamList)
+        {
+            if (serviceParamRoot is not { } root || configParamList is not { } list)
+                return null;
+            if (!symbols.TryResolve($"{root.Path}.{relative}", out SymbolRef param, out _))
+                return null;
+
+            return ConfigParamService.TryCreate(param, list);
+        }
+
+        public void ResetStarting()
+        {
+            StartingChecked = false;
+            StartingAbortPending = false;
         }
 
         public RawInput ReadInput(byte[] serviceCtrlBlock) =>
@@ -654,6 +711,8 @@ public sealed class ServiceHost
             CommandBlocked = false;
             ModeBlocked = false;
             Alive?.Reset();
+            ResetStarting();
+            ConfigParams?.Clear();
             Generation = 0;
             EntryToken = null;
             // Stryker disable once Boolean: EntryToken is null here, so Complete and TakeCompletion cannot read the flag before EnterExecute resets it
@@ -744,8 +803,10 @@ public sealed class ServiceHost
             var serviceCtrlRoot = new SymbolRef($"{module.Path}.ServiceCtrl", serviceCtrl.Type, module.Offset + serviceCtrl.Offset);
             // Stryker disable once Arithmetic: ServiceUnit.Create reads only the Path of this root; the status offset comes from the symbol table
             var serviceStatusRoot = new SymbolRef($"{module.Path}.ServiceStatus", serviceStatus.Type, module.Offset + serviceStatus.Offset);
+            SymbolRef? serviceParamRoot = MemberRef(module, "ServiceParam");
+            SymbolRef? configParamList = MemberRef(module, "ModuleConfigParamList");
             var services = FindServiceCtrls(serviceCtrlRoot)
-                .Select(ctrlNode => ServiceUnit.Create(symbols, ctrlNode, serviceCtrlRoot, serviceStatusRoot, identities))
+                .Select(ctrlNode => ServiceUnit.Create(symbols, ctrlNode, serviceCtrlRoot, serviceStatusRoot, identities, serviceParamRoot, configParamList))
                 .ToList();
 
             return new ModuleUnit(
@@ -781,6 +842,11 @@ public sealed class ServiceHost
         public RawInput ReadServiceInput(ServiceUnit service) => service.ReadInput(_serviceCtrlBuffer);
 
         public AliveInput ReadServiceAlive(ServiceUnit service, bool moduleInExecute) => service.ReadAlive(_serviceCtrlBuffer, moduleInExecute);
+
+        private static SymbolRef? MemberRef(SymbolRef module, string name) =>
+            Find(module.Type, name) is { } member
+                ? new SymbolRef($"{module.Path}.{name}", member.Type, module.Offset + member.Offset)
+                : null;
 
         private static StructMember RequireMember(SymbolRef module, string name, string? typeName)
         {
