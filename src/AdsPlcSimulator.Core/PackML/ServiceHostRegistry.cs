@@ -65,6 +65,12 @@ public sealed class ServiceHostRegistry
             return _hostsByRoot.Values.Select(registration => registration.Host).FirstOrDefault(host => host.Contains(ctrlPath));
     }
 
+    /// <summary>False when no host binds the service.</summary>
+    public bool IsExecuteRejected(string ctrlPath) => FindByService(ctrlPath)?.IsExecuteRejected(ctrlPath) == true;
+
+    /// <summary>Null when no host binds the service.</summary>
+    public long? ExecuteGeneration(string ctrlPath) => FindByService(ctrlPath)?.ExecuteGeneration(ctrlPath);
+
     public ServiceHost? FindByModule(string modulePath)
     {
         lock (_lock)

@@ -273,7 +273,7 @@ public sealed partial class ServiceHost
             service.WriteIdentity(image);
         foreach (ServiceUnit service in module.BoundServices)
         {
-            service.Rules = module.Rules?.For(service.RelativePath);
+            service.Rules = module.Rules.For(service.RelativePath);
             service.Reset(image, module.ReadServiceInput(service));
         }
     }
@@ -343,15 +343,25 @@ public sealed partial class ServiceHost
         bool modeRequestHigh = effective.ModeRequest;
         service.Machine.Scan(effective, state => IsServiceActingStateDone(service, state, image, modeRequestHigh, now));
         service.LastState = service.Machine.State;
-        if (before != PackMLState.Execute && service.Machine.State == PackMLState.Execute)
-            EnterExecute(owner, service, image, now, modeRequestHigh);
-        else if (before == PackMLState.Execute && service.Machine.State != PackMLState.Execute)
-            LeaveExecute(service, image);
+        CrossExecuteBoundary(owner, service, image, now, modeRequestHigh, before);
         service.OnScanned(before, alive, _alive, now);
         if (PassedThroughClearingThisScan(before, service.Machine))
             service.ClearErrors(image);
 
         service.Status.Write(image, service.Machine);
+    }
+
+    private void CrossExecuteBoundary(ModuleUnit owner, ServiceUnit service, ProcessImage image, TimeSpan now, bool modeRequestHigh, PackMLState before)
+    {
+        bool wasExecute = before == PackMLState.Execute;
+        bool isExecute = service.Machine.State == PackMLState.Execute;
+        if (wasExecute == isExecute)
+            return;
+
+        if (isExecute)
+            EnterExecute(owner, service, image, now, modeRequestHigh);
+        else
+            LeaveExecute(service, image);
     }
 
     private void ApplyAlive(ServiceUnit service, AliveInput alive, ref PackMLInput effective, ProcessImage image, TimeSpan now)
@@ -403,7 +413,7 @@ public sealed partial class ServiceHost
 
         bool done = service.ConfigParams is not null || IsNaturalDelayElapsed(service, now);
         if (done)
-            service.Rules?.WriteBeforeComplete(image, service.EntryDryRun);
+            service.Rules.WriteBeforeComplete(image, service.EntryDryRun);
         return done;
     }
 
@@ -411,7 +421,6 @@ public sealed partial class ServiceHost
         service.Behavior == CompletionBehavior.NaturalCompletion
         && now - service.ExecuteEntered >= (service.EntryDuration ?? _defaultDelay);
 
-    // The Abort of a refused entry is queued in the entry scan; it is retried here only when a mode request was high then.
     private static bool RetryRejectedAbort(ServiceUnit service, bool modeRequestHigh)
     {
         if (service.ExecuteAbortPending && service.Machine.RequestCommand(PackMLCommand.Abort, modeRequestHigh))
@@ -448,13 +457,15 @@ public sealed partial class ServiceHost
         service.CompletePending = false;
         object? token = _overrideToken(service.CtrlPath);
 
-        // Unholding and Unsuspending continue one action: no new Mode or parameter check (R7).
-        if (service.Machine.PreviousState != PackMLState.Starting)
+        bool freshEntry = service.Machine.PreviousState == PackMLState.Starting;
+
+        // Unholding and Unsuspending continue one action: no new Mode or parameter check (issue #16 R7).
+        if (!freshEntry)
         {
             service.EntryToken = token;
             service.ConfigParams?.Apply(image);
             if (token is null)
-                service.Rules?.WriteOnEnter(image, service.EntryDryRun);
+                service.Rules.WriteOnEnter(image, service.EntryDryRun);
             return;
         }
 
@@ -472,19 +483,15 @@ public sealed partial class ServiceHost
         if (token is not null)
             return;
 
-        service.EntryDuration = service.Rules?.ReadDuration(image);
-        service.Rules?.WriteOnEnter(image, dryRun);
+        service.EntryDuration = service.Rules.ReadDuration(image);
+        service.Rules.WriteOnEnter(image, dryRun);
     }
 
     // The table covers only the Mode for a service without an entry, and only the Mode for an overridden service (a workflow owns its run).
     private static EntryCheck CheckEntry(ModuleUnit owner, ServiceUnit service, bool overridden, ProcessImage image, out bool dryRun)
     {
-        dryRun = false;
-        if (owner.Rules is null)
-            return EntryCheck.Pass;
-
         EntryCheck mode = owner.Rules.CheckMode(service.RelativePath, image, out dryRun);
-        if (!mode.Passed || overridden || service.Rules is null)
+        if (!mode.Passed || overridden)
             return mode;
         return service.Rules.CheckParams(image);
     }
@@ -504,7 +511,7 @@ public sealed partial class ServiceHost
         if (service.ExecuteRejected || service.EntryToken is not null)
             return;
 
-        service.Rules?.WriteOnLeave(image, service.EntryDryRun);
+        service.Rules.WriteOnLeave(image, service.EntryDryRun);
     }
 
     private readonly record struct RawInput(long RequestId, PackMLInput PackML);
@@ -688,7 +695,7 @@ public sealed partial class ServiceHost
 
         public PackMLMachine Machine { get; set; }
 
-        public ModuleRules? Rules { get; set; }
+        public ModuleRules Rules { get; set; } = ModuleRules.None;
 
         public bool LastCommandRequest { get; set; }
 

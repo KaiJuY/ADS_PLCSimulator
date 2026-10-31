@@ -101,7 +101,7 @@ public sealed class ServiceExecuteTriggerNode : MemoryTriggerNode, IRegistryAwar
         Create);
 
     private readonly IReadOnlyList<ServiceEntry> _entries;
-    private ServiceHostRegistry? _registry;
+    private ServiceHostRegistry _registry = new();
 
     private ServiceExecuteTriggerNode(IReadOnlyList<ServiceEntry> entries)
     {
@@ -122,12 +122,11 @@ public sealed class ServiceExecuteTriggerNode : MemoryTriggerNode, IRegistryAwar
             if (!write.Overlaps(entry.State.Offset, entry.State.Size) || !EntersExecute(write, image, entry.State))
                 continue;
 
-            ServiceHost? host = _registry?.FindByService(entry.CtrlPath);
-            if (host?.IsExecuteRejected(entry.CtrlPath) == true)
+            if (_registry.IsExecuteRejected(entry.CtrlPath))
                 continue;
 
             outputs["index"] = entry.Index;
-            outputs["generation"] = host?.ExecuteGeneration(entry.CtrlPath);
+            outputs["generation"] = _registry.ExecuteGeneration(entry.CtrlPath);
             return true;
         }
 

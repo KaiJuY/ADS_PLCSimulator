@@ -158,6 +158,8 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
 
     public static TheoryData<string, string> Failures => new()
     {
+        { "null", "the file is empty" },
+        { Json(services: "null"), "services is null" },
         { Json(head: "\"schemaVersion\":2,\"modeSvid\":5"), "schemaVersion must be 1" },
         { Json(head: "\"schemaVersion\":1,\"modeSvid\":0"), "modeSvid must be greater than 0" },
         { Json(head: "\"schemaVersion\":1,\"modeSvid\":99"), "modeSvid: SVID 99 is not in module-config.json" },

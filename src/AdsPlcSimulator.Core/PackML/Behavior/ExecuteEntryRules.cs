@@ -4,7 +4,6 @@ using AdsPlcSimulator.Core.Plc;
 
 namespace AdsPlcSimulator.Core.PackML.Behavior;
 
-/// <summary>Result of the Execute entry check; Passed when MainErrorId is 0.</summary>
 internal readonly record struct EntryCheck(uint MainErrorId, uint SourceErrorId, string Message)
 {
     public static readonly EntryCheck Pass;
@@ -12,15 +11,22 @@ internal readonly record struct EntryCheck(uint MainErrorId, uint SourceErrorId,
     public bool Passed => MainErrorId == 0;
 }
 
-/// <summary>The resolved Mode rules of one module.</summary>
-internal sealed class ModuleRules
+internal class ModuleRules
 {
+    public static readonly ModuleRules None = new NoModuleRules();
+
     private const uint ModeNotAllowedId = 2;
     private const uint InvalidModeSource = uint.MaxValue;
 
     private readonly SymbolRef _mode;
     private readonly Dictionary<long, ModeRule> _rules;
     private readonly Dictionary<string, ServiceRules> _services;
+
+    private ModuleRules()
+    {
+        _rules = [];
+        _services = [];
+    }
 
     private ModuleRules(SymbolRef mode, Dictionary<long, ModeRule> rules, Dictionary<string, ServiceRules> services)
     {
@@ -31,10 +37,10 @@ internal sealed class ModuleRules
 
     /// <summary>Null when behavior is null. Services entries for paths that are not in boundRelativePaths are skipped (those services never run).</summary>
     /// <exception cref="ServiceHostException">A path of a bound service entry, or ModeSource, does not resolve.</exception>
-    public static ModuleRules? Create(SymbolTable symbols, string modulePath, ModuleBehavior? behavior, IReadOnlyCollection<string> boundRelativePaths)
+    public static ModuleRules Create(SymbolTable symbols, string modulePath, ModuleBehavior? behavior, IReadOnlyCollection<string> boundRelativePaths)
     {
         if (behavior is null)
-            return null;
+            return None;
 
         SymbolRef mode = Resolve(symbols, $"{modulePath}.{behavior.ModeSource}");
         var rules = behavior.Modes.ToDictionary(
@@ -49,7 +55,7 @@ internal sealed class ModuleRules
     }
 
     /// <summary>Checks the Mode text against the rules; dryRun is the DryRun of the matched rule (false when refused).</summary>
-    public EntryCheck CheckMode(string relativeService, ProcessImage image, out bool dryRun)
+    public virtual EntryCheck CheckMode(string relativeService, ProcessImage image, out bool dryRun)
     {
         dryRun = false;
         string text = (string)image.ReadValue(_mode);
@@ -63,18 +69,27 @@ internal sealed class ModuleRules
         return EntryCheck.Pass;
     }
 
-    /// <summary>Null when the service has no entry in the table.</summary>
-    public ServiceRules? For(string relativeService) => _services.GetValueOrDefault(relativeService);
+    public ServiceRules For(string relativeService) => _services.GetValueOrDefault(relativeService) ?? ServiceRules.None;
 
     internal static SymbolRef Resolve(SymbolTable symbols, string path) =>
         symbols.TryResolve(path, out SymbolRef symbol, out string? error)
             ? symbol
             : throw new ServiceHostException($"Service behavior cannot resolve {path}: {error}");
+
+    private sealed class NoModuleRules : ModuleRules
+    {
+        public override EntryCheck CheckMode(string relativeService, ProcessImage image, out bool dryRun)
+        {
+            dryRun = false;
+            return EntryCheck.Pass;
+        }
+    }
 }
 
-/// <summary>The resolved behavior of one service.</summary>
 internal sealed class ServiceRules
 {
+    public static readonly ServiceRules None = new();
+
     private const uint ParamOutOfRangeId = 1;
 
     private readonly List<(SymbolRef Symbol, ParamRange Range)> _ranges;
@@ -83,6 +98,14 @@ internal sealed class ServiceRules
     private readonly List<ResolvedWrite> _onEnter;
     private readonly List<ResolvedWrite> _beforeComplete;
     private readonly List<ResolvedWrite> _onLeave;
+
+    private ServiceRules()
+    {
+        _ranges = [];
+        _onEnter = [];
+        _beforeComplete = [];
+        _onLeave = [];
+    }
 
     private ServiceRules(
         List<(SymbolRef Symbol, ParamRange Range)> ranges, SymbolRef? duration, string? durationField,
@@ -113,7 +136,6 @@ internal sealed class ServiceRules
             ResolveAll(behavior.OnLeave));
     }
 
-    /// <summary>Ranges in table order, then DurationField &gt; 0.</summary>
     public EntryCheck CheckParams(ProcessImage image)
     {
         foreach ((SymbolRef symbol, ParamRange range) in _ranges)
@@ -129,7 +151,6 @@ internal sealed class ServiceRules
         return EntryCheck.Pass;
     }
 
-    /// <summary>Null when DurationField is null.</summary>
     public TimeSpan? ReadDuration(ProcessImage image) =>
         _duration is { } duration ? TimeSpan.FromMilliseconds(PlcValue.ToInt64(image.ReadValue(duration))) : null;
 

@@ -46,7 +46,6 @@ public sealed partial class ServiceHost
 
         public string CtrlPath { get; }
 
-        /// <summary>Path below ServiceCtrl, e.g. "Chamber.ArmTest".</summary>
         public string RelativePath { get; }
 
         public string StatusPath { get; }
@@ -89,7 +88,7 @@ public sealed partial class ServiceHost
 
         public bool CompletePending { get; set; }
 
-        public ServiceRules? Rules { get; set; }
+        public ServiceRules Rules { get; set; } = ServiceRules.None;
 
         public bool ExecuteRejected { get; set; }
 

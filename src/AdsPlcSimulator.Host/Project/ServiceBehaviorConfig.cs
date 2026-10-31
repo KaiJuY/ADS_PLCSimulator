@@ -71,7 +71,6 @@ internal sealed record ValueConfig
     public bool Negate { get; init; }
 }
 
-/// <summary>Reads config/service-behaviors.json (the simulator's own format, not the real PLC's) into the table the service host uses.</summary>
 internal static class ServiceBehaviorLoader
 {
     public const string RelativePath = "config/service-behaviors.json";
@@ -93,7 +92,6 @@ internal static class ServiceBehaviorLoader
 
     private static readonly PrimitiveKind[] NumberKinds = [.. IntegerKinds, PrimitiveKind.Real, PrimitiveKind.LReal];
 
-    /// <summary>Checked in order; {0} is the location of the mode.</summary>
     private static readonly (Func<ModeConfig, bool> Invalid, string Message)[] ModeRules =
     [
         (mode => mode.Value is null, "{0}: value is missing."),
@@ -102,7 +100,6 @@ internal static class ServiceBehaviorLoader
         (mode => (mode.Allow is null) == (mode.Deny is null), "{0}: exactly one of allow and deny is required."),
     ];
 
-    /// <summary>Checked in order; {0} is the location of the range.</summary>
     private static readonly (Func<RangeConfig, bool> Invalid, string Message)[] RangeRules =
     [
         (range => string.IsNullOrWhiteSpace(range.Field), "{0}: field is empty."),
@@ -110,7 +107,6 @@ internal static class ServiceBehaviorLoader
         (range => range.Min > range.Max, "{0}: min is greater than max."),
     ];
 
-    /// <summary>Checked in order; {0} is the location of the SVID write.</summary>
     private static readonly (Func<SvidWriteConfig, bool> Invalid, string Message)[] WriteRules =
     [
         (write => write.Svid == 0, "{0}: svid must be greater than 0."),
@@ -120,8 +116,6 @@ internal static class ServiceBehaviorLoader
         (write => write.Value!.Constant is { } constant && !double.IsFinite(constant), "{0}: constant must be a finite number."),
     ];
 
-    /// <summary>Null when the file does not exist.</summary>
-    /// <exception cref="ModuleConfigException">The file is invalid, or module-config.json is missing (moduleConfig is null).</exception>
     public static ServiceBehaviorTable? LoadIfPresent(string projectDirectory, SymbolTable symbols, ModuleConfigFile? moduleConfig)
     {
         string path = Path.Combine(projectDirectory, RelativePath.Replace('/', Path.DirectorySeparatorChar));
@@ -190,10 +184,8 @@ internal static class ServiceBehaviorLoader
                     throw ModuleConfigPublisher.Fail(path, string.Format(message, where));
             }
 
-            if (!values.Add(mode.Value!.Value))
-                throw ModuleConfigPublisher.Fail(path, $"{where}: value {mode.Value} appears more than once.");
-            if (!names.Add(mode.Name!))
-                throw ModuleConfigPublisher.Fail(path, $"{where}: name '{mode.Name}' appears more than once.");
+            RequireUnique(values, mode.Value!.Value, path, $"{where}: value {mode.Value} appears more than once.");
+            RequireUnique(names, mode.Name!, path, $"{where}: name '{mode.Name}' appears more than once.");
             ValidateServiceNames(mode.Allow ?? mode.Deny!, mode.Allow is null ? $"{where}.deny" : $"{where}.allow", path);
         }
     }
@@ -205,9 +197,14 @@ internal static class ServiceBehaviorLoader
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw ModuleConfigPublisher.Fail(path, $"{where} contains an empty service name.");
-            if (!seen.Add(name))
-                throw ModuleConfigPublisher.Fail(path, $"{where}: '{name}' appears more than once.");
+            RequireUnique(seen, name, path, $"{where}: '{name}' appears more than once.");
         }
+    }
+
+    private static void RequireUnique<T>(HashSet<T> seen, T item, string path, string message)
+    {
+        if (!seen.Add(item))
+            throw ModuleConfigPublisher.Fail(path, message);
     }
 
     private static void ValidateServices(Dictionary<string, ServiceBehaviorConfig?> services, string path)
@@ -216,8 +213,7 @@ internal static class ServiceBehaviorLoader
         foreach ((string key, ServiceBehaviorConfig? service) in services)
         {
             string where = $"services.{key}";
-            if (!keys.Add(key))
-                throw ModuleConfigPublisher.Fail(path, $"{where} appears more than once (names are not case-sensitive).");
+            RequireUnique(keys, key, path, $"{where} appears more than once (names are not case-sensitive).");
             if (service is null)
                 throw ModuleConfigPublisher.Fail(path, $"{where} is null.");
 
@@ -257,11 +253,13 @@ internal static class ServiceBehaviorLoader
     {
         private const string ParamRoot = "ServiceParam";
 
+        private sealed record SvidList(string Name, List<DescriptorConfig?> Published, string Kind);
+
         public string ModulePath { get; } = $"{ModuleConfigPublisher.ModulesRoot}[{module.Slot}]";
 
         public ModuleBehavior Build()
         {
-            (string modeSource, _) = Svid(file.ModeSvid, "modeSvid", isEcid: false, anyType: true);
+            (string modeSource, _) = Svid(file.ModeSvid, "modeSvid", Svids, AnyType);
             var modes = new List<ModeRule>();
             for (int index = 0; index < file.Modes!.Count; index++)
                 modes.Add(BuildMode(file.Modes[index]!, $"modes[{index + 1}]"));
@@ -311,7 +309,7 @@ internal static class ServiceBehaviorLoader
 
         private SvidWrite BuildWrite(SvidWriteConfig write, string param, string where)
         {
-            (string target, string dataType) = Svid(write.Svid, where, isEcid: false);
+            (string target, string dataType) = Svid(write.Svid, where, Svids, IsDintOrReal);
             bool isReal = dataType == "REAL";
             ValueConfig value = write.Value!;
             return new SvidWrite(target, isReal, BuildValue(value, param, where, isReal), write.DryRunZero);
@@ -321,63 +319,72 @@ internal static class ServiceBehaviorLoader
         {
             if (value.Ecid is { } ecid)
             {
-                (string source, _) = Svid(ecid, where, isEcid: true);
+                (string source, _) = Svid(ecid, where, Ecids, IsDintOrReal);
                 return new SvidValue(SvidValueKind.Ecid, 0, source, value.Negate);
             }
 
             if (value.Param is { } field)
             {
-                RequireField($"{param}.{field}", where, "an integer or REAL", type => type is PrimitiveType primitive && NumberKinds.Contains(primitive.Kind));
+                RequireField($"{param}.{field}", where, "an integer or REAL", IsNumber);
                 return new SvidValue(SvidValueKind.Param, 0, field, value.Negate);
             }
 
             double constant = value.Constant!.Value;
-            if (!targetIsReal && (constant != Math.Floor(constant) || constant is < int.MinValue or > int.MaxValue))
+            if (!targetIsReal && !IsDint(constant))
                 throw Fail(where, $"constant {constant} does not fit a DINT SVID (an integer from -2147483648 to 2147483647).");
             return new SvidValue(SvidValueKind.Constant, constant, null, value.Negate);
         }
 
         // The SVID or ECID is found by id in module-config.json; its place in the list is the place in the array (ModuleConfigPublisher.AddList).
-        private (string Target, string DataType) Svid(uint id, string where, bool isEcid, bool anyType = false)
+        private (string Target, string DataType) Svid(uint id, string where, SvidList source, Func<string, bool> acceptsType)
         {
-            (string list, List<DescriptorConfig?> published, string kind) = isEcid
-                ? ("ModuleConfigParamList", module.ConfigParamList!, "ECID")
-                : ("ModuleVariableList", module.VariableList!, "SVID");
-            int position = published.FindIndex(item => item!.Id == id);
+            int position = source.Published.FindIndex(item => item!.Id == id);
             if (position < 0)
-                throw Fail(where, $"{kind} {id} is not in module-config.json.");
+                throw Fail(where, $"{source.Kind} {id} is not in module-config.json.");
 
-            string listPath = $"{ModulePath}.{list}";
-            if (!symbols.TryResolve(listPath, out SymbolRef symbol, out string? error))
-                throw Fail(where, $"cannot resolve {listPath}: {error}");
-            if (symbol.Type.Unaliased is not ArrayType { Dimensions.Count: 1 } array)
+            string listPath = $"{ModulePath}.{source.Name}";
+            if (ResolveSymbol(listPath, where).Type.Unaliased is not ArrayType { Dimensions.Count: 1 } array)
                 throw Fail(where, $"{listPath} is not a one-dimensional array.");
 
-            string dataType = published[position]!.DataType!;
-            if (!anyType && dataType is not ("DINT" or "REAL"))
-                throw Fail(where, $"{kind} {id} is {dataType}, not DINT or REAL.");
-            return ($"{list}[{array.Dimensions[0].LowerBound + position}].Value", dataType);
+            string dataType = source.Published[position]!.DataType!;
+            if (!acceptsType(dataType))
+                throw Fail(where, $"{source.Kind} {id} is {dataType}, not DINT or REAL.");
+            return ($"{source.Name}[{array.Dimensions[0].LowerBound + position}].Value", dataType);
         }
+
+        private SymbolRef ResolveSymbol(string full, string where) =>
+            symbols.TryResolve(full, out SymbolRef symbol, out string? error)
+                ? symbol
+                : throw Fail(where, $"cannot resolve {full}: {error}");
 
         private void RequireService(string service, string where)
         {
             string full = $"{ModulePath}.ServiceCtrl.{service}";
-            if (!symbols.TryResolve(full, out SymbolRef symbol, out string? error))
-                throw Fail(where, $"cannot resolve {full}: {error}");
+            SymbolRef symbol = ResolveSymbol(full, where);
             if (symbol.Type.Unaliased.Name != "ST_ServiceCtrl")
                 throw Fail(where, $"{full} is {symbol.Type.Name}, not ST_ServiceCtrl.");
         }
 
         private void RequireField(string relative, string where, string expected, Func<PlcType, bool> accepts)
         {
-            string full = $"{ModulePath}.{relative}";
-            if (!symbols.TryResolve(full, out SymbolRef symbol, out string? error))
-                throw Fail(where, $"cannot resolve {full}: {error}");
+            SymbolRef symbol = ResolveSymbol($"{ModulePath}.{relative}", where);
             if (!accepts(symbol.Type.Unaliased))
                 throw Fail(where, $"{relative} is {symbol.Type.Name}, not {expected}.");
         }
 
         private static bool IsInteger(PlcType type) => type is PrimitiveType primitive && IntegerKinds.Contains(primitive.Kind);
+
+        private static bool IsNumber(PlcType type) => type is PrimitiveType primitive && NumberKinds.Contains(primitive.Kind);
+
+        private static bool IsDint(double value) => double.IsInteger(value) && value is >= int.MinValue and <= int.MaxValue;
+
+        private static bool IsDintOrReal(string dataType) => dataType is "DINT" or "REAL";
+
+        private static bool AnyType(string dataType) => true;
+
+        private SvidList Svids => new("ModuleVariableList", module.VariableList!, "SVID");
+
+        private SvidList Ecids => new("ModuleConfigParamList", module.ConfigParamList!, "ECID");
 
         private ModuleConfigException Fail(string where, string reason) =>
             ModuleConfigPublisher.Fail(path, $"slot {module.Slot}: {where}: {reason}");

@@ -248,9 +248,9 @@ public class ExecuteEntryRulesTests
 
     [Fact]
     [Trait("AC", "2")]
-    public void Create_returns_null_without_a_behavior()
+    public void Create_returns_the_no_op_rules_without_a_behavior()
     {
-        Assert.Null(ModuleRules.Create(_program.Symbols, Module, null, Bound));
+        Assert.Same(ModuleRules.None, ModuleRules.Create(_program.Symbols, Module, null, Bound));
     }
 
     [Fact]
@@ -273,7 +273,7 @@ public class ExecuteEntryRulesTests
 
         ModuleRules rules = Rules(services);
 
-        Assert.Null(rules.For("Unbound"));
+        Assert.Same(ServiceRules.None, rules.For("Unbound"));
     }
 
     [Fact]
