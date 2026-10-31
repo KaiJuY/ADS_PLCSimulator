@@ -368,6 +368,20 @@ public sealed partial class ModuleConfigTests : IDisposable
 
     [Theory]
     [Trait("AC", "1")]
+    [InlineData("DINT", -2147483648d, 2147483647d)]
+    [InlineData("REAL", -3.402823466E38, 3.402823466E38)]
+    public void Publish_ecid_accepts_limits_exactly_at_the_type_range(string dataType, double lower, double upper)
+    {
+        string limits = string.Create(System.Globalization.CultureInfo.InvariantCulture, $$""","lowerLimit":{{lower:R}},"upperLimit":{{upper:R}}""");
+
+        ProcessImage image = PublishEcid(Ecid(dataType, limits));
+
+        Assert.Equal(lower, Read(image, _small, $"{TwoEcids}[1].LowerLimit"));
+        Assert.Equal(upper, Read(image, _small, $"{TwoEcids}[1].UpperLimit"));
+    }
+
+    [Theory]
+    [Trait("AC", "1")]
     [InlineData("BOOL")]
     [InlineData("STRING")]
     public void Publish_non_numeric_ecid_has_no_limits(string dataType)

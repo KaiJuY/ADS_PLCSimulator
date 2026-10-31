@@ -320,6 +320,63 @@ public class ServiceHostSetConfigTests
         Assert.Equal("77", ValueOf(fixture, 1));
     }
 
+    [Fact]
+    [Trait("AC", "3")]
+    public void A_stuck_Starting_is_not_validated_again_when_the_batch_is_fixed()
+    {
+        HostFixture fixture = StuckInStarting();
+        Item(fixture, 1, 101, Integer32, "60");
+
+        fixture.Scan();
+        fixture.Scan();
+
+        Assert.Equal(PackMLState.Starting, State(fixture));
+        Assert.Equal(OriginalValues, Values(fixture));
+        Assert.Equal(926, Number(fixture, $"{ErrorList}.MainErrorId"));
+    }
+
+    [Fact]
+    [Trait("AC", "3")]
+    public void Initialize_while_stuck_in_Starting_makes_the_next_Start_validate_the_batch_again()
+    {
+        HostFixture fixture = StuckInStarting();
+        fixture.Host.Initialize(fixture.Image, fixture.ConfiguredAlarms);
+        fixture.Write("GVL_Test.Modules[1].ServiceCtrl.A.PackMLIn.bModeChangeRequest", false);
+        Item(fixture, 1, 101, Integer32, "77");
+
+        fixture.SendToService(1, "A", PackMLCommand.Start, 5);
+        fixture.Scan();
+
+        Assert.Equal(PackMLState.Execute, State(fixture));
+        Assert.Equal("77", ValueOf(fixture, 1));
+    }
+
+    [Theory]
+    [Trait("AC", "6")]
+    [InlineData("UDINT", "UDINT", true)]
+    [InlineData("DINT", "INT", true)]
+    [InlineData("REAL", "UDINT", false)]
+    [InlineData("BOOL", "UDINT", false)]
+    [InlineData("STRING(10)", "UDINT", false)]
+    [InlineData("UDINT", "LREAL", false)]
+    [InlineData("UDINT", "BOOL", false)]
+    public void The_DataType_members_must_be_enums_or_integers_for_the_config_list_to_apply(string batchType, string metadataType, bool applies)
+    {
+        string declarations = Declarations()
+            .Replace("DataType : E_ConfigDataType;", $"DataType : {batchType};")
+            .Replace("DataType : E_DescriptorType;", $"DataType : {metadataType};");
+        var fixture = new HostFixture(declarations: declarations);
+
+        if (!applies)
+        {
+            AssertTimedCompletion(fixture);
+            return;
+        }
+
+        StartA(fixture);
+        Assert.Equal(PackMLState.Starting, State(fixture));
+    }
+
     private static HostFixture StuckInStarting()
     {
         HostFixture fixture = Create();

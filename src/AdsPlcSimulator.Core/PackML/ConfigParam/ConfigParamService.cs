@@ -202,6 +202,7 @@ internal sealed class ConfigParamService
         public SymbolRef Symbol(int index, string member)
         {
             StructMember field = _members[member];
+            // Stryker disable once String, Arithmetic: only Offset is read from the SymbolRef; ProcessImage and this class never read Path, so no test can see it
             return new SymbolRef($"{_path}[{_lower + index}].{member}", field.Type, _origin + index * _stride + field.Offset);
         }
     }

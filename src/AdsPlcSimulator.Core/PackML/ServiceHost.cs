@@ -403,6 +403,7 @@ public sealed class ServiceHost
         }
 
         if (service.StartingAbortPending && service.Machine.RequestCommand(PackMLCommand.Abort, modeRequestHigh))
+            // Stryker disable once Boolean: Abort is queued and runs at the start of the next scan, which leaves Starting before this method is asked again; ResetStarting then clears the flag
             service.StartingAbortPending = false;
         return false;
     }
@@ -662,6 +663,7 @@ public sealed class ServiceHost
         public void ResetStarting()
         {
             StartingChecked = false;
+            // Stryker disable once Boolean: the flag is read only after StartingChecked was set in the same stay, and the check that sets StartingChecked also sets this flag on failure or leaves Starting on success
             StartingAbortPending = false;
         }
 
