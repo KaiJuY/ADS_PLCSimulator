@@ -66,10 +66,10 @@ public sealed class ServiceHostRegistry
     }
 
     /// <summary>False when no host binds the service.</summary>
-    public bool IsExecuteRejected(string ctrlPath) => FindByService(ctrlPath)?.IsExecuteRejected(ctrlPath) == true;
+    internal bool IsExecuteRejected(string ctrlPath) => FindByService(ctrlPath)?.IsExecuteRejected(ctrlPath) == true;
 
     /// <summary>Null when no host binds the service.</summary>
-    public long? ExecuteGeneration(string ctrlPath) => FindByService(ctrlPath)?.ExecuteGeneration(ctrlPath);
+    internal long? ExecuteGeneration(string ctrlPath) => FindByService(ctrlPath)?.ExecuteGeneration(ctrlPath);
 
     public ServiceHost? FindByModule(string modulePath)
     {
