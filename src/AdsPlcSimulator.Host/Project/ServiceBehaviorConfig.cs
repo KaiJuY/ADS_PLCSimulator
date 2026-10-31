@@ -454,7 +454,7 @@ internal static class ServiceBehaviorLoader
     private static bool IsKeyOf(string entry, int count)
     {
         string[] parts = entry.Split(',');
-        return parts.Length == count && parts.All(part => long.TryParse(part, out long number) && number.ToString(CultureInfo.InvariantCulture) == part);
+        return parts.Length == count && parts.All(part => long.TryParse(part, NumberStyles.Integer, CultureInfo.InvariantCulture, out long number) && number.ToString(CultureInfo.InvariantCulture) == part);
     }
 
     private sealed class ModuleBuilder(ServiceBehaviorFile file, string path, SymbolTable symbols, ModuleConfigEntry module)

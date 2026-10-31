@@ -58,6 +58,7 @@ internal sealed class ProcessRules
     {
         public StepPath Path(string path)
         {
+            // Stryker disable once String: a path without [i] resolved once per step gives the same symbol for every step, and At reads the first one
             if (!path.Contains("[i]", StringComparison.Ordinal))
                 return new StepPath([ModuleRules.Resolve(symbols, $"{paramPath}.{path}")]);
 
@@ -287,6 +288,7 @@ internal sealed class ProcessRun
             return;
 
         _stepStarted = now;
+        // Stryker disable once Boolean: the current Start step is already on top of the cycle stack, and EnterStep pushes only when the top is another step
         EnterStep(image, false);
     }
 

@@ -325,6 +325,21 @@ public class ProcessRulesTests
 
     [Fact]
     [Trait("AC", "10")]
+    public void A_cycle_that_opens_at_step_1_repeats_from_step_1()
+    {
+        ProcessRules rules = Rules(Behavior(cycle: Cycle, writes: [Write(2, "Steps[i].Kind")]));
+        SetSteps(2, timeMs: 1);
+        Set("Steps[1].Control", CycleStart);
+        Set("Steps[1].Times", 2L);
+        Set("Steps[2].Control", CycleEnd);
+
+        List<string> order = EntryOrder(rules, 2);
+
+        Assert.Equal(["1", "2", "1", "2"], order);
+    }
+
+    [Fact]
+    [Trait("AC", "10")]
     public void Nested_cycles_expand_to_the_documented_sequence()
     {
         ProcessRules rules = Rules(Behavior(cycle: Cycle, writes: [Write(2, "Steps[i].Kind")]));

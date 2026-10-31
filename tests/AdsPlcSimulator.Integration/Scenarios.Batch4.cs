@@ -89,9 +89,11 @@ internal static partial class Scenarios
     private static async Task<Checks> SingleProcessCheckAsync(PlcSession session)
     {
         var checks = new Checks();
+        ushort mode = ReadMode(session);
         var saved = new List<(string Path, object Value)>();
         try
         {
+            checks.True("SetMode 3 reaches Complete", await SetModeToAsync(session, AutoMode));
             Set(session, saved, $"{SingleProcessParam}.RecipeCount", (ushort)1);
             Set(session, saved, $"{SingleProcessParam}.ProcessStepCount", (ushort)1);
             SetStep(session, saved, SingleProcessParam, 1, 1, 10, Clockwise, 100, StepTime, 0, CycleNone, 0);
@@ -101,6 +103,7 @@ internal static partial class Scenarios
         finally
         {
             Restore(session, saved);
+            checks.True($"SetMode back to {mode}", await SetModeToAsync(session, mode));
         }
 
         return checks;
