@@ -193,7 +193,7 @@ public sealed partial class ServiceHost
             return Bound(ctrlPath).Generation;
     }
 
-    /// <summary>True when the current Execute entry of the service was refused by a Mode or parameter check; false before the first entry.</summary>
+    /// <summary>True when the current Execute entry of the service was refused by a Mode or parameter check; false before the first entry. An Unhold or Unsuspend entry keeps the value of the Start entry.</summary>
     /// <exception cref="InvalidOperationException">The service is not bound.</exception>
     public bool IsExecuteRejected(string ctrlPath)
     {
@@ -423,7 +423,9 @@ public sealed partial class ServiceHost
 
     private static bool RetryRejectedAbort(ServiceUnit service, bool modeRequestHigh)
     {
+        // Stryker disable once Logical: the Execute hook is asked only while the service is still in Execute; once Abort is queued, the next scan leaves Execute before the hook runs, so the second operand is never evaluated alone
         if (service.ExecuteAbortPending && service.Machine.RequestCommand(PackMLCommand.Abort, modeRequestHigh))
+            // Stryker disable once Boolean: once Abort is queued the next scan leaves Execute before the hook runs again, and LeaveExecute clears the flag
             service.ExecuteAbortPending = false;
         return false;
     }
@@ -463,7 +465,6 @@ public sealed partial class ServiceHost
         if (!freshEntry)
         {
             service.EntryToken = token;
-            service.ConfigParams?.Apply(image);
             if (token is null)
                 service.Rules.WriteOnEnter(image, service.EntryDryRun);
             return;

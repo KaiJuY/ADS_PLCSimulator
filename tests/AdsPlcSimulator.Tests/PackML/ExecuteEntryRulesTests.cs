@@ -198,6 +198,8 @@ public class ExecuteEntryRulesTests
     [InlineData("abc", false, "0")]
     [InlineData("0", true, "0")]
     [InlineData("2.5", false, "3")]
+    [InlineData("1e999", false, "0")]
+    [InlineData("NaN", false, "0")]
     [InlineData("-2.5", false, "-3")]
     public void An_ECID_value_is_read_as_a_number_and_negated_on_request(string ecid, bool negate, string expected)
     {
@@ -259,7 +261,9 @@ public class ExecuteEntryRulesTests
     {
         var behavior = new ModuleBehavior("Nope.Value", Modes(), new Dictionary<string, ServiceBehavior>());
 
-        Assert.Throws<ServiceHostException>(() => ModuleRules.Create(_program.Symbols, Module, behavior, Bound));
+        var exception = Assert.Throws<ServiceHostException>(() => ModuleRules.Create(_program.Symbols, Module, behavior, Bound));
+
+        Assert.Contains($"{Module}.Nope.Value", exception.Message);
     }
 
     [Fact]

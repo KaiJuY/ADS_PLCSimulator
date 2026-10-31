@@ -264,7 +264,7 @@ public class ServiceHostBehaviorTests
 
         fixture.ServiceCommand(1, "B", PackMLCommand.Hold, 2);
         Assert.Equal("0", Svid(fixture, 2));
-        fixture.Write(ModeValue, "0");
+        fixture.Write(ModeValue, "9");
         fixture.Write($"{Module}.ModuleConfigParamList[1].Value", "31");
         fixture.ServiceCommand(1, "B", PackMLCommand.Unhold, 3);
 
@@ -272,6 +272,47 @@ public class ServiceHostBehaviorTests
         Assert.Equal("31", Svid(fixture, 2));
         Assert.Equal(0, Convert.ToInt64(fixture.Read($"{Module}.ServiceStatus.B.ErrorList[1].MainErrorId")));
         Assert.False(fixture.Host.IsExecuteRejected(HostFixture.CtrlPath(1, "B")));
+    }
+
+    [Fact]
+    [Trait("AC", "4")]
+    public void An_overridden_service_writes_no_entry_SVID_on_entering_Execute()
+    {
+        HostFixture fixture = Arrange("1");
+        fixture.SetOverrideToken(1, "B", new object());
+
+        StartAndScan(fixture, "B");
+
+        Assert.Equal(PackMLState.Execute, fixture.ServiceState(1, "B"));
+        Assert.Equal(["", ""], [Svid(fixture, 2), Svid(fixture, 4)]);
+    }
+
+    [Fact]
+    [Trait("AC", "4")]
+    public void An_overridden_service_writes_no_SVID_on_leaving_Execute()
+    {
+        HostFixture fixture = Arrange("1");
+        fixture.SetOverrideToken(1, "B", new object());
+        StartAndScan(fixture, "B");
+        ReleaseAndScan(fixture, "B");
+
+        fixture.SendToService(1, "B", PackMLCommand.Stop, 2);
+        fixture.Scan();
+
+        Assert.NotEqual(PackMLState.Execute, fixture.ServiceState(1, "B"));
+        Assert.Equal(["", ""], [Svid(fixture, 2), Svid(fixture, 4)]);
+    }
+
+    [Fact]
+    [Trait("AC", "5")]
+    public void A_refused_entry_writes_no_SVID_on_leaving_Execute()
+    {
+        HostFixture fixture = Arrange("9");
+        StartAndScan(fixture, "B");
+        ReleaseAndScan(fixture, "B");
+
+        Assert.Equal(PackMLState.Aborted, fixture.ServiceState(1, "B"));
+        Assert.Equal(["", ""], [Svid(fixture, 2), Svid(fixture, 4)]);
     }
 
     [Fact]

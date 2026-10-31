@@ -145,6 +145,7 @@ public sealed partial class ServiceHost
         public void BeginExecuteEntry()
         {
             ExecuteRejected = false;
+            // Stryker disable once Boolean: every accepted entry sets EntryDryRun before it is read, and a refused entry never reads it
             EntryDryRun = false;
             EntryDuration = null;
             ExecuteAbortPending = false;

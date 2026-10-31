@@ -206,6 +206,15 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "constant": 2.5 } } ] } }"""), "does not fit a DINT SVID" },
         { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "constant": 3e9 } } ] } }"""), "does not fit a DINT SVID" },
         { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "constant": 1e999 } } ] } }"""), "service-behaviors.json" },
+        { Json("""{ "A": { "ranges": [ { "field": "Index", "min": 1 } ] } }"""), "services.A.ranges[1]: min and max are required" },
+        { Json(modes: """[{"value":0,"name":"x","deny":[" "]}]"""), "modes[1].deny contains an empty service name" },
+        { Json(modes: """[{"value":0,"name":"x","deny":["A","a"]}]"""), "modes[1].deny: 'a' appears more than once" },
+        { Json(modes: """[{"value":0,"name":"x","allow":[""]}]"""), "modes[1].allow contains an empty service name" },
+        { Json("""{ "A": { "beforeComplete": [ { "svid": 0, "value": { "constant": 1 } } ] } }"""), "services.A.beforeComplete[1]: svid must be greater than 0" },
+        { Json("""{ "A": { "onLeave": [ { "svid": 0, "value": { "constant": 1 } } ] } }"""), "services.A.onLeave[1]: svid must be greater than 0" },
+        { Json("""{ "A": { "beforeComplete": [ { "svid": 99, "value": { "constant": 1 } } ] } }"""), "services.A.beforeComplete[1]: SVID 99 is not in module-config.json" },
+        { Json("""{ "A": { "onLeave": [ { "svid": 99, "value": { "constant": 1 } } ] } }"""), "services.A.onLeave[1]: SVID 99 is not in module-config.json" },
+        { Json("""{ "A": { "onEnter": [ { "svid": 5, "value": { "constant": 2147483648 } } ] } }"""), "does not fit a DINT SVID" },
     };
 
     [Theory]
@@ -217,6 +226,26 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
 
         Assert.Contains(expected, exception.Message);
         Assert.Contains(Path, exception.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "2")]
+    public void A_range_with_min_equal_to_max_is_accepted()
+    {
+        const string services = """{ "A": { "ranges": [ { "field": "Index", "min": 3, "max": 3 } ] } }""";
+
+        Assert.Equal(new ParamRange("Index", 3, 3), Module(Json(services)).Services["A"].Ranges.Single());
+    }
+
+    [Theory]
+    [Trait("AC", "2")]
+    [InlineData(2147483647)]
+    [InlineData(-2147483648)]
+    public void A_DINT_SVID_takes_a_constant_at_the_DINT_limits(long constant)
+    {
+        string services = $$"""{ "A": { "onEnter": [ { "svid": 5, "value": { "constant": {{constant}} } } ] } }""";
+
+        Assert.Equal((double)constant, Module(Json(services)).Services["A"].OnEnter.Single().Value.Constant);
     }
 
     [Fact]

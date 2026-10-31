@@ -35,7 +35,7 @@ internal class ModuleRules
         _services = services;
     }
 
-    /// <summary>Null when behavior is null. Services entries for paths that are not in boundRelativePaths are skipped (those services never run).</summary>
+    /// <summary>Returns ModuleRules.None when behavior is null. Services entries for paths that are not in boundRelativePaths are skipped (those services never run).</summary>
     /// <exception cref="ServiceHostException">A path of a bound service entry, or ModeSource, does not resolve.</exception>
     public static ModuleRules Create(SymbolTable symbols, string modulePath, ModuleBehavior? behavior, IReadOnlyCollection<string> boundRelativePaths)
     {
@@ -99,6 +99,7 @@ internal sealed class ServiceRules
     private readonly List<ResolvedWrite> _beforeComplete;
     private readonly List<ResolvedWrite> _onLeave;
 
+    // Stryker disable once Block: ServiceRules.None is a static instance created once per test process, so the per-test mutant switch of Stryker cannot reach this constructor
     private ServiceRules()
     {
         _ranges = [];
