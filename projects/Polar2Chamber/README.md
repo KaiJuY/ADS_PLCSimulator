@@ -59,6 +59,26 @@ ECID 可以手動加 `lowerLimit`、`upperLimit`（JSON 數字），規則照 fr
 
 目前腳本產生的設定檔沒有上下限。用腳本重新產生 `config/module-config.json` 會覆蓋整個檔案，手動加的 `lowerLimit`、`upperLimit` 會消失；重新產生後要再加一次。
 
+### 設定檔 `config/service-behaviors.json`
+
+這是模擬器自己的擴充，不是真 PLC 的格式；沒有 `config/module-config.json` 時不能用（SVID、ECID 的位置由它決定），Run 會失敗。service 進入 Execute 的那次 scan 照這個檔案檢查 Module Mode（SVID 1）與參數，不通過就在該 service 的 `ErrorList` 加一筆並 Abort（MainErrorId 2 = Mode 不允許，1 = 參數超出範圍或 TIME 為 0）。只在從 Starting 進入 Execute 時檢查；Execute 中 Mode 改變不中斷，Hold／Suspend 後回到 Execute 也不重查。被 `trigger.onServiceExecute` 接管的 service 只檢查 Mode。
+
+Polar2 的規則：
+
+- Mode 0（Disable）：只有 `Chamber.SetMode` 能執行。這是例外，記在 #10 的規格待確認清單。
+- Mode 1（Manual）：`Chamber.SingleProcess`、`Chamber.EMGS` 不能執行。
+- Mode 2（DryRun）、3（Auto）：全部允許。
+- `Chamber.ArmAlignTest`、`Chamber.ArmTest`：`ArmIndex` 1..4、`NozzleIndex` 1..3；`Chamber.FlowCalibration`：`ArmIndex` 1..4、`ArmNozzleIndex` 1..3。
+- `Chamber.ArmAlignTest`、`Chamber.FlowCalibration` 以 `TestTime` 為執行時間（為 0 時 MainErrorId 1）；`Chamber.ArmTest` 沒有 TestTime，用 `service.host` 的 `defaultDelayMs`。
+- `Holder.Rotate.MoveVelocityCW` 進入 Execute 時把 SVID 53 寫成 ECID 318，`MoveVelocityCCW` 寫成負值；離開 Execute（Stop、Abort、Hold）時寫回 0。
+
+注意：
+
+- Mode 改成 0 之後只有 `Chamber.SetMode` 能跑，手動測試完要用 SetMode 把 Mode 寫回。
+- Run 之後到 `Polar2_ModuleModeInit` 寫 `'1'` 之前，SVID 1 是初始值 `"0"`，Mode 是 Disable；`Polar2_ModuleModeInit` 載入失敗時一直如此。
+- `duration`、`beforeComplete` 只對 NaturalCompletion 的 service 有作用；寫在 ExecuteUntilExternalStop 的 service 上不會報錯，但沒有效果（Host 在 Run 時不讀 identity file，無法發現）。
+- 重新載入 `Polar2_ServiceHost` 時，Execute 中的 service 不經過離開 Execute，`onLeave` 不會寫，SVID 53 可能停在速度值。
+
 ## Framework 升級時重新複製
 
 1. 在 TSMC repo 取得新版本，記下新的 commit SHA。

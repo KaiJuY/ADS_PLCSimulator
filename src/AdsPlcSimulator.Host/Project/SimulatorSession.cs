@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using AdsPlcSimulator.Core.Flow;
 using AdsPlcSimulator.Core.PackML;
 using AdsPlcSimulator.Core.PackML.Alarm;
+using AdsPlcSimulator.Core.PackML.Behavior;
 using AdsPlcSimulator.Core.Plc;
 using AdsPlcSimulator.Host.Live;
 using Microsoft.Extensions.FileProviders;
@@ -35,6 +36,7 @@ public sealed partial class SimulatorSession : IAsyncDisposable
         Live = new SessionLiveChannel(liveHub);
         Runtime = new FlowRuntime(Image, Program.Symbols, NodeCatalog.Default, Live, Live, ProjectDirectory);
         Runtime.Registry.ConfiguredAlarms = ConfiguredAlarms;
+        Runtime.Registry.ServiceBehaviors = ServiceBehaviors;
 
         try
         {
@@ -70,6 +72,8 @@ public sealed partial class SimulatorSession : IAsyncDisposable
     internal SessionLiveChannel Live { get; }
 
     internal ConfiguredAlarmTable ConfiguredAlarms { get; private set; } = ConfiguredAlarmTable.Empty;
+
+    internal ServiceBehaviorTable ServiceBehaviors { get; private set; } = ServiceBehaviorTable.Empty;
 
     private string WorkflowDirectory => Path.Combine(ProjectDirectory, "workflows");
 
@@ -118,6 +122,7 @@ public sealed partial class SimulatorSession : IAsyncDisposable
     {
         ProcessImage image = Program.CreateProcessImage();
         ModuleConfigResult? result = ModuleConfigPublisher.PublishIfPresent(ProjectDirectory, Program.Symbols, image);
+        LoadServiceBehaviors(result);
         if (result is null)
         {
             _logger.LogInformation("No module config in {Directory}.", ProjectDirectory);
@@ -128,6 +133,17 @@ public sealed partial class SimulatorSession : IAsyncDisposable
         _logger.LogInformation("Published module config {Path}.", result.Path);
         ConfiguredAlarms = result.ConfiguredAlarms;
         return image;
+    }
+
+    private void LoadServiceBehaviors(ModuleConfigResult? moduleConfig)
+    {
+        ServiceBehaviorTable? behaviors = ServiceBehaviorLoader.LoadIfPresent(ProjectDirectory, Program.Symbols, moduleConfig?.Config);
+        if (behaviors is null)
+            return;
+
+        // Stryker disable once Statement,String: a log line has no test value
+        _logger.LogInformation("Loaded service behaviors {Path}.", Path.Combine(ProjectDirectory, ServiceBehaviorLoader.RelativePath));
+        ServiceBehaviors = behaviors;
     }
 
     private void LoadWorkflowFile(string name)

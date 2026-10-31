@@ -56,7 +56,7 @@ internal sealed record AlarmConditionConfig
     public double Tolerance { get; init; }
 }
 
-internal sealed record ModuleConfigResult(string Path, ConfiguredAlarmTable ConfiguredAlarms);
+internal sealed record ModuleConfigResult(string Path, ConfiguredAlarmTable ConfiguredAlarms, ModuleConfigFile Config);
 
 internal sealed record DescriptorConfig
 {
@@ -97,8 +97,9 @@ internal static class ModuleConfigPublisher
         if (!File.Exists(path))
             return null;
 
-        ConfiguredAlarmTable alarms = Publish(Parse(File.ReadAllText(path), path), path, symbols, image);
-        return new ModuleConfigResult(path, alarms);
+        ModuleConfigFile config = Parse(File.ReadAllText(path), path);
+        ConfiguredAlarmTable alarms = Publish(config, path, symbols, image);
+        return new ModuleConfigResult(path, alarms, config);
     }
 
     internal static ModuleConfigFile Parse(string json, string path)
@@ -139,7 +140,7 @@ internal static class ModuleConfigPublisher
         return new ConfiguredAlarmTable(alarms);
     }
 
-    private static ModuleConfigException Fail(string path, string reason) => new($"{path}: {reason}");
+    internal static ModuleConfigException Fail(string path, string reason) => new($"{path}: {reason}");
 
     private static void ValidateModule(ModuleConfigEntry? module, HashSet<int> slots, string path)
     {
