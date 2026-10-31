@@ -210,6 +210,25 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
         await WaitUntilAsync(() => (string)Read(SvidValue) == expected, $"SVID 1 to be '{expected}'");
     }
 
+    [Fact]
+    [Trait("AC", "5")]
+    public async Task SetConfig_writes_ECID_318_Value_and_completes()
+    {
+        const int Integer32 = 2;
+        await StartPlcAsync();
+        string batch = $"{Module1}.ServiceParam.Chamber.SetConfig[1]";
+        Write($"{batch}.Id", 318L);
+        Write($"{batch}.DataType", (long)Integer32);
+        Write($"{batch}.Value", "30");
+
+        await CommandAsync("Chamber.SetConfig", PackMLCommand.Start, PackMLState.Complete);
+
+        string descriptor = Enumerable.Range(1, 400)
+            .Select(index => $"{Module1}.ModuleConfigParamList[{index}]")
+            .First(path => ReadNumber($"{path}.Id") == 318);
+        Assert.Equal("30", Read($"{descriptor}.Value"));
+    }
+
     [Theory]
     [Trait("AC", "10")]
     [InlineData(4)]
