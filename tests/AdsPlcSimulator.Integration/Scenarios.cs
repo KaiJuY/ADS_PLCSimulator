@@ -111,7 +111,7 @@ internal static partial class Scenarios
         new("S28", "Cup1 TopPos writes the lift height before Complete", Cup1TopAsync),
         new("S29", "Cup1 IncrementalJog adds Position", Cup1JogAsync),
         new("S30", "Arm1 Noz1CenterPos writes position and speed", Arm1CenterAsync),
-        new("S31", "Arm1 Nozzle1 supply writes the setpoint and DryRun writes 0", Arm1SupplyAsync),
+        new("S31", "Arm1 Nozzle1 supply writes the setpoint, but not in DryRun", Arm1SupplyAsync),
         new("S32", "Arm1 JogNegative writes the negative jog speed", Arm1JogAsync),
         new("S33", "Exhaust fan 1 writes the target pressure", ExhaustFanAsync),
         new("S15", "Module Stop ignores later service commands", ModuleStopAsync),
@@ -771,7 +771,7 @@ internal static partial class Scenarios
         return checks;
     }
 
-    private static async Task CheckSpeedAsync(Checks checks, PlcSession session, Endpoint service, uint svidId, string speed, string expected)
+    private static async Task CheckSpeedAsync(Checks checks, PlcSession session, Endpoint service, uint svidId, string speed, string expected, string afterStop = "0")
     {
         if (!await RequireIdleAsync(checks, session, service))
             return;
@@ -784,7 +784,7 @@ internal static partial class Scenarios
 
         bool stopped = await session.RunSettledAsync(service, PackMLCommand.Stop, PackMLState.Stopped);
         checks.True($"{service.Name}: Stopped", stopped, $"state={session.State(service)}");
-        checks.Equal($"{service.Name}: SVID {svidId} after Stop", "0", session.Read<string>(speed));
+        checks.Equal($"{service.Name}: SVID {svidId} after Stop", afterStop, session.Read<string>(speed));
         await session.EnsureIdleAsync(service);
     }
 

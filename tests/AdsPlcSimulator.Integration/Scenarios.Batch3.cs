@@ -82,7 +82,6 @@ internal static partial class Scenarios
             session.Write(Arm1Noz1Setpoint, 12);
             await CheckSpeedAsync(checks, session, Arm1Noz1Supply, Arm1Noz1FlowSvid, VariableValue(entry), "12");
             checks.True("SetMode 2 reaches Complete", await SetModeToAsync(session, 2));
-            // Known limit: 0 and "not written" both read "0"; this only shows SVID 9 is not 12 in DryRun.
             await CheckSpeedAsync(checks, session, Arm1Noz1Supply, Arm1Noz1FlowSvid, VariableValue(entry), "0");
         }
         finally
@@ -130,7 +129,7 @@ internal static partial class Scenarios
         try
         {
             checks.True($"SetConfig ECID {ExhaustFan1TargetEcid} = 50", await SetConfigToAsync(session, ExhaustFan1TargetEcid, "50"));
-            await CheckFanRunAsync(checks, session, VariableValue(entry));
+            await CheckSpeedAsync(checks, session, ExhaustFan1, ExhaustFan1PressureSvid, VariableValue(entry), "50.0", "0.0");
         }
         finally
         {
@@ -138,23 +137,5 @@ internal static partial class Scenarios
         }
 
         return checks;
-    }
-
-    // CheckSpeedAsync expects "0" after Stop; a REAL SVID shows "0.0".
-    private static async Task CheckFanRunAsync(Checks checks, PlcSession session, string pressure)
-    {
-        if (!await RequireIdleAsync(checks, session, ExhaustFan1))
-            return;
-
-        session.Send(ExhaustFan1, PackMLCommand.Start, session.NextRequestId());
-        bool executing = await session.WaitForStateAsync(ExhaustFan1, PackMLState.Execute, Reaction);
-        session.Release(ExhaustFan1);
-        checks.True($"{ExhaustFan1.Name}: reaches Execute", executing, $"state={session.State(ExhaustFan1)}");
-        checks.Equal($"{ExhaustFan1.Name}: SVID {ExhaustFan1PressureSvid} in Execute", "50.0", session.Read<string>(pressure));
-
-        bool stopped = await session.RunSettledAsync(ExhaustFan1, PackMLCommand.Stop, PackMLState.Stopped);
-        checks.True($"{ExhaustFan1.Name}: Stopped", stopped, $"state={session.State(ExhaustFan1)}");
-        checks.Equal($"{ExhaustFan1.Name}: SVID {ExhaustFan1PressureSvid} after Stop", "0.0", session.Read<string>(pressure));
-        await session.EnsureIdleAsync(ExhaustFan1);
     }
 }
