@@ -218,7 +218,12 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
 
         ServiceIdentityTable identities = ServiceIdentityTable.Parse(implementation, name => s_polar2.Value.Symbols.TryGetEnumValue(name, out long value) ? value : null);
 
-        Assert.All(services.Keys, key => Assert.NotEqual(0u, identities.Find(key)?.ServiceId));
+        Assert.All(services.Keys, key =>
+        {
+            ServiceIdentity? identity = identities.Find(key);
+            Assert.NotNull(identity);
+            Assert.NotEqual(0u, identity.ServiceId);
+        });
     }
 
     [Fact]
