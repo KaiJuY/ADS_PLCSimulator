@@ -430,13 +430,25 @@ internal static class ServiceBehaviorLoader
     {
         if (lookup is null)
             return;
-        if (lookup.Key is not { Count: > 0 } key || key.Any(string.IsNullOrWhiteSpace))
+
+        int keyCount = RequireLookupKey(lookup.Key, where, path);
+        RequireLookupValues(lookup.Values, keyCount, where, path);
+    }
+
+    private static int RequireLookupKey(List<string>? key, string where, string path)
+    {
+        if (key is not { Count: > 0 } || key.Any(string.IsNullOrWhiteSpace))
             throw ModuleConfigPublisher.Fail(path, $"{where}: key is empty or has an empty field.");
-        if (lookup.Values is not { Count: > 0 } values)
+        return key.Count;
+    }
+
+    private static void RequireLookupValues<T>(Dictionary<string, T>? values, int keyCount, string where, string path)
+    {
+        if (values is not { Count: > 0 })
             throw ModuleConfigPublisher.Fail(path, $"{where}: values is empty.");
 
-        foreach (string entry in values.Keys.Where(entry => !IsKeyOf(entry, key.Count)))
-            throw ModuleConfigPublisher.Fail(path, $"{where}: '{entry}' is not {key.Count} integers separated by ','.");
+        foreach (string entry in values.Keys.Where(entry => !IsKeyOf(entry, keyCount)))
+            throw ModuleConfigPublisher.Fail(path, $"{where}: '{entry}' is not {keyCount} integers separated by ','.");
     }
 
     private static bool IsKeyOf(string entry, int count)

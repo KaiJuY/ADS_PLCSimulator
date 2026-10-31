@@ -473,12 +473,7 @@ public sealed partial class ServiceHost
         // Unholding and Unsuspending continue one action: no new Mode or parameter check (issue #16 R7).
         if (!freshEntry)
         {
-            service.EntryToken = token;
-            if (token is not null)
-                return;
-
-            service.Rules.WriteOnEnter(image, service.EntryDryRun);
-            service.Process?.Resume(image, now);
+            ContinueExecute(service, image, token, now);
             return;
         }
 
@@ -493,9 +488,22 @@ public sealed partial class ServiceHost
         service.EntryToken = token;
         service.ConfigParams?.Apply(image);
         service.EntryDryRun = dryRun;
+        if (token is null)
+            StartRun(service, image, now, dryRun);
+    }
+
+    private static void ContinueExecute(ServiceUnit service, ProcessImage image, object? token, TimeSpan now)
+    {
+        service.EntryToken = token;
         if (token is not null)
             return;
 
+        service.Rules.WriteOnEnter(image, service.EntryDryRun);
+        service.Process?.Resume(image, now);
+    }
+
+    private static void StartRun(ServiceUnit service, ProcessImage image, TimeSpan now, bool dryRun)
+    {
         service.EntryDuration = service.Rules.ReadDuration(image);
         service.Rules.WriteOnEnter(image, dryRun);
         if (service.ConfigParams is null)
