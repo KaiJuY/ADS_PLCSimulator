@@ -115,7 +115,6 @@ internal sealed class ProcessRules
 
     private static string StepText(string path, int step) => path.Replace("[i]", $"[{step}]", StringComparison.Ordinal);
 
-    /// <summary>Count, then each step 1..count with the checks in list order, then cycle pairing. First failure wins.</summary>
     public EntryCheck Check(ProcessImage image)
     {
         long count = Int(image, _count, 1);
@@ -190,14 +189,13 @@ internal sealed class ProcessRules
     private EntryCheck PairingError(int step, string problem) =>
         new(ServiceRules.ParamOutOfRangeId, (uint)step, $"{StepText(_cycle!.Cycle.ControlField, step)} {problem}.");
 
-    /// <summary>Copies the step plan (count, each step's time, cycle control and cycle count) and starts at step 1: writes its SVIDs; the step began at now. dryRun is kept for the whole run.</summary>
     public ProcessRun Start(ProcessImage image, TimeSpan now, bool dryRun)
     {
         int count = (int)Int(image, _count, 1);
         var plan = new ProcessPlan(count, new TimeSpan[count + 1], new CycleMark[count + 1], new long[count + 1]);
         for (int step = 1; step <= count; step++)
         {
-            plan.Times[step] = TimeSpan.FromMilliseconds(Math.Max(1, Number(image, _time, step)));
+            plan.Times[step] = TimeSpan.FromMilliseconds(Math.Max(MinStepTime.TotalMilliseconds, Number(image, _time, step)));
             if (_cycle is null)
                 continue;
 

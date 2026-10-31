@@ -130,7 +130,6 @@ internal static partial class Scenarios
         return checks;
     }
 
-    // The steps run 1, 2, 3, 2, 3: 2.5 s in all.
     private static async Task CheckCycleRunAsync(Checks checks, PlcSession session)
     {
         if (!await RequireIdleAsync(checks, session, SingleProcess))

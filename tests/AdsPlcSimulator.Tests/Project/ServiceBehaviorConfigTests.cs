@@ -448,6 +448,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         { Proc(checks: """[ { "field": " ", "min": 1, "max": 2 } ]"""), "services.A.process.checks[1]: field is empty." },
         { Proc(checks: """[ { "field": "Steps[i].Kind", "greaterThan": 0, "max": 2 } ]"""), "services.A.process.checks[1]: greaterThan cannot be used with min, max, maxField or maxBy." },
         { Proc(checks: """[ { "field": "Steps[i].Kind", "greaterThan": 0, "min": 0 } ]"""), "services.A.process.checks[1]: greaterThan cannot be used with min, max, maxField or maxBy." },
+        { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 1, "maxField": "Steps[i].Pick" } ]"""), "services.A.process.checks[1]: maxField must not contain [i]." },
         { Proc(checks: """[ { "field": "Steps[i].Kind", "max": 2 } ]"""), "services.A.process.checks[1]: min is required." },
         { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 1 } ]"""), "services.A.process.checks[1]: exactly one of max, maxField and maxBy is required." },
         { Proc(checks: """[ { "field": "Steps[i].Kind", "min": 1, "max": 2, "maxField": "Limit" } ]"""), "services.A.process.checks[1]: exactly one of max, maxField and maxBy is required." },

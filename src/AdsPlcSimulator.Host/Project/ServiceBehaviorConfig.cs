@@ -181,6 +181,7 @@ internal sealed record ProcessCheckConfig
         (check => check.GreaterThan is null && check.BoundCount() != 1, "{0}: exactly one of max, maxField and maxBy is required."),
         (check => !new[] { check.Min, check.Max, check.GreaterThan }.All(value => value is null || double.IsFinite(value.Value)), "{0}: min, max and greaterThan must be finite numbers."),
         (check => check.Min > check.Max, "{0}: min is greater than max."),
+        (check => check.MaxField is { } field && field.Contains("[i]", StringComparison.Ordinal), "{0}: maxField must not contain [i]."),
     ];
 
     internal int BoundCount() => (Max is null ? 0 : 1) + (MaxField is null ? 0 : 1) + (MaxBy is null ? 0 : 1);
@@ -497,8 +498,8 @@ internal static class ServiceBehaviorLoader
         private ProcessBehavior BuildProcess(ProcessConfig process, string param, string where)
         {
             int max = process.MaxCount!.Value;
-            RequireStepField(param, process.Count!, max, where, "an integer or enum", IsIntegerOrEnum);
-            RequireStepField(param, process.Time!, max, where, "a TIME", IsTime);
+            RequireFirstAndLastStep(param, process.Count!, max, where, "an integer or enum", IsIntegerOrEnum);
+            RequireFirstAndLastStep(param, process.Time!, max, where, "a TIME", IsTime);
             return new ProcessBehavior(
                 process.Count!,
                 max,
@@ -510,14 +511,14 @@ internal static class ServiceBehaviorLoader
 
         private ProcessCycle BuildCycle(CycleConfig cycle, string param, int max, string where)
         {
-            RequireStepField(param, cycle.Control!, max, where, "an integer or enum", IsIntegerOrEnum);
-            RequireStepField(param, cycle.Count!, max, where, "an integer or enum", IsIntegerOrEnum);
+            RequireFirstAndLastStep(param, cycle.Control!, max, where, "an integer or enum", IsIntegerOrEnum);
+            RequireFirstAndLastStep(param, cycle.Count!, max, where, "an integer or enum", IsIntegerOrEnum);
             return new ProcessCycle(cycle.Control!, cycle.Start!.Value, cycle.End!.Value, cycle.Count!);
         }
 
         private ProcessCheck BuildCheck(ProcessCheckConfig check, string param, int max, string where)
         {
-            RequireStepField(param, check.Field!, max, where, "a number, enum or TIME", IsNumberEnumOrTime);
+            RequireFirstAndLastStep(param, check.Field!, max, where, "a number, enum or TIME", IsNumberEnumOrTime);
             ProcessCondition? when = BuildCondition(check.When, param, max, $"{where}.when");
             if (check.GreaterThan is { } greaterThan)
                 return new ProcessCheck(check.Field!, ProcessCheckKind.GreaterThan, greaterThan, null, when);
@@ -557,7 +558,7 @@ internal static class ServiceBehaviorLoader
             ProcessCondition? negateWhen = BuildCondition(value.NegateWhen, param, max, $"{where}.negateWhen");
             if (value.Field is { } field)
             {
-                RequireStepField(param, field, max, where, "a number or enum", IsNumberOrEnum);
+                RequireFirstAndLastStep(param, field, max, where, "a number or enum", IsNumberOrEnum);
                 return new ProcessValue(ProcessValueKind.Field, field, null, negateWhen);
             }
 
@@ -572,14 +573,14 @@ internal static class ServiceBehaviorLoader
             if (condition is null)
                 return null;
 
-            RequireStepField(param, condition.Field!, max, where, "an integer or enum", IsIntegerOrEnum);
+            RequireFirstAndLastStep(param, condition.Field!, max, where, "an integer or enum", IsIntegerOrEnum);
             return new ProcessCondition(condition.Field!, condition.EqualsValue!.Value);
         }
 
         private KeyedChoice<TOut> BuildLookup<TIn, TOut>(LookupConfig<TIn> lookup, string param, int max, string where, Func<TIn, TOut> convert)
         {
             foreach (string field in lookup.Key!)
-                RequireStepField(param, field, max, where, "an integer or enum", IsIntegerOrEnum);
+                RequireFirstAndLastStep(param, field, max, where, "an integer or enum", IsIntegerOrEnum);
 
             return new KeyedChoice<TOut>(lookup.Key!, lookup.Values!.ToDictionary(entry => entry.Key, entry => convert(entry.Value)));
         }
@@ -592,8 +593,7 @@ internal static class ServiceBehaviorLoader
             return new SvidTarget(target, dataType == "REAL");
         }
 
-        // A step path (with [i]) must resolve for the first and the last step.
-        private void RequireStepField(string param, string path, int max, string where, string expected, Func<PlcType, bool> accepts)
+        private void RequireFirstAndLastStep(string param, string path, int max, string where, string expected, Func<PlcType, bool> accepts)
         {
             RequireField($"{param}.{path.Replace("[i]", "[1]", StringComparison.Ordinal)}", where, expected, accepts);
             RequireField($"{param}.{path.Replace("[i]", $"[{max}]", StringComparison.Ordinal)}", where, expected, accepts);

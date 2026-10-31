@@ -91,7 +91,7 @@ internal sealed class ServiceRules
     public static readonly ServiceRules None = new();
 
     internal const uint ParamOutOfRangeId = 1;
-    internal const uint UnrepresentableSourceId = uint.MaxValue;
+    private const uint UnrepresentableSourceId = uint.MaxValue;
 
     private readonly List<ResolvedRange> _ranges;
     private readonly SymbolRef? _duration;
