@@ -2,6 +2,7 @@ using System.Text.Json;
 using AdsPlcSimulator.Core.Flow;
 using AdsPlcSimulator.Core.PackML;
 using AdsPlcSimulator.Core.PackML.Alarm;
+using AdsPlcSimulator.Core.PackML.Behavior;
 using AdsPlcSimulator.Host.Live;
 using AdsPlcSimulator.Host.Project;
 using Microsoft.Extensions.Logging;
@@ -153,6 +154,45 @@ public sealed class SessionPartsTests
         var exception = Assert.Throws<ModuleConfigException>(() => new SimulatorSession(root.ProjectPath("Alpha"), hub, NullLogger<SimulatorSession>.Instance));
 
         Assert.Contains("module-config.json", exception.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "2")]
+    public void Session_without_service_behaviors_keeps_the_empty_table()
+    {
+        using var root = new ProjectTestRoot();
+        var hub = new LiveHub(NullLogger<LiveHub>.Instance);
+
+        SimulatorSession session = new(root.ProjectPath("Alpha"), hub, NullLogger<SimulatorSession>.Instance);
+
+        Assert.Same(ServiceBehaviorTable.Empty, session.ServiceBehaviors);
+        Assert.Same(ServiceBehaviorTable.Empty, session.Runtime.Registry.ServiceBehaviors);
+    }
+
+    [Fact]
+    [Trait("AC", "2")]
+    public void Session_construction_rejects_service_behaviors_without_a_module_config()
+    {
+        using var root = new ProjectTestRoot();
+        string config = Path.Combine(root.ProjectPath("Alpha"), "config");
+        Directory.CreateDirectory(config);
+        File.WriteAllText(Path.Combine(config, "service-behaviors.json"), "{}");
+        var hub = new LiveHub(NullLogger<LiveHub>.Instance);
+
+        var exception = Assert.Throws<ModuleConfigException>(() => new SimulatorSession(root.ProjectPath("Alpha"), hub, NullLogger<SimulatorSession>.Instance));
+
+        Assert.Contains("module-config.json", exception.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "1")]
+    public async Task Session_of_the_Polar2_project_loads_its_service_behaviors_into_the_registry()
+    {
+        var hub = new LiveHub(NullLogger<LiveHub>.Instance);
+        await using var session = new SimulatorSession(TestPaths.Polar2Project, hub, NullLogger<SimulatorSession>.Instance);
+
+        Assert.NotNull(session.ServiceBehaviors.For("GVL_Module.Chamber_Control[1]"));
+        Assert.Same(session.ServiceBehaviors, session.Runtime.Registry.ServiceBehaviors);
     }
 
     [Fact]

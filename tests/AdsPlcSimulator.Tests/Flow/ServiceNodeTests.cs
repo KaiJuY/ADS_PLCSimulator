@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using AdsPlcSimulator.Core.Flow;
 using AdsPlcSimulator.Core.Flow.Nodes;
 using AdsPlcSimulator.Core.PackML;
+using AdsPlcSimulator.Core.PackML.Alarm;
 using AdsPlcSimulator.Core.Plc;
 using AdsPlcSimulator.Host.Live;
 using AdsPlcSimulator.Tests.PackML;
@@ -481,6 +482,39 @@ public sealed class ServiceNodeTests : IAsyncLifetime
 
         Assert.Equal(fixture.Host.ExecuteGeneration(HostFixture.CtrlPath(1, "A")), outputs["generation"]);
         Assert.True((long)outputs["generation"]! > 0);
+    }
+
+    [Theory]
+    [Trait("AC", "5")]
+    [InlineData("0", false)]
+    [InlineData("1", true)]
+    public void Trigger_does_not_fire_for_an_Execute_entry_that_the_host_refused(string mode, bool fires)
+    {
+        var fixture = new HostFixture(declarations: HostFixture.BehaviorDeclarations, initialize: false);
+        fixture.Write("GVL_Test.Modules[1].ModuleVariableList[1].Value", mode);
+        fixture.Write("GVL_Test.Modules[1].ServiceParam.A.Index", 1);
+        fixture.Write("GVL_Test.Modules[1].ServiceParam.A.Time", 2000);
+        fixture.Host.Initialize(fixture.Image, ConfiguredAlarmTable.Empty, ServiceHostBehaviorTests.StandardBehaviors());
+        var registry = new ServiceHostRegistry();
+        registry.Register("host", fixture.Host);
+        var document = new WorkflowDocument { Nodes = [Node("trigger", "trigger.onServiceExecute", ("service", ServiceA))] };
+        CompiledWorkflow? compiled = WorkflowCompiler.Compile("t", document, NodeCatalog.Default, fixture.Symbols, out _);
+        var trigger = (ServiceExecuteTriggerNode)compiled!.Nodes.Single().Node;
+        trigger.Attach(registry);
+        SymbolRef state = fixture.Symbols.Resolve("GVL_Test.Modules[1].ServiceStatus.A.PackMLOut.eStateCurrent");
+        MemoryWrite? entry = null;
+        fixture.Image.Written += write =>
+        {
+            if (write.Overlaps(state.Offset, state.Size))
+                entry = write;
+        };
+
+        fixture.SendToService(1, "A", PackMLCommand.Start);
+        fixture.Scan();
+
+        Assert.Equal(fires, trigger.TryFire(entry!, fixture.Image, out Dictionary<string, object?> outputs));
+        if (fires)
+            Assert.Equal(fixture.Host.ExecuteGeneration(HostFixture.CtrlPath(1, "A")), outputs["generation"]);
     }
 
     [Fact]

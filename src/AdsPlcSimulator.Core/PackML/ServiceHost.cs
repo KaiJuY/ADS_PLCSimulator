@@ -1,4 +1,5 @@
 using AdsPlcSimulator.Core.PackML.Alarm;
+using AdsPlcSimulator.Core.PackML.Behavior;
 using AdsPlcSimulator.Core.PackML.ConfigParam;
 using AdsPlcSimulator.Core.Plc;
 using static AdsPlcSimulator.Core.PackML.PlcLayout;
@@ -6,7 +7,7 @@ using static AdsPlcSimulator.Core.PackML.PlcLayout;
 namespace AdsPlcSimulator.Core.PackML;
 
 /// <summary>All modules below one root, scanned together like one PLC task.</summary>
-public sealed class ServiceHost
+public sealed partial class ServiceHost
 {
     public static readonly TimeSpan ScanInterval = TimeSpan.FromMilliseconds(10);
 
@@ -79,15 +80,19 @@ public sealed class ServiceHost
     /// <summary>The same as Initialize(image, ConfiguredAlarmTable.Empty).</summary>
     public void Initialize(ProcessImage image) => Initialize(image, ConfiguredAlarmTable.Empty);
 
-    /// <exception cref="ServiceHostException">A configured alarm source cannot be resolved.</exception>
-    public void Initialize(ProcessImage image, ConfiguredAlarmTable configuredAlarms)
+    /// <summary>The same as Initialize(image, configuredAlarms, ServiceBehaviorTable.Empty).</summary>
+    public void Initialize(ProcessImage image, ConfiguredAlarmTable configuredAlarms) =>
+        Initialize(image, configuredAlarms, ServiceBehaviorTable.Empty);
+
+    /// <exception cref="ServiceHostException">A configured alarm source or a behavior path cannot be resolved.</exception>
+    public void Initialize(ProcessImage image, ConfiguredAlarmTable configuredAlarms, ServiceBehaviorTable behaviors)
     {
         lock (_lock)
         {
             if (_retired)
                 return;
             foreach (ModuleUnit module in _modules)
-                InitializeModule(image, module, configuredAlarms.For(module.Path));
+                InitializeModule(image, module, configuredAlarms.For(module.Path), behaviors.For(module.Path));
             _image = image;
         }
     }
@@ -188,6 +193,14 @@ public sealed class ServiceHost
             return Bound(ctrlPath).Generation;
     }
 
+    /// <summary>True when the current Execute entry of the service was refused by a Mode or parameter check; false before the first entry.</summary>
+    /// <exception cref="InvalidOperationException">The service is not bound.</exception>
+    public bool IsExecuteRejected(string ctrlPath)
+    {
+        lock (_lock)
+            return Bound(ctrlPath).ExecuteRejected;
+    }
+
     public bool Contains(string ctrlPath) => _bound.ContainsKey(ctrlPath);
 
     /// <param name="generation">Null skips the check; otherwise it must equal the current ExecuteGeneration.</param>
@@ -243,8 +256,9 @@ public sealed class ServiceHost
             ? service
             : throw new InvalidOperationException($"{ctrlPath} is not a bound service of {RootPath}.");
 
-    private void InitializeModule(ProcessImage image, ModuleUnit module, IReadOnlyList<ConfiguredAlarm> configured)
+    private void InitializeModule(ProcessImage image, ModuleUnit module, IReadOnlyList<ConfiguredAlarm> configured, ModuleBehavior? behavior)
     {
+        module.Rules = ModuleRules.Create(_symbols, module.Path, behavior, module.BoundServices.Select(service => service.RelativePath).ToList());
         module.ResetAlarms(image, ResolveConfigured(module, configured));
         module.ReadInputs(image);
         RawInput input = module.ReadModuleInput();
@@ -258,7 +272,10 @@ public sealed class ServiceHost
         foreach (ServiceUnit service in module.Services)
             service.WriteIdentity(image);
         foreach (ServiceUnit service in module.BoundServices)
+        {
+            service.Rules = module.Rules?.For(service.RelativePath);
             service.Reset(image, module.ReadServiceInput(service));
+        }
     }
 
     private List<ConfiguredBinding> ResolveConfigured(ModuleUnit module, IReadOnlyList<ConfiguredAlarm> configured)
@@ -284,7 +301,7 @@ public sealed class ServiceHost
         bool moduleInExecute = module.Machine.State == PackMLState.Execute;
 
         foreach (ServiceUnit service in module.BoundServices)
-            ScanService(image, service, module.ReadServiceInput(service), module.ReadServiceAlive(service, moduleInExecute), moduleInput, moduleInExecute, now);
+            ScanService(image, module, service, module.ReadServiceInput(service), module.ReadServiceAlive(service, moduleInExecute), moduleInput, moduleInExecute, now);
 
         UpdateModuleResponse(module, moduleInput.PackML);
         module.Status.Write(image, module.Machine);
@@ -310,7 +327,7 @@ public sealed class ServiceHost
             module.Status.ResponseId = module.ReadModuleInput().RequestId;
     }
 
-    private void ScanService(ProcessImage image, ServiceUnit service, RawInput client, AliveInput alive, RawInput module, bool moduleInExecute, TimeSpan now)
+    private void ScanService(ProcessImage image, ModuleUnit owner, ServiceUnit service, RawInput client, AliveInput alive, RawInput module, bool moduleInExecute, TimeSpan now)
     {
         (long requestId, PackMLInput effective) = moduleInExecute
             ? (client.RequestId, ApplyBlocking(service, client.PackML))
@@ -327,7 +344,9 @@ public sealed class ServiceHost
         service.Machine.Scan(effective, state => IsServiceActingStateDone(service, state, image, modeRequestHigh, now));
         service.LastState = service.Machine.State;
         if (before != PackMLState.Execute && service.Machine.State == PackMLState.Execute)
-            EnterExecute(service, image, now);
+            EnterExecute(owner, service, image, now, modeRequestHigh);
+        else if (before == PackMLState.Execute && service.Machine.State != PackMLState.Execute)
+            LeaveExecute(service, image);
         service.OnScanned(before, alive, _alive, now);
         if (PassedThroughClearingThisScan(before, service.Machine))
             service.ClearErrors(image);
@@ -377,13 +396,27 @@ public sealed class ServiceHost
             return IsStartingDone(service, image, modeRequestHigh);
         if (state != PackMLState.Execute)
             return true;
+        if (service.ExecuteRejected)
+            return RetryRejectedAbort(service, modeRequestHigh);
         if (service.IsOverridden(_overrideToken))
             return service.TakeCompletion();
-        if (service.ConfigParams is not null)
-            return true;
-        if (service.Behavior != CompletionBehavior.NaturalCompletion)
-            return false;
-        return now - service.ExecuteEntered >= _defaultDelay;
+
+        bool done = service.ConfigParams is not null || IsNaturalDelayElapsed(service, now);
+        if (done)
+            service.Rules?.WriteBeforeComplete(image, service.EntryDryRun);
+        return done;
+    }
+
+    private bool IsNaturalDelayElapsed(ServiceUnit service, TimeSpan now) =>
+        service.Behavior == CompletionBehavior.NaturalCompletion
+        && now - service.ExecuteEntered >= (service.EntryDuration ?? _defaultDelay);
+
+    // The Abort of a refused entry is queued in the entry scan; it is retried here only when a mode request was high then.
+    private static bool RetryRejectedAbort(ServiceUnit service, bool modeRequestHigh)
+    {
+        if (service.ExecuteAbortPending && service.Machine.RequestCommand(PackMLCommand.Abort, modeRequestHigh))
+            service.ExecuteAbortPending = false;
+        return false;
     }
 
     private bool IsStartingDone(ServiceUnit service, ProcessImage image, bool modeRequestHigh)
@@ -408,13 +441,70 @@ public sealed class ServiceHost
         return false;
     }
 
-    private void EnterExecute(ServiceUnit service, ProcessImage image, TimeSpan now)
+    private void EnterExecute(ModuleUnit owner, ServiceUnit service, ProcessImage image, TimeSpan now, bool modeRequestHigh)
     {
         service.ExecuteEntered = now;
         service.Generation = Interlocked.Increment(ref s_generationCounter);
-        service.EntryToken = _overrideToken(service.CtrlPath);
         service.CompletePending = false;
+        object? token = _overrideToken(service.CtrlPath);
+
+        // Unholding and Unsuspending continue one action: no new Mode or parameter check (R7).
+        if (service.Machine.PreviousState != PackMLState.Starting)
+        {
+            service.EntryToken = token;
+            service.ConfigParams?.Apply(image);
+            if (token is null)
+                service.Rules?.WriteOnEnter(image, service.EntryDryRun);
+            return;
+        }
+
+        service.BeginExecuteEntry();
+        EntryCheck check = CheckEntry(owner, service, token is not null, image, out bool dryRun);
+        if (!check.Passed)
+        {
+            RejectEntry(service, image, check, modeRequestHigh);
+            return;
+        }
+
+        service.EntryToken = token;
         service.ConfigParams?.Apply(image);
+        service.EntryDryRun = dryRun;
+        if (token is not null)
+            return;
+
+        service.EntryDuration = service.Rules?.ReadDuration(image);
+        service.Rules?.WriteOnEnter(image, dryRun);
+    }
+
+    // The table covers only the Mode for a service without an entry, and only the Mode for an overridden service (a workflow owns its run).
+    private static EntryCheck CheckEntry(ModuleUnit owner, ServiceUnit service, bool overridden, ProcessImage image, out bool dryRun)
+    {
+        dryRun = false;
+        if (owner.Rules is null)
+            return EntryCheck.Pass;
+
+        EntryCheck mode = owner.Rules.CheckMode(service.RelativePath, image, out dryRun);
+        if (!mode.Passed || overridden || service.Rules is null)
+            return mode;
+        return service.Rules.CheckParams(image);
+    }
+
+    private void RejectEntry(ServiceUnit service, ProcessImage image, EntryCheck check, bool modeRequestHigh)
+    {
+        service.ExecuteRejected = true;
+        service.EntryToken = null;
+        AddFrameworkError(service, image, check.MainErrorId, check.SourceErrorId, check.Message);
+        if (!service.Machine.RequestCommand(PackMLCommand.Abort, modeRequestHigh))
+            service.ExecuteAbortPending = true;
+    }
+
+    private static void LeaveExecute(ServiceUnit service, ProcessImage image)
+    {
+        service.ExecuteAbortPending = false;
+        if (service.ExecuteRejected || service.EntryToken is not null)
+            return;
+
+        service.Rules?.WriteOnLeave(image, service.EntryDryRun);
     }
 
     private readonly record struct RawInput(long RequestId, PackMLInput PackML);
@@ -548,198 +638,6 @@ public sealed class ServiceHost
         }
     }
 
-    private sealed class ServiceUnit
-    {
-        private readonly InputLayout _input;
-        private readonly SymbolRef _serviceIdSymbol;
-        private readonly SymbolRef _behaviorSymbol;
-        private readonly int _ctrlOffsetInBlock;
-
-        private ServiceUnit(
-            string ctrlPath,
-            ServiceIdentity? identity,
-            InputLayout input,
-            int ctrlOffsetInBlock,
-            StatusBlock status,
-            SymbolRef serviceIdSymbol,
-            SymbolRef behaviorSymbol,
-            string statusPath,
-            ServiceErrorList? errors,
-            ServiceAliveMonitor? alive,
-            ConfigParamService? configParams)
-        {
-            ConfigParams = configParams;
-            Alive = alive;
-            StatusPath = statusPath;
-            Errors = errors;
-            CtrlPath = ctrlPath;
-            Identity = identity;
-            _input = input;
-            _ctrlOffsetInBlock = ctrlOffsetInBlock;
-            Status = status;
-            _serviceIdSymbol = serviceIdSymbol;
-            _behaviorSymbol = behaviorSymbol;
-            Machine = new PackMLMachine(PackMLState.Idle, PackMLState.Resetting);
-        }
-
-        public string CtrlPath { get; }
-
-        public string StatusPath { get; }
-
-        public ServiceErrorList? Errors { get; }
-
-        public ServiceAliveMonitor? Alive { get; }
-
-        public ConfigParamService? ConfigParams { get; }
-
-        public bool StartingChecked { get; set; }
-
-        public bool StartingAbortPending { get; set; }
-
-        public ServiceIdentity? Identity { get; }
-
-        public bool IsBound => Identity is { ServiceId: not 0 };
-
-        public CompletionBehavior Behavior => Identity?.CompletionBehavior ?? CompletionBehavior.Unknown;
-
-        public StatusBlock Status { get; }
-
-        public PackMLMachine Machine { get; set; }
-
-        public PackMLState LastState { get; set; } = PackMLState.Idle;
-
-        public bool LastCommandRequest { get; set; }
-
-        public bool LastModeRequest { get; set; }
-
-        public bool CommandBlocked { get; set; }
-
-        public bool ModeBlocked { get; set; }
-
-        public TimeSpan ExecuteEntered { get; set; }
-
-        public long Generation { get; set; }
-
-        public object? EntryToken { get; set; }
-
-        public bool CompletePending { get; set; }
-
-        public static ServiceUnit Create(
-            SymbolTable symbols, SymbolRef ctrl, SymbolRef serviceCtrlRoot, SymbolRef serviceStatusRoot, ServiceIdentityTable identities,
-            SymbolRef? serviceParamRoot, SymbolRef? configParamList)
-        {
-            string relative = ctrl.Path[(serviceCtrlRoot.Path.Length + 1)..];
-            if (!symbols.TryResolve($"{serviceStatusRoot.Path}.{relative}", out SymbolRef status, out _) || status.Type.Unaliased.Name != "ST_ServiceStatus")
-                throw new ServiceHostException($"{serviceStatusRoot.Path} has no ST_ServiceStatus at '{relative}', the match of {ctrl.Path}.");
-
-            StructMember serviceId = Require(status.Type, "ServiceId", status.Path);
-            StructMember behavior = Require(status.Type, "CompletionBehavior", status.Path);
-            return new ServiceUnit(
-                ctrl.Path,
-                identities.Find(relative),
-                new InputLayout(ctrl.Type, ctrl.Path),
-                ctrl.Offset - serviceCtrlRoot.Offset,
-                new StatusBlock(status),
-                // Stryker disable String: ProcessImage.WriteValue uses only the offset and type of these two symbols, never the path
-                new SymbolRef($"{status.Path}.ServiceId", serviceId.Type, status.Offset + serviceId.Offset),
-                new SymbolRef($"{status.Path}.CompletionBehavior", behavior.Type, status.Offset + behavior.Offset),
-                status.Path,
-                ServiceErrorList.TryCreate(status),
-                ServiceAliveMonitor.TryCreate(ctrl, ctrl.Offset - serviceCtrlRoot.Offset),
-                TryCreateConfigParams(symbols, relative, serviceParamRoot, configParamList));
-            // Stryker restore String
-        }
-
-        private static ConfigParamService? TryCreateConfigParams(SymbolTable symbols, string relative, SymbolRef? serviceParamRoot, SymbolRef? configParamList)
-        {
-            if (serviceParamRoot is not { } root || configParamList is not { } list)
-                return null;
-            if (!symbols.TryResolve($"{root.Path}.{relative}", out SymbolRef param, out _))
-                return null;
-
-            return ConfigParamService.TryCreate(param, list);
-        }
-
-        public void ResetStarting()
-        {
-            StartingChecked = false;
-            // Stryker disable once Boolean: the flag is read only after StartingChecked was set in the same stay, and the check that sets StartingChecked also sets this flag on failure or leaves Starting on success
-            StartingAbortPending = false;
-        }
-
-        public RawInput ReadInput(byte[] serviceCtrlBlock) =>
-            _input.Decode(serviceCtrlBlock.AsSpan(_ctrlOffsetInBlock, _input.Size));
-
-        public AliveInput ReadAlive(byte[] serviceCtrlBlock, bool moduleInExecute) =>
-            Alive?.Read(serviceCtrlBlock, moduleInExecute) ?? default;
-
-        public bool AbortPending => Alive is { AbortPending: true };
-
-        public void ClearPendingAbort() => Alive?.ClearPendingAbort();
-
-        public TimeSpan? EvaluateAlive(AliveInput input, TimeSpan now) =>
-            Alive?.Evaluate(input, Machine.State == PackMLState.Execute, now);
-
-        public void OnScanned(PackMLState before, AliveInput input, AliveSettings settings, TimeSpan now)
-        {
-            if (Machine.State != PackMLState.Starting)
-                ResetStarting();
-            if (Alive is null)
-                return;
-            if (Machine.State != PackMLState.Execute)
-                // Stryker disable once Statement: the monitor only acts in Execute, and every entry into Execute calls EnterExecute, which sets _active again
-                Alive.LeaveExecute();
-            else if (before != PackMLState.Execute)
-                Alive.EnterExecute(input, Behavior, settings, now);
-        }
-
-        public void WriteIdentity(ProcessImage image)
-        {
-            if (Identity is null)
-                return;
-
-            image.WriteValue(_serviceIdSymbol, (long)Identity.ServiceId, WriteSource.Workflow);
-            image.WriteValue(_behaviorSymbol, (long)Identity.CompletionBehavior, WriteSource.Workflow);
-        }
-
-        public void Reset(ProcessImage image, RawInput client)
-        {
-            Machine = new PackMLMachine(PackMLState.Idle, PackMLState.Resetting);
-            Status.Reset(image, Machine);
-            Machine.SeedInput(client.PackML);
-            LastState = PackMLState.Idle;
-            LastCommandRequest = client.PackML.CommandRequest;
-            LastModeRequest = client.PackML.ModeRequest;
-            CommandBlocked = false;
-            ModeBlocked = false;
-            Alive?.Reset();
-            ResetStarting();
-            Generation = 0;
-            EntryToken = null;
-            // Stryker disable once Boolean: EntryToken is null here, so Complete and TakeCompletion cannot read the flag before EnterExecute resets it
-            CompletePending = false;
-        }
-
-        public void ClearErrors(ProcessImage image)
-        {
-            if (Errors is null)
-                return;
-
-            Errors.Clear();
-            Errors.WriteIfChanged(image);
-        }
-
-        public bool IsOverridden(Func<string, object?> overrideToken) =>
-            EntryToken is not null && Equals(EntryToken, overrideToken(CtrlPath));
-
-        public bool TakeCompletion()
-        {
-            bool pending = CompletePending;
-            CompletePending = false;
-            return pending;
-        }
-    }
-
     private sealed class ModuleUnit
     {
         private readonly InputLayout _input;
@@ -789,6 +687,8 @@ public sealed class ServiceHost
         public IReadOnlyList<ServiceUnit> BoundServices { get; }
 
         public PackMLMachine Machine { get; set; }
+
+        public ModuleRules? Rules { get; set; }
 
         public bool LastCommandRequest { get; set; }
 

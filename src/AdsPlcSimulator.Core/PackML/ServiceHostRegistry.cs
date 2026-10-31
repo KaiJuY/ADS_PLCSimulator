@@ -1,4 +1,5 @@
 using AdsPlcSimulator.Core.PackML.Alarm;
+using AdsPlcSimulator.Core.PackML.Behavior;
 
 namespace AdsPlcSimulator.Core.PackML;
 
@@ -54,6 +55,9 @@ public sealed class ServiceHostRegistry
 
     /// <summary>Set by SimulatorSession after new FlowRuntime, before workflows load; read only afterwards.</summary>
     public ConfiguredAlarmTable ConfiguredAlarms { get; set; } = ConfiguredAlarmTable.Empty;
+
+    /// <summary>Set by SimulatorSession after new FlowRuntime, before workflows load; read only afterwards.</summary>
+    public ServiceBehaviorTable ServiceBehaviors { get; set; } = ServiceBehaviorTable.Empty;
 
     public ServiceHost? FindByService(string ctrlPath)
     {

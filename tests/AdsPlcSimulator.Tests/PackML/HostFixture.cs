@@ -122,6 +122,15 @@ internal sealed class HostFixture
 
     public static readonly string AlarmDeclarations = WithAlarmMembers(Declarations);
 
+    internal static readonly string BehaviorDeclarations = AlarmDeclarations
+        .Replace(
+            "TYPE ST_TestParam : STRUCT Value : INT; END_STRUCT END_TYPE",
+            "TYPE ST_ExtDescriptor : STRUCT Id : UDINT; Value : STRING(80); END_STRUCT END_TYPE" + Environment.NewLine
+            + "TYPE ST_TestParam : STRUCT Value : INT; Index : UINT; Time : TIME; Speed : REAL; END_STRUCT END_TYPE")
+        .Replace(
+            "TYPE ST_TestModule : STRUCT",
+            "TYPE ST_TestModule : STRUCT ModuleVariableList : ARRAY[1..4] OF ST_ExtDescriptor; ModuleConfigParamList : ARRAY[1..2] OF ST_ExtDescriptor;");
+
     public static readonly string AlarmDeclarationsWithoutModuleId = WithAlarmMembers(Declarations.Replace("ModuleId : UDINT;", "Spare : UDINT;"));
 
     public static readonly string HeartbeatDeclarations = AlarmDeclarations
