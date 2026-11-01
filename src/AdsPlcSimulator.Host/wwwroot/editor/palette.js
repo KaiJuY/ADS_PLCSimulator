@@ -1,5 +1,3 @@
-// Node palette and the quick-add menu.
-
 import { $ } from './api.js';
 import { state, els, CATEGORY_COLORS, NEW_NODE_WIDTH } from './state.js';
 import { addNode, addGroup, renameGroup, paste, compatiblePort, addLink } from './model.js';

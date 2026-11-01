@@ -1,5 +1,3 @@
-// Live runtime decoration: node run state, run log and the live event stream.
-
 import { state, els, MAX_LOG_ENTRIES } from './state.js';
 import { setDirty } from './editor.js';
 import { renderAll } from './render.js';

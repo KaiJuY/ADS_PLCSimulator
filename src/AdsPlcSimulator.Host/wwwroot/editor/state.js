@@ -1,5 +1,3 @@
-// Editor constants, the shared mutable state and the cached DOM elements.
-
 import { $ } from './api.js';
 
 export const CATEGORY_COLORS = {

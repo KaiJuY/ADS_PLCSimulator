@@ -1,5 +1,3 @@
-// Workflow document helpers: lookup, add, copy, paste, link and delete.
-
 import { state, NEW_GROUP_SIZE } from './state.js';
 import { setDirty } from './editor.js';
 import { renderAll } from './render.js';

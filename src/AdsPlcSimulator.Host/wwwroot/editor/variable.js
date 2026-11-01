@@ -1,5 +1,3 @@
-// PLC variable reader: symbol lookup and typed value display.
-
 import { api } from './api.js';
 import { els } from './state.js';
 import { suggestSymbols } from './render.js';

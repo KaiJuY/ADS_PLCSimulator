@@ -1,5 +1,3 @@
-// Rendering of the workflow document: nodes, groups, ports, wires and the problem list.
-
 import { api } from './api.js';
 import { state, els, CATEGORY_COLORS } from './state.js';
 import { findNode, definitionOf, isLinked } from './model.js';

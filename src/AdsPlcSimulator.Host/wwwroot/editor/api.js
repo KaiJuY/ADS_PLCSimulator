@@ -1,5 +1,3 @@
-// Shared DOM lookup and JSON fetch helper used by every editor module.
-
 export const $ = (id) => document.getElementById(id);
 
 export async function api(path, options = {}) {

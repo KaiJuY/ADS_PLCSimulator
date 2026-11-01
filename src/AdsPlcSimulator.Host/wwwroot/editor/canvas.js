@@ -1,5 +1,3 @@
-// Canvas view: pan, zoom, selection and dragging of nodes, groups and link drafts.
-
 import { state, els, MIN_GROUP_SIZE } from './state.js';
 import { findNode, findGroup, isInsideGroup, linksTo, addLink } from './model.js';
 import { setDirty } from './editor.js';
