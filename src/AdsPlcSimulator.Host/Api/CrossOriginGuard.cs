@@ -1,10 +1,7 @@
 namespace AdsPlcSimulator.Host.Api;
 
-/// <summary>
-/// Refuses API requests that can change the Host state when a browser sends them from another origin.
-/// A page on any site can send a simple POST (no body) to localhost; the browser adds its Origin header.
-/// Requests without an Origin header (curl, scripts, the integration driver) pass.
-/// </summary>
+// A page on any site can send a simple POST (no body) to localhost without a preflight; the browser adds its Origin header.
+// curl, scripts and the integration driver send no Origin header, so they pass.
 internal static class CrossOriginGuard
 {
     public const string Error = "Cross-origin requests cannot change the Host state.";
