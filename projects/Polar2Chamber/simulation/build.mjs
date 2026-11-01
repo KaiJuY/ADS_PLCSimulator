@@ -25,11 +25,11 @@ const PLATE_H = 16;
 
 const WALL = 4;
 const SHELL_H = 118;
-const WALL_OPACITY = 0.22;
-const FFU = { x: -126, y: -126, w: 252, d: 252, r: 3 };
+const WALL_OPACITY = 0.5;
+const FFU = { x: -80, y: -80, w: 160, d: 160, r: 3 };
 const FFU_T = 5;
-const FFU_DOTS = { columns: 24, gap: 10.4 };
-const FFU_OPACITY = 0.55;
+const FFU_DOTS = { columns: 15, gap: 9.6 };
+const FFU_OPACITY = 0.7;
 
 const SLOT = { x0: -22, x1: 22, z0: 22, z1: 52 };
 const GATE = { x: -26, y: 130.4, w: 52, d: 3, r: 1 };
@@ -148,7 +148,7 @@ const tubeSvg = (from, to, radius, extra = "") => {
   const [a, b] = [at(from), at(to)];
   const width = 2 * radius * k.cameraOf(P).k;
   const line = (cls, w, shift = 0) => `<path class="${cls}" d="${k.pathOf([a, b])}" style="stroke-width:${w.toFixed(2)}"${shift ? ` transform="translate(0 ${shift.toFixed(2)})"` : ""}/>`;
-  return `<g class="tube"${extra}>${line("tube-edge", width + 1.1)}${line("tube-body", width)}${line("tube-hi", width * 0.3, -width * 0.22)}</g>`;
+  return `<g class="tube"${extra}>${line("tube-edge", width + 1.1)}${line("tube-body", width)}${line("tube-shade", width * 0.5, width * 0.25)}${line("tube-hi", width * 0.28, -width * 0.24)}</g>`;
 };
 
 const viewerAngle = VIEW.azimuth * RAD;
@@ -442,8 +442,8 @@ function build() {
   const all = [0, 1, 2, 3];
   const body = [
     plateSvg(),
+    wallsSvg(["back", "left", "front", "right"], "Walls"),
     ...[2, 3].map((index) => exhaustSvg(index, showActive)),
-    wallsSvg(["back", "left"], "Walls-back"),
     ...all.map((index) => portSvg(index, showActive)),
     motorHousingSvg(),
     ...[3, 2, 1, 0].map((index) => cups[index].back),
@@ -454,7 +454,6 @@ function build() {
     ...all.map((index) => cups[index].front),
     ...all.map((index) => fixedNozzleSvg(index, cupRim[3], cupRim[3], showActive)),
     ...arms,
-    wallsSvg(["front", "right"], "Walls-front"),
     slotAndGateSvg(),
     ...[0, 1].map((index) => exhaustSvg(index, showActive)),
     ffuSvg(),
@@ -470,8 +469,9 @@ function build() {
 const PAGE_EXTRA_CSS = [
   ".tube path{fill:none;stroke-linecap:round;vector-effect:none}",
   ".tube-edge{stroke:var(--anatomy-hi)}",
-  ".tube-body{stroke:var(--anatomy-shade-2)}",
-  ".tube-hi{stroke:var(--anatomy-lit-top)}",
+  ".tube-body{stroke:var(--anatomy-shade-3)}",
+  ".tube-shade{stroke:var(--anatomy-shade-0)}",
+  ".tube-hi{stroke:var(--anatomy-top)}",
   ".wafer{--anatomy-lit-top:#1d2a3a;--anatomy-lit-shade:#17222f}",
   ".iso[data-theme=\"light\"] .wafer{--anatomy-lit-top:#e8f0fb;--anatomy-lit-shade:#dbe6f4}",
   ".liquid .iso-fill{fill:rgba(107,155,255,.35)}",
