@@ -1,0 +1,8 @@
+time	stage	decision	why	evidence	result
+2026-11-01T11:32:13+08:00	A	grill 1 輪 Q1–Q4 照建議（Origin 檢查、所有非 GET/HEAD 的 /api、DNS rebinding 不做、單元測試＋Edge）；測試改用 DefaultHttpContext 不加 Mvc.Testing；跳過概念檢查（bug 有重現）	headless Edge 實測跨站 stop 讓專案停止	gh issue 9	PASSED
+2026-11-01T11:32:13+08:00	B	1 unit U1 cross-origin guard，worktree ../_wt_9-guard from 7c72588；跳過 C、D+E（單一小改動，設計已在 issue 與 plan 定案，無新公開 API 或套件）	Allen 核准	-	PASSED
+2026-11-01T11:34:34+08:00	F	U1 由 owner 直接實作（單一小 unit）；code review MERGE: yes（0 blocker／0 major）；1223/1223；拿掉 filter 時接線測試失敗	唯一 warning CS0618 在既有 ProjectTestRoot.cs:115	d0f1c6a	PASSED
+2026-11-01T11:36:08+08:00	G	cleanup 無可刪程式；comment：/// 改 //、刪重述句（採納）；刪「integration driver」字樣（拒絕：tests/AdsPlcSimulator.Integration 有被追蹤）	兩份審查結論一致	ce31742	PASSED
+2026-11-01T11:38:41+08:00	H	gate 1 1223/1223；gate 2 CRAP 通過、覆蓋 14/14；型別複雜度檢查 FAIL 判為 baseline 過期（bda9b8a 時 MapSimulatorApi 14，現為 1；diff 只加 1 行無分支）；gate 3 直接 Stryker 100%（CrossOriginGuard 8/8）；correctness 0/0（proxy、空 Origin 兩個 minor 不修：本機工具、瀏覽器不送空 Origin）；structure 0 major；drift 跳過（無 stage C）	-	.adf/out/gate-20261101-113612	PASSED
+2026-11-01T11:40:06+08:00	I	headless Edge 經 CDP：int/9 跨站 stop 後仍 Running、Editor Stop／Run 正常（7/7）；main 對照跨站 stop 讓專案停止（6/7）	對照證明情境有效	.adf/evidence/9/、.adf/scenarios/9.md	PASSED
+2026-11-01T11:51:57+08:00	J	合併到 main（2e35cfc），build 0 錯誤、1223/1223；關閉 #9、epic #2 勾 #9；刪 _wt_9-guard、_wt_9-int、impl/9-guard，保留 int/9	Allen 核准「合併並 push main」	profile 測試數 1223、2 條陷阱	DONE

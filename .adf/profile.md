@@ -12,7 +12,7 @@ The scripts read `.adf/profile.json`. Keep both files in step.
 | Target frameworks | net9.0 (all three projects) |
 | Main framework (development gates) | net9.0 |
 | Release frameworks | net9.0 |
-| Expected test count | 1210 on 2026-11-01 (net9.0; #19) |
+| Expected test count | 1223 on 2026-11-01 (net9.0; #9) |
 | Full suite time | about 1 minute with coverage (net9.0) |
 
 ## Known load-dependent tests
@@ -51,6 +51,8 @@ The scripts read `.adf/profile.json`. Keep both files in step.
 - 2026-10-30: Default `Ads:Port` is 25860 since #5. Still pass `--Ads:Port=25860` explicitly when starting the Host. The gate script's Stryker `since` filter can test 0 mutants (it reports PASS anyway); check the mutant count in stryker.log, and pass a branch name, not a short SHA, as the base. The CRAP baseline is from bda9b8a; PlcProgramBuilder type complexity is 208 since #1.
 - 2026-10-30: Deleting a handle-based ADS notification makes the .NET `AdsClient` release that handle too, and a raw `0xF006` release bypasses the client's handle cache. Use a fresh handle per case in ADS measurements and tests, or the result describes a released handle.
 - 2026-10-31: A FALSE and a TRUE written to a command bit within one 10 ms scan give no rising edge; the simulator (and the real PLC) ignore the command. `PlcSession.Send` waits 30 ms after FALSE since #16. Use the same gap in any new client code.
+- 2026-11-01: The gate's type-complexity check compares with the stale baseline (bda9b8a). Any change to `SimulatorEndpoints.cs` fails it (baseline `MapSimulatorApi` 14, now 1; type 15 → 32 from new endpoints) although no branch was added (#9). Check the diff, log the decision, or refresh the baseline with `/adf:scan`.
+- 2026-11-01: `/api` refuses non-GET/HEAD requests with a foreign `Origin` (403, #9). curl and scripts send no `Origin` and pass; a browser test page on another port is refused.
 - 2026-11-01: To undo a hand-applied mutant, revert only the mutated line. `git checkout <file>` also reverts uncommitted edits in that file (#19 lost 2 edits this way).
 - 2026-11-01: The gate script's Stryker reports "unable to calculate a mutation score" and still prints GATE 3 PASSED. Run `~/.adf/tools/dotnet-stryker.exe` from `tests/AdsPlcSimulator.Tests` with `-p <project> -m <glob> -r json` and filter survivors to the changed lines.
 - 2026-10-31: Do not run `dotnet test` in a worktree while Stryker runs there; it replaces the assemblies and gives a false low score (Core 35% in #16). Stryker is at `~/.adf/tools/dotnet-stryker.exe`, not on PATH.

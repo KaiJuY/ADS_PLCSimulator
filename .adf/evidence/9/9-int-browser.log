@@ -1,0 +1,7 @@
+PASS before: expected Running, actual Running
+PASS cross-site page result text: expected sent, actual sent
+PASS state after cross-site stop: expected Running, actual Running
+PASS state after Editor Stop: expected Stopped, actual Stopped
+PASS Editor projectState: expected Stopped, actual Stopped
+PASS state after Editor Run: expected Running, actual Running
+PASS Editor error hidden: expected true, actual true

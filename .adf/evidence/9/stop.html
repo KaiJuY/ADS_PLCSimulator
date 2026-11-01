@@ -1,0 +1,5 @@
+<!doctype html><html><body><pre id="r">pending</pre><script>
+fetch('http://localhost:5259/api/project/stop', { method: 'POST', mode: 'no-cors' })
+  .then(() => document.getElementById('r').textContent = 'sent')
+  .catch(e => document.getElementById('r').textContent = 'error ' + e);
+</script></body></html>
