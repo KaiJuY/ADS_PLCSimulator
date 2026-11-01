@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using AdsPlcSimulator.Core.PackML.Behavior;
@@ -40,6 +41,8 @@ internal sealed record ServiceBehaviorConfig
     public List<SvidWriteConfig?>? BeforeComplete { get; init; } = [];
 
     public List<SvidWriteConfig?>? OnLeave { get; init; } = [];
+
+    public ProcessConfig? Process { get; init; }
 }
 
 internal sealed record RangeConfig
@@ -92,6 +95,135 @@ internal sealed record ValueConfig
 
     internal int SourceCount() =>
         (Constant is null ? 0 : 1) + (Param is null ? 0 : 1) + (Ecid is null ? 0 : 1) + (AddParam is null ? 0 : 1);
+}
+
+internal sealed record ProcessConfig
+{
+    public string? Count { get; init; }
+
+    public int? MaxCount { get; init; }
+
+    public string? Time { get; init; }
+
+    public CycleConfig? Cycle { get; init; }
+
+    public List<ProcessCheckConfig?>? Checks { get; init; } = [];
+
+    public List<ProcessWriteConfig?>? Writes { get; init; } = [];
+
+    internal static readonly (Func<ProcessConfig, bool> Invalid, string Message)[] Rules =
+    [
+        (process => string.IsNullOrWhiteSpace(process.Count) || string.IsNullOrWhiteSpace(process.Time), "{0}: count and time are required."),
+        (process => process.MaxCount is null or < 1, "{0}: maxCount must be 1 or more."),
+        (process => process.Checks is null || process.Writes is null, "{0}: checks and writes must not be null."),
+    ];
+}
+
+internal sealed record CycleConfig
+{
+    public string? Control { get; init; }
+
+    public long? Start { get; init; }
+
+    public long? End { get; init; }
+
+    public string? Count { get; init; }
+
+    internal static readonly (Func<CycleConfig, bool> Invalid, string Message)[] Rules =
+    [
+        (
+            cycle => string.IsNullOrWhiteSpace(cycle.Control) || string.IsNullOrWhiteSpace(cycle.Count) || cycle.Start is null || cycle.End is null || cycle.Start == cycle.End,
+            "{0}: control, start, end and count are required and start must differ from end."),
+    ];
+}
+
+internal sealed record ConditionConfig
+{
+    public string? Field { get; init; }
+
+    [JsonPropertyName("equals")]
+    public long? EqualsValue { get; init; }
+
+    internal static readonly (Func<ConditionConfig, bool> Invalid, string Message)[] Rules =
+    [
+        (condition => string.IsNullOrWhiteSpace(condition.Field) || condition.EqualsValue is null, "{0}: field and equals are required."),
+    ];
+}
+
+internal sealed record LookupConfig<T>
+{
+    public List<string>? Key { get; init; }
+
+    public Dictionary<string, T>? Values { get; init; }
+}
+
+internal sealed record ProcessCheckConfig
+{
+    public string? Field { get; init; }
+
+    public double? Min { get; init; }
+
+    public double? Max { get; init; }
+
+    public string? MaxField { get; init; }
+
+    public LookupConfig<double>? MaxBy { get; init; }
+
+    public double? GreaterThan { get; init; }
+
+    public ConditionConfig? When { get; init; }
+
+    internal static readonly (Func<ProcessCheckConfig, bool> Invalid, string Message)[] Rules =
+    [
+        (check => string.IsNullOrWhiteSpace(check.Field), "{0}: field is empty."),
+        (check => check.GreaterThan is not null && (check.Min is not null || check.BoundCount() > 0), "{0}: greaterThan cannot be used with min, max, maxField or maxBy."),
+        (check => check.GreaterThan is null && check.Min is null, "{0}: min is required."),
+        (check => check.GreaterThan is null && check.BoundCount() != 1, "{0}: exactly one of max, maxField and maxBy is required."),
+        (check => !new[] { check.Min, check.Max, check.GreaterThan }.All(value => value is null || double.IsFinite(value.Value)), "{0}: min, max and greaterThan must be finite numbers."),
+        (check => check.Min > check.Max, "{0}: min is greater than max."),
+        (check => check.MaxField is { } field && field.Contains("[i]", StringComparison.Ordinal), "{0}: maxField must not contain [i]."),
+    ];
+
+    internal int BoundCount() => (Max is null ? 0 : 1) + (MaxField is null ? 0 : 1) + (MaxBy is null ? 0 : 1);
+}
+
+internal sealed record ProcessWriteConfig
+{
+    public uint? Svid { get; init; }
+
+    public LookupConfig<uint>? SvidBy { get; init; }
+
+    public ProcessValueConfig? Value { get; init; }
+
+    public bool DryRunZero { get; init; }
+
+    public bool Keep { get; init; }
+
+    public ConditionConfig? When { get; init; }
+
+    internal static readonly (Func<ProcessWriteConfig, bool> Invalid, string Message)[] Rules =
+    [
+        (write => (write.Svid is null) == (write.SvidBy is null), "{0}: exactly one of svid and svidBy is required."),
+        (write => write.Svid == 0, "{0}: svid must be greater than 0."),
+        (write => write.Value is null, "{0}: value is missing."),
+    ];
+}
+
+internal sealed record ProcessValueConfig
+{
+    public string? Field { get; init; }
+
+    public uint? Ecid { get; init; }
+
+    public LookupConfig<uint>? EcidBy { get; init; }
+
+    public ConditionConfig? NegateWhen { get; init; }
+
+    internal static readonly (Func<ProcessValueConfig, bool> Invalid, string Message)[] Rules =
+    [
+        (value => (value.Field is null ? 0 : 1) + (value.Ecid is null ? 0 : 1) + (value.EcidBy is null ? 0 : 1) != 1, "{0}: exactly one of field, ecid and ecidBy is required."),
+        (value => value.Field is not null && string.IsNullOrWhiteSpace(value.Field), "{0}: field is empty."),
+    ];
 }
 
 internal static class ServiceBehaviorLoader
@@ -233,25 +365,96 @@ internal static class ServiceBehaviorLoader
         if (service.Duration is not null && string.IsNullOrWhiteSpace(service.Duration))
             throw ModuleConfigPublisher.Fail(path, $"{where}: duration is empty.");
 
+        ValidateProcess(service, where, path);
         ValidateEach(service.Ranges, $"{where}.ranges", RangeConfig.Rules, path);
         ValidateEach(service.OnEnter, $"{where}.onEnter", SvidWriteConfig.Rules, path);
         ValidateEach(service.BeforeComplete, $"{where}.beforeComplete", SvidWriteConfig.Rules, path);
         ValidateEach(service.OnLeave, $"{where}.onLeave", SvidWriteConfig.Rules, path);
     }
 
-    private static void ValidateEach<T>(List<T?> items, string where, (Func<T, bool> Invalid, string Message)[] rules, string path)
+    private static void ValidateEach<T>(List<T?> items, string where, (Func<T, bool> Invalid, string Message)[] rules, string path, Action<T, string>? validateMore = null)
         where T : class
     {
         for (int index = 0; index < items.Count; index++)
         {
             string location = $"{where}[{index + 1}]";
             T item = items[index] ?? throw ModuleConfigPublisher.Fail(path, $"{location} is null.");
-            foreach ((Func<T, bool> invalid, string message) in rules)
-            {
-                if (invalid(item))
-                    throw ModuleConfigPublisher.Fail(path, string.Format(message, location));
-            }
+            ApplyRules(item, location, rules, path);
+            validateMore?.Invoke(item, location);
         }
+    }
+
+    private static void ApplyRules<T>(T item, string location, (Func<T, bool> Invalid, string Message)[] rules, string path)
+    {
+        foreach ((Func<T, bool> invalid, string message) in rules)
+        {
+            if (invalid(item))
+                throw ModuleConfigPublisher.Fail(path, string.Format(message, location));
+        }
+    }
+
+    private static void ValidateProcess(ServiceBehaviorConfig service, string where, string path)
+    {
+        if (service.Process is not { } process)
+            return;
+        if (service.Duration is not null)
+            throw ModuleConfigPublisher.Fail(path, $"{where}: process and duration cannot both be set.");
+
+        string location = $"{where}.process";
+        ApplyRules(process, location, ProcessConfig.Rules, path);
+        if (process.Cycle is { } cycle)
+            ApplyRules(cycle, $"{location}.cycle", CycleConfig.Rules, path);
+
+        ValidateEach(process.Checks!, $"{location}.checks", ProcessCheckConfig.Rules, path, (check, at) =>
+        {
+            ValidateLookup(check.MaxBy, $"{at}.maxBy", path);
+            ValidateCondition(check.When, $"{at}.when", path);
+        });
+        ValidateEach(process.Writes!, $"{location}.writes", ProcessWriteConfig.Rules, path, (write, at) =>
+        {
+            ApplyRules(write.Value!, $"{at}.value", ProcessValueConfig.Rules, path);
+            ValidateLookup(write.SvidBy, $"{at}.svidBy", path);
+            ValidateLookup(write.Value!.EcidBy, $"{at}.value.ecidBy", path);
+            ValidateCondition(write.When, $"{at}.when", path);
+            ValidateCondition(write.Value.NegateWhen, $"{at}.value.negateWhen", path);
+        });
+    }
+
+    private static void ValidateCondition(ConditionConfig? condition, string where, string path)
+    {
+        if (condition is not null)
+            ApplyRules(condition, where, ConditionConfig.Rules, path);
+    }
+
+    private static void ValidateLookup<T>(LookupConfig<T>? lookup, string where, string path)
+    {
+        if (lookup is null)
+            return;
+
+        int keyCount = RequireLookupKey(lookup.Key, where, path);
+        RequireLookupValues(lookup.Values, keyCount, where, path);
+    }
+
+    private static int RequireLookupKey(List<string>? key, string where, string path)
+    {
+        if (key is not { Count: > 0 } || key.Any(string.IsNullOrWhiteSpace))
+            throw ModuleConfigPublisher.Fail(path, $"{where}: key is empty or has an empty field.");
+        return key.Count;
+    }
+
+    private static void RequireLookupValues<T>(Dictionary<string, T>? values, int keyCount, string where, string path)
+    {
+        if (values is not { Count: > 0 })
+            throw ModuleConfigPublisher.Fail(path, $"{where}: values is empty.");
+
+        foreach (string entry in values.Keys.Where(entry => !IsKeyOf(entry, keyCount)))
+            throw ModuleConfigPublisher.Fail(path, $"{where}: '{entry}' is not {keyCount} integers separated by ','.");
+    }
+
+    private static bool IsKeyOf(string entry, int count)
+    {
+        string[] parts = entry.Split(',');
+        return parts.Length == count && parts.All(part => long.TryParse(part, NumberStyles.Integer, CultureInfo.InvariantCulture, out long number) && number.ToString(CultureInfo.InvariantCulture) == part);
     }
 
     private sealed class ModuleBuilder(ServiceBehaviorFile file, string path, SymbolTable symbols, ModuleConfigEntry module)
@@ -300,7 +503,112 @@ internal static class ServiceBehaviorLoader
                 service.Duration,
                 BuildWrites(service.OnEnter!, param, $"{where}.onEnter"),
                 BuildWrites(service.BeforeComplete!, param, $"{where}.beforeComplete"),
-                BuildWrites(service.OnLeave!, param, $"{where}.onLeave"));
+                BuildWrites(service.OnLeave!, param, $"{where}.onLeave"),
+                service.Process is null ? null : BuildProcess(service.Process, param, $"{where}.process"));
+        }
+
+        private ProcessBehavior BuildProcess(ProcessConfig process, string param, string where)
+        {
+            int max = process.MaxCount!.Value;
+            RequireFirstAndLastStep(param, process.Count!, max, where, "an integer or enum", IsIntegerOrEnum);
+            RequireFirstAndLastStep(param, process.Time!, max, where, "a TIME", IsTime);
+            return new ProcessBehavior(
+                process.Count!,
+                max,
+                process.Time!,
+                process.Cycle is null ? null : BuildCycle(process.Cycle, param, max, $"{where}.cycle"),
+                process.Checks!.Select((check, index) => BuildCheck(check!, param, max, $"{where}.checks[{index + 1}]")).ToList(),
+                process.Writes!.Select((write, index) => BuildProcessWrite(write!, param, max, $"{where}.writes[{index + 1}]")).ToList());
+        }
+
+        private ProcessCycle BuildCycle(CycleConfig cycle, string param, int max, string where)
+        {
+            RequireFirstAndLastStep(param, cycle.Control!, max, where, "an integer or enum", IsIntegerOrEnum);
+            RequireFirstAndLastStep(param, cycle.Count!, max, where, "an integer or enum", IsIntegerOrEnum);
+            return new ProcessCycle(cycle.Control!, cycle.Start!.Value, cycle.End!.Value, cycle.Count!);
+        }
+
+        private ProcessCheck BuildCheck(ProcessCheckConfig check, string param, int max, string where)
+        {
+            RequireFirstAndLastStep(param, check.Field!, max, where, "a number, enum or TIME", IsNumberEnumOrTime);
+            ProcessCondition? when = BuildCondition(check.When, param, max, $"{where}.when");
+            if (check.GreaterThan is { } greaterThan)
+                return new ProcessCheck(check.Field!, ProcessCheckKind.GreaterThan, greaterThan, null, when);
+
+            return new ProcessCheck(check.Field!, ProcessCheckKind.Range, check.Min!.Value, BuildBound(check, param, max, where), when);
+        }
+
+        private ProcessBound BuildBound(ProcessCheckConfig check, string param, int max, string where)
+        {
+            if (check.MaxField is { } field)
+            {
+                RequireField($"{param}.{field}", where, "a number", IsNumber);
+                return new ProcessBound(null, field, null);
+            }
+
+            if (check.MaxBy is { } lookup)
+                return new ProcessBound(null, null, BuildLookup(lookup, param, max, $"{where}.maxBy", bound => bound));
+
+            return new ProcessBound(check.Max, null, null);
+        }
+
+        private ProcessWrite BuildProcessWrite(ProcessWriteConfig write, string param, int max, string where)
+        {
+            KeyedChoice<SvidTarget> target = write.Svid is { } svid
+                ? Single(SvidTargetOf(svid, where))
+                : BuildLookup(write.SvidBy!, param, max, $"{where}.svidBy", id => SvidTargetOf(id, where));
+            return new ProcessWrite(
+                target,
+                BuildProcessValue(write.Value!, param, max, $"{where}.value"),
+                write.DryRunZero,
+                write.Keep,
+                BuildCondition(write.When, param, max, $"{where}.when"));
+        }
+
+        private ProcessValue BuildProcessValue(ProcessValueConfig value, string param, int max, string where)
+        {
+            ProcessCondition? negateWhen = BuildCondition(value.NegateWhen, param, max, $"{where}.negateWhen");
+            if (value.Field is { } field)
+            {
+                RequireFirstAndLastStep(param, field, max, where, "a number or enum", IsNumberOrEnum);
+                return new ProcessValue(ProcessValueKind.Field, field, null, negateWhen);
+            }
+
+            KeyedChoice<string> ecid = value.Ecid is { } id
+                ? Single(Svid(id, where, Ecids, IsDintOrReal).Target)
+                : BuildLookup(value.EcidBy!, param, max, $"{where}.ecidBy", ecidId => Svid(ecidId, where, Ecids, IsDintOrReal).Target);
+            return new ProcessValue(ProcessValueKind.Ecid, null, ecid, negateWhen);
+        }
+
+        private ProcessCondition? BuildCondition(ConditionConfig? condition, string param, int max, string where)
+        {
+            if (condition is null)
+                return null;
+
+            RequireFirstAndLastStep(param, condition.Field!, max, where, "an integer or enum", IsIntegerOrEnum);
+            return new ProcessCondition(condition.Field!, condition.EqualsValue!.Value);
+        }
+
+        private KeyedChoice<TOut> BuildLookup<TIn, TOut>(LookupConfig<TIn> lookup, string param, int max, string where, Func<TIn, TOut> convert)
+        {
+            foreach (string field in lookup.Key!)
+                RequireFirstAndLastStep(param, field, max, where, "an integer or enum", IsIntegerOrEnum);
+
+            return new KeyedChoice<TOut>(lookup.Key!, lookup.Values!.ToDictionary(entry => entry.Key, entry => convert(entry.Value)));
+        }
+
+        private static KeyedChoice<T> Single<T>(T value) => new([], new Dictionary<string, T> { [""] = value });
+
+        private SvidTarget SvidTargetOf(uint id, string where)
+        {
+            (string target, string dataType) = Svid(id, where, Svids, IsDintOrReal);
+            return new SvidTarget(target, dataType == "REAL");
+        }
+
+        private void RequireFirstAndLastStep(string param, string path, int max, string where, string expected, Func<PlcType, bool> accepts)
+        {
+            RequireField($"{param}.{path.Replace("[i]", "[1]", StringComparison.Ordinal)}", where, expected, accepts);
+            RequireField($"{param}.{path.Replace("[i]", $"[{max}]", StringComparison.Ordinal)}", where, expected, accepts);
         }
 
         private ParamRange BuildRange(RangeConfig range, string param, string where)
@@ -392,6 +700,14 @@ internal static class ServiceBehaviorLoader
         private static bool IsInteger(PlcType type) => type is PrimitiveType primitive && IntegerKinds.Contains(primitive.Kind);
 
         private static bool IsNumber(PlcType type) => type is PrimitiveType primitive && NumberKinds.Contains(primitive.Kind);
+
+        private static bool IsIntegerOrEnum(PlcType type) => IsInteger(type) || type is EnumType enumType && IsInteger(enumType.BaseType);
+
+        private static bool IsNumberOrEnum(PlcType type) => IsNumber(type) || type is EnumType enumType && IsNumber(enumType.BaseType);
+
+        private static bool IsTime(PlcType type) => type is PrimitiveType { Kind: PrimitiveKind.Time };
+
+        private static bool IsNumberEnumOrTime(PlcType type) => IsNumberOrEnum(type) || IsTime(type);
 
         private static bool IsDint(double value) => double.IsInteger(value) && value is >= int.MinValue and <= int.MaxValue;
 

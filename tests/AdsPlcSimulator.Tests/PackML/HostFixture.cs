@@ -131,6 +131,15 @@ internal sealed class HostFixture
             "TYPE ST_TestModule : STRUCT",
             "TYPE ST_TestModule : STRUCT ModuleVariableList : ARRAY[1..4] OF ST_ExtDescriptor; ModuleConfigParamList : ARRAY[1..2] OF ST_ExtDescriptor;");
 
+    internal static readonly string ProcessDeclarations = BehaviorDeclarations
+        .Replace(
+            "TYPE ST_TestParam : STRUCT Value : INT; Index : UINT; Time : TIME; Speed : REAL; Angle : LREAL; Big : LINT;",
+            "TYPE E_TestDir : (Up := 1, Down := 2) UINT; END_TYPE" + Environment.NewLine
+            + "TYPE ST_TestStep : STRUCT Kind : UINT; Pick : UINT; Time : TIME; Speed : LREAL; Dir : E_TestDir; Control : UINT; Times : UINT; Flow : ARRAY[1..2] OF DINT; END_STRUCT END_TYPE" + Environment.NewLine
+            + "TYPE ST_TestExtra : STRUCT Target : UINT; Type : UINT; END_STRUCT END_TYPE" + Environment.NewLine
+            + "TYPE ST_TestParam : STRUCT Value : INT; Index : UINT; Time : TIME; Speed : REAL; Angle : LREAL; Big : LINT;"
+            + " Count : UINT; Limit : UINT; Steps : ARRAY[1..6] OF ST_TestStep; Extra : ARRAY[1..6] OF ST_TestExtra;");
+
     public static readonly string AlarmDeclarationsWithoutModuleId = WithAlarmMembers(Declarations.Replace("ModuleId : UDINT;", "Spare : UDINT;"));
 
     public static readonly string HeartbeatDeclarations = AlarmDeclarations
