@@ -1,4 +1,3 @@
-// Flat config for issue #20: only no-undef, module sources, browser globals used by the editor.
 const browser = Object.fromEntries(['document', 'window', 'location', 'fetch', 'WebSocket', 'CSS', 'Option',
   'requestAnimationFrame', 'prompt', 'alert', 'confirm', 'URLSearchParams', 'setTimeout', 'clearTimeout',
   'setInterval', 'clearInterval', 'console', 'localStorage', 'sessionStorage', 'history', 'navigator',
