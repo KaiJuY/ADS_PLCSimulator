@@ -8,6 +8,7 @@ import { copySelection, paste, deleteSelection } from './model.js';
 import { renderAll, drawWires } from './render.js';
 import { renderPalette } from './palette.js';
 import { connectLive } from './live.js';
+import './variable.js';
 
 async function refreshWorkflowList(selectName) {
   const workflows = await api('/api/workflows');
