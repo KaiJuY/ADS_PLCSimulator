@@ -205,6 +205,30 @@ public class FlowRuntimeTests : IAsyncLifetime
         Assert.True(stopped.Value);
     }
 
+    [Fact]
+    [Trait("AC", "3")]
+    public async Task A_hosted_node_gets_the_simulation_sink_of_the_runtime()
+    {
+        var received = new TaskCompletionSource<ISimulationSink?>();
+        var definition = new NodeDefinition(
+            "test.hosted", "Test", "Hosted", "Reports its context.", [], [], [], _ => new ContextReportingNode(received));
+        var catalog = new NodeCatalog([.. NodeCatalog.Default.Definitions, definition]);
+        await using var runtime = new FlowRuntime(_image, _program.Symbols, catalog, _monitor, _simulation);
+
+        Assert.Empty(runtime.Load("hosted", new WorkflowDocument { Nodes = [Node("node", "test.hosted")] }));
+
+        Assert.Same(_simulation, await received.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+    }
+
+    private sealed class ContextReportingNode(TaskCompletionSource<ISimulationSink?> received) : HostedNode
+    {
+        public override Task RunAsync(HostedNodeContext context, CancellationToken cancellation)
+        {
+            received.SetResult(context.Simulation);
+            return Task.CompletedTask;
+        }
+    }
+
     private sealed class SlowStoppingNode(TaskCompletionSource started, StrongBox<bool> stopped) : HostedNode
     {
         public override async Task RunAsync(HostedNodeContext context, CancellationToken cancellation)
@@ -252,6 +276,6 @@ public class FlowRuntimeTests : IAsyncLifetime
     {
         public ConcurrentQueue<(string Target, string Action)> Calls { get; } = new();
 
-        public void Invoke(string target, string action, object? value) => Calls.Enqueue((target, action));
+        public void Invoke(string target, string action, object? value, int? durationMs = null) => Calls.Enqueue((target, action));
     }
 }

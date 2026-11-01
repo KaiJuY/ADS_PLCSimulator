@@ -29,7 +29,14 @@ public sealed record ServiceBehavior(
     IReadOnlyList<SvidWrite> OnEnter,
     IReadOnlyList<SvidWrite> BeforeComplete,
     IReadOnlyList<SvidWrite> OnLeave,
-    ProcessBehavior? Process = null);
+    ProcessBehavior? Process = null,
+    IReadOnlyList<SimAction>? Sim = null);
+
+public enum SimMoment { Enter, BeforeComplete, Leave }
+
+/// <param name="Value">Label source; null = no value. Kind is Constant, Param or Ecid (never AddParam).</param>
+/// <param name="DryRunAction">Action sent instead of Action when the Mode at Execute entry has DryRun; null = send Action.</param>
+public sealed record SimAction(SimMoment When, string Target, string Action, SvidValue? Value, string? DryRunAction);
 
 /// <param name="Field">Number field relative to ServiceParam.&lt;service&gt;, e.g. "ArmIndex" or "Position".</param>
 public sealed record ParamRange(string Field, double Min, double Max);

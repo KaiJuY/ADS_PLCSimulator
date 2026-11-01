@@ -1,7 +1,9 @@
 using System.Collections.Concurrent;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using AdsPlcSimulator.Core.Flow;
 using AdsPlcSimulator.Core.PackML;
+using AdsPlcSimulator.Core.PackML.Behavior;
 using AdsPlcSimulator.Core.Plc;
 using AdsPlcSimulator.Host.Project;
 using static AdsPlcSimulator.Tests.TestWait;
@@ -315,5 +317,124 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
         Assert.Equal("complete", failure.NodeId);
         Assert.Equal(PackMLState.Aborted, State("Chamber.SetMode"));
         Assert.Equal("1", Read(SvidValue));
+    }
+
+    private sealed record ExpectedSim(string When, string Target, string Action, long? Ecid, string? Param, string? DryRunAction);
+
+    private static long EcidOf(JsonElement service, string section) =>
+        service.GetProperty(section)[0].GetProperty("value").GetProperty("ecid").GetInt64();
+
+    private static Dictionary<string, ExpectedSim[]> ExpectedSims(JsonElement services)
+    {
+        var result = new Dictionary<string, ExpectedSim[]>();
+
+        void Rotation(string key, string target, string action)
+        {
+            long ecid = EcidOf(services.GetProperty(key), "onEnter");
+            result[key] = [new("enter", target, action, ecid, null, null), new("leave", target, "Stop", null, null, null)];
+        }
+
+        void Position(string key, string[] targets, string name)
+        {
+            long ecid = EcidOf(services.GetProperty(key), "beforeComplete");
+            result[key] =
+            [
+                .. targets.Select(target => new ExpectedSim("enter", target, name, ecid, null, null)),
+                .. targets.Select(target => new ExpectedSim("beforeComplete", target, name, ecid, null, null)),
+                .. targets.Select(target => new ExpectedSim("leave", target, "Hold", null, null, null)),
+            ];
+        }
+
+        void Supply(string key, string target) =>
+            result[key] = [new("enter", target, "On", null, "Setpoint", "Off"), new("leave", target, "Off", null, null, null)];
+
+        Rotation("Holder.Rotate.MoveVelocityCW", "Holder", "CW");
+        Rotation("Holder.Rotate.MoveVelocityCCW", "Holder", "CCW");
+        Rotation("Holder.Rotate.MoveModulo", "Holder", "CW");
+        Rotation("OutsideRing.Rotate.MoveVelocityCW", "OutsideRing", "CW");
+        Rotation("OutsideRing.Rotate.MoveVelocityCCW", "OutsideRing", "CCW");
+
+        foreach (int cup in new[] { 1, 2, 3, 4 })
+        {
+            foreach (string name in new[] { "Top", "Middle", "Down" })
+                Position($"Cup[{cup}].Lift.{name}Pos", [$"Cup{cup}.Master", $"Cup{cup}.Slave"], name);
+        }
+
+        var rotates = new Dictionary<int, string[]>
+        {
+            [1] = ["NegLimit", "PosLimit", "NozzlePort", "Noz1Center", "Noz2Center", "Noz3Center"],
+            [2] = ["NegLimit", "PosLimit", "NozzlePort", "Noz1Center", "Noz2Center", "Noz3Center"],
+            [3] = ["NegLimit", "PosLimit", "Noz1Center", "Noz2Center"],
+            [4] = ["NegLimit", "PosLimit", "Noz1Center"],
+        };
+        foreach ((int arm, string[] names) in rotates)
+        {
+            Position($"Arm[{arm}].Lift.TopPos", [$"Arm{arm}.Lift"], "Top");
+            Position($"Arm[{arm}].Lift.DownPos", [$"Arm{arm}.Lift"], "Down");
+            foreach (string name in names)
+                Position($"Arm[{arm}].Rotate.{name}Pos", [$"Arm{arm}.Rotate"], name);
+        }
+
+        var nozzles = new Dictionary<int, int> { [1] = 3, [2] = 3, [3] = 2, [4] = 1 };
+        foreach ((int arm, int count) in nozzles)
+        {
+            foreach (int nozzle in Enumerable.Range(1, count))
+                Supply($"Arm[{arm}].Nozzle[{nozzle}].ChemicalSupply", $"Arm{arm}.Nozzle{nozzle}");
+        }
+
+        foreach (int arm in new[] { 1, 2 })
+        {
+            foreach (int port in new[] { 1, 2, 3 })
+                Supply($"Arm[{arm}].NozzlePort.Nozzle[{port}].Supply", $"Arm{arm}.Port{port}");
+        }
+
+        foreach (int index in new[] { 1, 2, 3, 4 })
+        {
+            Supply($"FixedNozzle[{index}].ChemicalSupply", $"FixedNozzle{index}");
+            long ecid = EcidOf(services.GetProperty($"Exhaust.Fan[{index}].SupplyFlowPID"), "onEnter");
+            result[$"Exhaust.Fan[{index}].SupplyFlowPID"] =
+                [new("enter", $"ExhaustFan{index}", "On", ecid, null, null), new("leave", $"ExhaustFan{index}", "Off", null, null, null)];
+        }
+
+        return result;
+    }
+
+    private static ExpectedSim[] ReadSims(JsonElement sim) => sim.EnumerateArray().Select(item =>
+    {
+        JsonElement value = default;
+        bool hasValue = item.TryGetProperty("value", out value);
+        return new ExpectedSim(
+            item.GetProperty("when").GetString()!,
+            item.GetProperty("target").GetString()!,
+            item.GetProperty("action").GetString()!,
+            hasValue && value.TryGetProperty("ecid", out JsonElement ecid) ? ecid.GetInt64() : null,
+            hasValue && value.TryGetProperty("param", out JsonElement param) ? param.GetString() : null,
+            item.TryGetProperty("dryRunAction", out JsonElement dryRun) ? dryRun.GetString() : null);
+    }).ToArray();
+
+    [Fact]
+    [Trait("AC", "1")]
+    [Trait("AC", "6")]
+    [Trait("AC", "7")]
+    public void The_service_behaviors_file_gives_sim_actions_to_exactly_the_67_services_of_the_spec_and_loads()
+    {
+        string configFolder = Path.Combine(TestPaths.Polar2Project, "config");
+        using JsonDocument file = JsonDocument.Parse(File.ReadAllText(Path.Combine(configFolder, "service-behaviors.json")));
+        JsonElement services = file.RootElement.GetProperty("services");
+        Dictionary<string, ExpectedSim[]> expected = ExpectedSims(services);
+
+        string[] withSim = services.EnumerateObject().Where(service => service.Value.TryGetProperty("sim", out _)).Select(service => service.Name).Order().ToArray();
+
+        Assert.Equal(67, expected.Count);
+        Assert.Equal(expected.Keys.Order(), withSim);
+        foreach ((string key, ExpectedSim[] sims) in expected)
+            Assert.Equal(sims, ReadSims(services.GetProperty(key).GetProperty("sim")));
+
+        ModuleConfigFile config = ModuleConfigPublisher.Parse(File.ReadAllText(Path.Combine(configFolder, "module-config.json")), "module-config.json");
+        ModuleBehavior module = ServiceBehaviorLoader.LoadIfPresent(TestPaths.Polar2Project, s_program.Value.Symbols, config)!.For(Module1)!;
+        Assert.Equal(expected.Keys.Order(), module.Services.Where(service => service.Value.Sim!.Count > 0).Select(service => service.Key).Order());
+        Assert.All(expected, pair => Assert.Equal(
+            pair.Value.Select(sim => (sim.When.ToLowerInvariant(), sim.Target, sim.Action, sim.DryRunAction)),
+            module.Services[pair.Key].Sim!.Select(sim => (sim.When.ToString().ToLowerInvariant(), sim.Target, sim.Action, sim.DryRunAction))));
     }
 }

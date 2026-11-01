@@ -1,3 +1,4 @@
+using AdsPlcSimulator.Core.Flow;
 using AdsPlcSimulator.Core.PackML;
 using AdsPlcSimulator.Core.PackML.Alarm;
 using AdsPlcSimulator.Core.PackML.Behavior;
@@ -36,14 +37,14 @@ public class ServiceHostBehaviorTests
     private static SvidWrite WriteOf(int index, SvidValueKind kind, double constant, string? source = null, bool dryRunZero = false) =>
         new($"ModuleVariableList[{index}].Value", false, new SvidValue(kind, constant, source, false), dryRunZero);
 
-    private static HostFixture Arrange(string mode = "1", ServiceBehaviorTable? behaviors = null)
+    private static HostFixture Arrange(string mode = "1", ServiceBehaviorTable? behaviors = null, ISimulationSink? sink = null)
     {
         var fixture = new HostFixture(declarations: HostFixture.BehaviorDeclarations, initialize: false);
         fixture.Write(ModeValue, mode);
         fixture.Write($"{Module}.ServiceParam.A.Index", 1);
         fixture.Write($"{Module}.ServiceParam.A.Time", 2000);
         fixture.Write($"{Module}.ModuleConfigParamList[1].Value", "30");
-        fixture.Host.Initialize(fixture.Image, ConfiguredAlarmTable.Empty, behaviors ?? StandardBehaviors());
+        fixture.Host.Initialize(fixture.Image, ConfiguredAlarmTable.Empty, behaviors ?? StandardBehaviors(), sink);
         return fixture;
     }
 
@@ -591,5 +592,262 @@ public class ServiceHostBehaviorTests
 
         Assert.Equal(PackMLState.Execute, fixture.ServiceState(1, "A"));
         Assert.Equal("", Svid(fixture, 2));
+    }
+
+    private const string EcidOfHolder = "ModuleConfigParamList[1].Value";
+
+    private static SimAction SimOf(SimMoment when, string action, SvidValue? value = null, string? dryRunAction = null, string target = "T") =>
+        new(when, target, action, value, dryRunAction);
+
+    private static SvidValue EcidValue(bool negate = false) => new(SvidValueKind.Ecid, 0, EcidOfHolder, negate);
+
+    private static SvidValue ParamValue(string field) => new(SvidValueKind.Param, 0, field, false);
+
+    private static SvidValue ConstantValue(double constant) => new(SvidValueKind.Constant, constant, null, false);
+
+    private static ServiceBehaviorTable SimBehaviors(SimAction[]? forA = null, SimAction[]? forB = null, string? durationOfA = null) => new(new Dictionary<string, ModuleBehavior>
+    {
+        [Module] = new ModuleBehavior(
+            "ModuleVariableList[1].Value",
+            [
+                new ModeRule(0, "Disable", false, ModeRuleKind.AllowOnly, new HashSet<string> { "B" }),
+                new ModeRule(1, "Manual", false, ModeRuleKind.DenyListed, new HashSet<string> { "Unbound" }),
+                new ModeRule(2, "DryRun", true, ModeRuleKind.DenyListed, new HashSet<string>()),
+            ],
+            new Dictionary<string, ServiceBehavior>
+            {
+                ["A"] = new([new ParamRange("Index", 1, 4)], durationOfA, [], [], [], Sim: forA),
+                ["B"] = new([], null, [], [], [], Sim: forB),
+            }),
+    });
+
+    private static RecordingSimulationSink.SimCall Call(string action, object? value, int? durationMs, string target = "T") =>
+        new(target, action, value, durationMs);
+
+    private static HostFixture ArrangeSim(RecordingSimulationSink sink, SimAction[]? forA = null, SimAction[]? forB = null, string mode = "1", string? durationOfA = null) =>
+        Arrange(mode, SimBehaviors(forA, forB, durationOfA), sink);
+
+    private static void RunToComplete(HostFixture fixture, TimeSpan length)
+    {
+        StartAndScan(fixture);
+        ReleaseAndScan(fixture);
+        fixture.Scan(length);
+        fixture.Scan();
+    }
+
+    [Fact]
+    [Trait("AC", "3")]
+    public void A_NaturalCompletion_service_sends_Enter_with_the_default_delay_BeforeComplete_with_0_and_Leave_with_null_in_order()
+    {
+        var sink = new RecordingSimulationSink();
+        HostFixture fixture = ArrangeSim(sink, forA:
+        [
+            SimOf(SimMoment.Leave, "Hold"),
+            SimOf(SimMoment.Enter, "Top", EcidValue()),
+            SimOf(SimMoment.BeforeComplete, "Top", EcidValue()),
+        ]);
+
+        StartAndScan(fixture);
+        Assert.Equal([Call("Top", 30.0, 5000)], sink.Calls);
+        ReleaseAndScan(fixture);
+        fixture.Scan(HostFixture.DefaultDelay);
+        fixture.Scan();
+
+        Assert.Equal(PackMLState.Complete, fixture.ServiceState(1, "A"));
+        Assert.Equal([Call("Top", 30.0, 5000), Call("Top", 30.0, 0), Call("Hold", null, null)], sink.Calls);
+    }
+
+    [Fact]
+    [Trait("AC", "3")]
+    public void The_duration_field_is_the_Enter_duration_of_a_NaturalCompletion_service()
+    {
+        var sink = new RecordingSimulationSink();
+        HostFixture fixture = ArrangeSim(sink, forA: [SimOf(SimMoment.Enter, "Top")], durationOfA: "Time");
+
+        StartAndScan(fixture);
+
+        Assert.Equal([Call("Top", null, 2000)], sink.Calls);
+    }
+
+    [Fact]
+    [Trait("AC", "3")]
+    public void An_ExecuteUntilExternalStop_service_sends_Enter_with_a_null_duration_and_Leave_after_Stop()
+    {
+        var sink = new RecordingSimulationSink();
+        HostFixture fixture = ArrangeSim(sink, forB: [SimOf(SimMoment.Enter, "On"), SimOf(SimMoment.Leave, "Off")]);
+        StartAndScan(fixture, "B");
+        ReleaseAndScan(fixture, "B");
+        fixture.Scan(TimeSpan.FromSeconds(10));
+        Assert.Equal([Call("On", null, null)], sink.Calls);
+
+        fixture.SendToService(1, "B", PackMLCommand.Stop, 2);
+        fixture.Scan();
+
+        Assert.Equal([Call("On", null, null), Call("Off", null, null)], sink.Calls);
+    }
+
+    [Fact]
+    [Trait("AC", "8")]
+    public void Hold_sends_Leave_without_BeforeComplete_and_Unhold_sends_Enter_again_with_the_full_length()
+    {
+        var sink = new RecordingSimulationSink();
+        HostFixture fixture = ArrangeSim(sink, forA:
+        [
+            SimOf(SimMoment.Enter, "Top"),
+            SimOf(SimMoment.BeforeComplete, "Top"),
+            SimOf(SimMoment.Leave, "Hold"),
+        ]);
+        StartAndScan(fixture);
+        ReleaseAndScan(fixture);
+        fixture.Scan(TimeSpan.FromSeconds(2));
+
+        fixture.ServiceCommand(1, "A", PackMLCommand.Hold, 2);
+        Assert.Equal([Call("Top", null, 5000), Call("Hold", null, null)], sink.Calls);
+        fixture.ServiceCommand(1, "A", PackMLCommand.Unhold, 3);
+
+        Assert.Equal(PackMLState.Execute, fixture.ServiceState(1, "A"));
+        Assert.Equal([Call("Top", null, 5000), Call("Hold", null, null), Call("Top", null, 5000)], sink.Calls);
+    }
+
+    [Fact]
+    [Trait("AC", "8")]
+    public void Abort_sends_Leave()
+    {
+        var sink = new RecordingSimulationSink();
+        HostFixture fixture = ArrangeSim(sink, forB: [SimOf(SimMoment.Enter, "On"), SimOf(SimMoment.Leave, "Off")]);
+        StartAndScan(fixture, "B");
+        ReleaseAndScan(fixture, "B");
+
+        fixture.SendToService(1, "B", PackMLCommand.Abort, 2);
+        fixture.Scan();
+
+        Assert.NotEqual(PackMLState.Execute, fixture.ServiceState(1, "B"));
+        Assert.Equal([Call("On", null, null), Call("Off", null, null)], sink.Calls);
+    }
+
+    [Theory]
+    [Trait("AC", "7")]
+    [InlineData("1", "On", 5.0)]
+    [InlineData("2", "Off", null)]
+    public void In_DryRun_an_entry_with_a_dry_run_action_sends_it_without_a_value_and_the_other_entries_are_unchanged(string mode, string expectedAction, double? expectedValue)
+    {
+        var sink = new RecordingSimulationSink();
+        HostFixture fixture = ArrangeSim(sink, forA:
+        [
+            SimOf(SimMoment.Enter, "On", ConstantValue(5), dryRunAction: "Off"),
+            SimOf(SimMoment.Enter, "Mark", ConstantValue(6)),
+        ], mode: mode);
+
+        StartAndScan(fixture);
+
+        Assert.Equal([Call(expectedAction, expectedValue, 5000), Call("Mark", 6.0, 5000)], sink.Calls);
+    }
+
+    [Fact]
+    [Trait("AC", "3")]
+    public void The_value_comes_from_an_ECID_text_a_param_a_constant_and_Negate_and_is_null_without_a_source()
+    {
+        var sink = new RecordingSimulationSink();
+        HostFixture fixture = ArrangeSim(sink, forB:
+        [
+            SimOf(SimMoment.Enter, "Ecid", EcidValue()),
+            SimOf(SimMoment.Enter, "Param", ParamValue("Speed")),
+            SimOf(SimMoment.Enter, "Constant", ConstantValue(4)),
+            SimOf(SimMoment.Enter, "Negated", EcidValue(negate: true)),
+            SimOf(SimMoment.Enter, "None"),
+        ]);
+        fixture.Write($"{Module}.ServiceParam.B.Speed", 2.5);
+
+        StartAndScan(fixture, "B");
+
+        Assert.Equal(
+            [Call("Ecid", 30.0, null), Call("Param", 2.5, null), Call("Constant", 4.0, null), Call("Negated", -30.0, null), Call("None", null, null)],
+            sink.Calls);
+    }
+
+    [Theory]
+    [Trait("AC", "3")]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    public void A_value_that_is_not_a_finite_number_is_sent_as_null(double angle)
+    {
+        var sink = new RecordingSimulationSink();
+        HostFixture fixture = ArrangeSim(sink, forB: [SimOf(SimMoment.Enter, "Param", ParamValue("Angle"))]);
+        fixture.Write($"{Module}.ServiceParam.B.Angle", angle);
+
+        StartAndScan(fixture, "B");
+
+        Assert.Equal([Call("Param", null, null)], sink.Calls);
+    }
+
+    [Theory]
+    [Trait("AC", "3")]
+    [InlineData("0", 1)]
+    [InlineData("1", 5)]
+    public void A_refused_entry_sends_no_sim_action(string mode, int index)
+    {
+        var sink = new RecordingSimulationSink();
+        HostFixture fixture = ArrangeSim(
+            sink,
+            forA: [SimOf(SimMoment.Enter, "Top"), SimOf(SimMoment.BeforeComplete, "Top"), SimOf(SimMoment.Leave, "Hold")],
+            mode: mode);
+        fixture.Write($"{Module}.ServiceParam.A.Index", index);
+
+        StartAndScan(fixture);
+        ReleaseAndScan(fixture);
+
+        Assert.Equal(PackMLState.Aborted, fixture.ServiceState(1, "A"));
+        Assert.Empty(sink.Calls);
+    }
+
+    [Fact]
+    [Trait("AC", "3")]
+    public void A_service_a_workflow_took_over_sends_no_sim_action()
+    {
+        var sink = new RecordingSimulationSink();
+        HostFixture fixture = ArrangeSim(sink, forB: [SimOf(SimMoment.Enter, "On"), SimOf(SimMoment.Leave, "Off")]);
+        fixture.SetOverrideToken(1, "B", new object());
+        StartAndScan(fixture, "B");
+        ReleaseAndScan(fixture, "B");
+
+        fixture.SendToService(1, "B", PackMLCommand.Stop, 2);
+        fixture.Scan();
+
+        Assert.NotEqual(PackMLState.Execute, fixture.ServiceState(1, "B"));
+        Assert.Empty(sink.Calls);
+    }
+
+    [Fact]
+    [Trait("AC", "3")]
+    public void Without_a_sink_and_without_a_behavior_table_a_service_runs_as_before_and_sends_nothing()
+    {
+        var sink = new RecordingSimulationSink();
+        var withoutTable = new HostFixture(declarations: HostFixture.BehaviorDeclarations, initialize: false);
+        withoutTable.Host.Initialize(withoutTable.Image, ConfiguredAlarmTable.Empty, ServiceBehaviorTable.Empty, sink);
+        HostFixture withoutSink = Arrange("1", SimBehaviors(forA: [SimOf(SimMoment.Enter, "Top"), SimOf(SimMoment.Leave, "Hold")]));
+
+        RunToComplete(withoutTable, HostFixture.DefaultDelay);
+        RunToComplete(withoutSink, HostFixture.DefaultDelay);
+
+        Assert.Equal(PackMLState.Complete, withoutTable.ServiceState(1, "A"));
+        Assert.Equal(PackMLState.Complete, withoutSink.ServiceState(1, "A"));
+        Assert.Empty(sink.Calls);
+    }
+
+    [Fact]
+    [Trait("AC", "3")]
+    public void A_NaturalCompletion_rotation_sends_Enter_CW_with_the_default_delay_and_Leave_Stop()
+    {
+        var sink = new RecordingSimulationSink();
+        HostFixture fixture = ArrangeSim(sink, forA:
+        [
+            SimOf(SimMoment.Enter, "CW", EcidValue(), target: "Holder"),
+            SimOf(SimMoment.Leave, "Stop", target: "Holder"),
+        ]);
+
+        RunToComplete(fixture, HostFixture.DefaultDelay);
+
+        Assert.Equal(PackMLState.Complete, fixture.ServiceState(1, "A"));
+        Assert.Equal([Call("CW", 30.0, 5000, "Holder"), Call("Stop", null, null, "Holder")], sink.Calls);
     }
 }

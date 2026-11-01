@@ -102,6 +102,63 @@ Polar2 的規則：
 - `duration`、`beforeComplete` 只對 NaturalCompletion 的 service 有作用；寫在 ExecuteUntilExternalStop 的 service 上不會報錯，但沒有效果（Host 在 Run 時不讀 identity file，無法發現）。
 - 重新載入 `Polar2_ServiceHost` 時，Execute 中的 service 不經過離開 Execute，`onLeave` 不會寫，速度、流量、壓力 SVID（例 SVID 53、Arm 的 Rotate Speed、Nozzle Flow/Pressure、ExhaustFan Pressure）可能停在 Execute 時的值。
 
+`sim`（#23）：每個 service 可以加一個獨立的 `sim` 清單，service 執行時經 `/live` 送動畫指令給 Simulation 頁。`sim` 與 `onEnter`、`beforeComplete`、`onLeave` 互不影響；省略時為空清單，明寫 `"sim": null` 載入失敗。
+
+```json
+"Arm[1].Rotate.Noz1CenterPos": {
+  "onEnter": [...], "beforeComplete": [...], "onLeave": [...],
+  "sim": [
+    { "when": "enter", "target": "Arm1.Rotate", "action": "Noz1Center", "value": { "ecid": 23 } },
+    { "when": "beforeComplete", "target": "Arm1.Rotate", "action": "Noz1Center", "value": { "ecid": 23 } },
+    { "when": "leave", "target": "Arm1.Rotate", "action": "Hold" }
+  ]
+}
+```
+
+| 欄位 | 說明 |
+|---|---|
+| `when` | 送出時機（不分大小寫）：`enter`（進入 Execute；Unhold、Unsuspend 回到 Execute 時再送一次）、`beforeComplete`（自然完成前，`durationMs` 為 0）、`leave`（離開 Execute，包含完成、Hold、Abort）。 |
+| `target` | 頁面上的零件名稱，不可空白。 |
+| `action` | 動作名稱，不可空白。 |
+| `value` | 選填，數值標籤的來源，恰好一個：`constant`（有限數）、`param`（`ServiceParam.<service>` 下的欄位）、`ecid`（ECID 編號）；可加 `negate`；不可用 `addParam`。 |
+| `dryRunAction` | 選填。進入 Execute 時 Mode 是 DryRun（Mode 2）就改送這個 action，`value` 送 null。 |
+
+行為與限制：
+
+- `enter` 的 `durationMs` 是 service 的完整長度：NaturalCompletion 的 service 為 `duration` 欄位或 `defaultDelayMs`，其他（ExecuteUntilExternalStop、有 `process` 的 service）為 null。
+- 被拒絕的 entry（Mode 不允許、參數超出範圍）與被 workflow 接手的 service 不送。
+- Hold 只會廣播，Host 不存進 `simState`（存了會蓋掉最後的定位名稱）。Hold 中途重新整理頁面時，零件顯示的是目標位置。
+- 指令以 `target` 為單位，不以 service 為單位；同一個 target 上兩個 service 重疊時，先結束的那個送出的 `Hold`、`Stop` 會影響後開始的那個。
+- 載入時驗證：`when` 不認得、`target`、`action` 空白、`value` 來源不是恰好一個、用 `addParam`、`dryRunAction` 空白、有未知欄位，或 ECID、`param` 欄位不存在，Run 失敗，訊息帶檔名與位置。
+
+目前加了 `sim` 的 67 個 service 與 target：
+
+| target | action | service | 數值標籤（單位） |
+|---|---|---|---|
+| `Holder` | `CW`、`CCW`、`Stop` | `Holder.Rotate.MoveVelocityCW`（enter `CW`）、`MoveVelocityCCW`（enter `CCW`）、`MoveModulo`（enter `CW`）；leave `Stop` | ECID 318（RPM） |
+| `OutsideRing` | `CW`、`CCW`、`Stop` | `OutsideRing.Rotate.MoveVelocityCW`、`MoveVelocityCCW`；leave `Stop` | ECID 361（RPM） |
+| `Cup{n}.Master`、`Cup{n}.Slave`（n = 1–4） | `Top`、`Middle`、`Down`、`Hold` | `Cup[n].Lift.TopPos`、`MiddlePos`、`DownPos`：enter、beforeComplete 送定位名稱，leave `Hold` | 該 service `beforeComplete` 寫入的 ECID（mm） |
+| `Arm{n}.Lift` | `Top`、`Down`、`Hold` | `Arm[n].Lift.TopPos`、`DownPos`：同上 | 同上（mm） |
+| `Arm{n}.Rotate` | `NegLimit`、`PosLimit`、`NozzlePort`、`Noz1Center`、`Noz2Center`、`Noz3Center`、`Hold` | `Arm[n].Rotate.<名稱>Pos`（Arm1、Arm2 各 6 個，Arm3 4 個，Arm4 3 個）：同上 | 同上（deg） |
+| `Arm{n}.Nozzle{k}` | `On`、`Off` | `Arm[n].Nozzle[k].ChemicalSupply`：enter `On`（`dryRunAction`: `Off`），leave `Off` | `Setpoint`（ml/s） |
+| `Arm{n}.Port{k}` | `On`、`Off` | `Arm[n].NozzlePort.Nozzle[k].Supply`（Arm1、Arm2）：同上 | `Setpoint`（ml/s） |
+| `FixedNozzle{n}` | `On`、`Off` | `FixedNozzle[n].ChemicalSupply`：同上 | `Setpoint`（ml/s） |
+| `ExhaustFan{n}` | `On`、`Off` | `Exhaust.Fan[n].SupplyFlowPID`：enter `On`，leave `Off` | 該 service `onEnter` 寫入的 ECID（Pa） |
+
+不加 `sim` 的有 Chamber 的 5 個複合 service、所有 Jog、IncrementalJog、`Arm[n].NozzlePort.DrainSelect*` 與其他沒列出的 service。
+
+## Simulation 頁
+
+Run 之後，開啟 `http://localhost:5259/simulation/`（Host 的 HTTP 位址）可以看到 Polar2 的 isometric 機構動畫：Holder、OutsideRing、4 支 Arm、4 層 Cup、送液與排風，依上面的 `sim` 指令動作。頁面只顯示，不能操作；Stop 專案後顯示「Polar2 未執行」。
+
+頁面放在 `simulation/`：`build.mjs` 產生 `index.html`，`kit/iso-kit.mjs` 是繪圖工具，`Chamber.png` 是配置依據的手繪圖。改了 `build.mjs` 之後，在 `projects/Polar2Chamber/simulation/` 執行：
+
+```
+node build.mjs
+```
+
+會重新產生 `index.html`（要一起 commit，Host 直接提供這個檔案）。
+
 ## Framework 升級時重新複製
 
 1. 在 TSMC repo 取得新版本，記下新的 commit SHA。

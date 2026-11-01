@@ -14,11 +14,11 @@ internal sealed class SessionLiveChannel(LiveHub hub) : IFlowMonitor, ISimulatio
         hub.Publish(flowEvent);
     }
 
-    public void Invoke(string target, string action, object? value)
+    public void Invoke(string target, string action, object? value, int? durationMs = null)
     {
         if (Volatile.Read(ref _closed))
             return;
-        hub.Invoke(target, action, value);
+        hub.Invoke(target, action, value, durationMs);
     }
 
     public void Close() => Volatile.Write(ref _closed, true);

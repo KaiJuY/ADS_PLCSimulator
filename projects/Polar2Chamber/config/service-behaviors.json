@@ -79,134 +79,250 @@
     },
     "Holder.Rotate.MoveVelocityCW": {
       "onEnter": [ { "svid": 53, "value": { "ecid": 318 } } ],
-      "onLeave": [ { "svid": 53, "value": { "constant": 0 } } ]
+      "onLeave": [ { "svid": 53, "value": { "constant": 0 } } ],
+      "sim": [
+        { "when": "enter", "target": "Holder", "action": "CW", "value": { "ecid": 318 } },
+        { "when": "leave", "target": "Holder", "action": "Stop" }
+      ]
     },
     "Holder.Rotate.MoveVelocityCCW": {
       "onEnter": [ { "svid": 53, "value": { "ecid": 318, "negate": true } } ],
-      "onLeave": [ { "svid": 53, "value": { "constant": 0 } } ]
+      "onLeave": [ { "svid": 53, "value": { "constant": 0 } } ],
+      "sim": [
+        { "when": "enter", "target": "Holder", "action": "CCW", "value": { "ecid": 318 } },
+        { "when": "leave", "target": "Holder", "action": "Stop" }
+      ]
     },
     "Holder.Rotate.MoveModulo": {
       "ranges": [ { "field": "Position", "min": 0, "max": 360 } ],
       "onEnter": [ { "svid": 53, "value": { "ecid": 318 } } ],
-      "onLeave": [ { "svid": 53, "value": { "constant": 0 } } ]
+      "onLeave": [ { "svid": 53, "value": { "constant": 0 } } ],
+      "sim": [
+        { "when": "enter", "target": "Holder", "action": "CW", "value": { "ecid": 318 } },
+        { "when": "leave", "target": "Holder", "action": "Stop" }
+      ]
     },
     "OutsideRing.Rotate.MoveVelocityCW": {
       "onEnter": [ { "svid": 58, "value": { "ecid": 361 } } ],
-      "onLeave": [ { "svid": 58, "value": { "constant": 0 } } ]
+      "onLeave": [ { "svid": 58, "value": { "constant": 0 } } ],
+      "sim": [
+        { "when": "enter", "target": "OutsideRing", "action": "CW", "value": { "ecid": 361 } },
+        { "when": "leave", "target": "OutsideRing", "action": "Stop" }
+      ]
     },
     "OutsideRing.Rotate.MoveVelocityCCW": {
       "onEnter": [ { "svid": 58, "value": { "ecid": 361, "negate": true } } ],
-      "onLeave": [ { "svid": 58, "value": { "constant": 0 } } ]
+      "onLeave": [ { "svid": 58, "value": { "constant": 0 } } ],
+      "sim": [
+        { "when": "enter", "target": "OutsideRing", "action": "CCW", "value": { "ecid": 361 } },
+        { "when": "leave", "target": "OutsideRing", "action": "Stop" }
+      ]
     },
     "Cup[1].Lift.TopPos": {
-      "beforeComplete": [ { "svid": 45, "value": { "ecid": 276 } }, { "svid": 46, "value": { "ecid": 276 } } ]
+      "beforeComplete": [ { "svid": 45, "value": { "ecid": 276 } }, { "svid": 46, "value": { "ecid": 276 } } ],
+      "sim": [
+        { "when": "enter", "target": "Cup1.Master", "action": "Top", "value": { "ecid": 276 } },
+        { "when": "enter", "target": "Cup1.Slave", "action": "Top", "value": { "ecid": 276 } },
+        { "when": "beforeComplete", "target": "Cup1.Master", "action": "Top", "value": { "ecid": 276 } },
+        { "when": "beforeComplete", "target": "Cup1.Slave", "action": "Top", "value": { "ecid": 276 } },
+        { "when": "leave", "target": "Cup1.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup1.Slave", "action": "Hold" }
+      ]
     },
     "Cup[1].Lift.MiddlePos": {
-      "beforeComplete": [ { "svid": 45, "value": { "ecid": 278 } }, { "svid": 46, "value": { "ecid": 278 } } ]
+      "beforeComplete": [ { "svid": 45, "value": { "ecid": 278 } }, { "svid": 46, "value": { "ecid": 278 } } ],
+      "sim": [
+        { "when": "enter", "target": "Cup1.Master", "action": "Middle", "value": { "ecid": 278 } },
+        { "when": "enter", "target": "Cup1.Slave", "action": "Middle", "value": { "ecid": 278 } },
+        { "when": "beforeComplete", "target": "Cup1.Master", "action": "Middle", "value": { "ecid": 278 } },
+        { "when": "beforeComplete", "target": "Cup1.Slave", "action": "Middle", "value": { "ecid": 278 } },
+        { "when": "leave", "target": "Cup1.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup1.Slave", "action": "Hold" }
+      ]
     },
     "Cup[1].Lift.DownPos": {
-      "beforeComplete": [ { "svid": 45, "value": { "ecid": 277 } }, { "svid": 46, "value": { "ecid": 277 } } ]
+      "beforeComplete": [ { "svid": 45, "value": { "ecid": 277 } }, { "svid": 46, "value": { "ecid": 277 } } ],
+      "sim": [
+        { "when": "enter", "target": "Cup1.Master", "action": "Down", "value": { "ecid": 277 } },
+        { "when": "enter", "target": "Cup1.Slave", "action": "Down", "value": { "ecid": 277 } },
+        { "when": "beforeComplete", "target": "Cup1.Master", "action": "Down", "value": { "ecid": 277 } },
+        { "when": "beforeComplete", "target": "Cup1.Slave", "action": "Down", "value": { "ecid": 277 } },
+        { "when": "leave", "target": "Cup1.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup1.Slave", "action": "Hold" }
+      ]
     },
     "Cup[1].Lift.IncrementalJog": {
       "beforeComplete": [ { "svid": 45, "value": { "addParam": "Position" } }, { "svid": 46, "value": { "addParam": "Position" } } ]
     },
     "Cup[2].Lift.TopPos": {
-      "beforeComplete": [ { "svid": 47, "value": { "ecid": 288 } }, { "svid": 48, "value": { "ecid": 288 } } ]
+      "beforeComplete": [ { "svid": 47, "value": { "ecid": 288 } }, { "svid": 48, "value": { "ecid": 288 } } ],
+      "sim": [
+        { "when": "enter", "target": "Cup2.Master", "action": "Top", "value": { "ecid": 288 } },
+        { "when": "enter", "target": "Cup2.Slave", "action": "Top", "value": { "ecid": 288 } },
+        { "when": "beforeComplete", "target": "Cup2.Master", "action": "Top", "value": { "ecid": 288 } },
+        { "when": "beforeComplete", "target": "Cup2.Slave", "action": "Top", "value": { "ecid": 288 } },
+        { "when": "leave", "target": "Cup2.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup2.Slave", "action": "Hold" }
+      ]
     },
     "Cup[2].Lift.MiddlePos": {
-      "beforeComplete": [ { "svid": 47, "value": { "ecid": 290 } }, { "svid": 48, "value": { "ecid": 290 } } ]
+      "beforeComplete": [ { "svid": 47, "value": { "ecid": 290 } }, { "svid": 48, "value": { "ecid": 290 } } ],
+      "sim": [
+        { "when": "enter", "target": "Cup2.Master", "action": "Middle", "value": { "ecid": 290 } },
+        { "when": "enter", "target": "Cup2.Slave", "action": "Middle", "value": { "ecid": 290 } },
+        { "when": "beforeComplete", "target": "Cup2.Master", "action": "Middle", "value": { "ecid": 290 } },
+        { "when": "beforeComplete", "target": "Cup2.Slave", "action": "Middle", "value": { "ecid": 290 } },
+        { "when": "leave", "target": "Cup2.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup2.Slave", "action": "Hold" }
+      ]
     },
     "Cup[2].Lift.DownPos": {
-      "beforeComplete": [ { "svid": 47, "value": { "ecid": 289 } }, { "svid": 48, "value": { "ecid": 289 } } ]
+      "beforeComplete": [ { "svid": 47, "value": { "ecid": 289 } }, { "svid": 48, "value": { "ecid": 289 } } ],
+      "sim": [
+        { "when": "enter", "target": "Cup2.Master", "action": "Down", "value": { "ecid": 289 } },
+        { "when": "enter", "target": "Cup2.Slave", "action": "Down", "value": { "ecid": 289 } },
+        { "when": "beforeComplete", "target": "Cup2.Master", "action": "Down", "value": { "ecid": 289 } },
+        { "when": "beforeComplete", "target": "Cup2.Slave", "action": "Down", "value": { "ecid": 289 } },
+        { "when": "leave", "target": "Cup2.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup2.Slave", "action": "Hold" }
+      ]
     },
     "Cup[2].Lift.IncrementalJog": {
       "beforeComplete": [ { "svid": 47, "value": { "addParam": "Position" } }, { "svid": 48, "value": { "addParam": "Position" } } ]
     },
     "Cup[3].Lift.TopPos": {
-      "beforeComplete": [ { "svid": 49, "value": { "ecid": 300 } }, { "svid": 50, "value": { "ecid": 300 } } ]
+      "beforeComplete": [ { "svid": 49, "value": { "ecid": 300 } }, { "svid": 50, "value": { "ecid": 300 } } ],
+      "sim": [
+        { "when": "enter", "target": "Cup3.Master", "action": "Top", "value": { "ecid": 300 } },
+        { "when": "enter", "target": "Cup3.Slave", "action": "Top", "value": { "ecid": 300 } },
+        { "when": "beforeComplete", "target": "Cup3.Master", "action": "Top", "value": { "ecid": 300 } },
+        { "when": "beforeComplete", "target": "Cup3.Slave", "action": "Top", "value": { "ecid": 300 } },
+        { "when": "leave", "target": "Cup3.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup3.Slave", "action": "Hold" }
+      ]
     },
     "Cup[3].Lift.MiddlePos": {
-      "beforeComplete": [ { "svid": 49, "value": { "ecid": 302 } }, { "svid": 50, "value": { "ecid": 302 } } ]
+      "beforeComplete": [ { "svid": 49, "value": { "ecid": 302 } }, { "svid": 50, "value": { "ecid": 302 } } ],
+      "sim": [
+        { "when": "enter", "target": "Cup3.Master", "action": "Middle", "value": { "ecid": 302 } },
+        { "when": "enter", "target": "Cup3.Slave", "action": "Middle", "value": { "ecid": 302 } },
+        { "when": "beforeComplete", "target": "Cup3.Master", "action": "Middle", "value": { "ecid": 302 } },
+        { "when": "beforeComplete", "target": "Cup3.Slave", "action": "Middle", "value": { "ecid": 302 } },
+        { "when": "leave", "target": "Cup3.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup3.Slave", "action": "Hold" }
+      ]
     },
     "Cup[3].Lift.DownPos": {
-      "beforeComplete": [ { "svid": 49, "value": { "ecid": 301 } }, { "svid": 50, "value": { "ecid": 301 } } ]
+      "beforeComplete": [ { "svid": 49, "value": { "ecid": 301 } }, { "svid": 50, "value": { "ecid": 301 } } ],
+      "sim": [
+        { "when": "enter", "target": "Cup3.Master", "action": "Down", "value": { "ecid": 301 } },
+        { "when": "enter", "target": "Cup3.Slave", "action": "Down", "value": { "ecid": 301 } },
+        { "when": "beforeComplete", "target": "Cup3.Master", "action": "Down", "value": { "ecid": 301 } },
+        { "when": "beforeComplete", "target": "Cup3.Slave", "action": "Down", "value": { "ecid": 301 } },
+        { "when": "leave", "target": "Cup3.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup3.Slave", "action": "Hold" }
+      ]
     },
     "Cup[3].Lift.IncrementalJog": {
       "beforeComplete": [ { "svid": 49, "value": { "addParam": "Position" } }, { "svid": 50, "value": { "addParam": "Position" } } ]
     },
     "Cup[4].Lift.TopPos": {
-      "beforeComplete": [ { "svid": 51, "value": { "ecid": 312 } }, { "svid": 52, "value": { "ecid": 312 } } ]
+      "beforeComplete": [ { "svid": 51, "value": { "ecid": 312 } }, { "svid": 52, "value": { "ecid": 312 } } ],
+      "sim": [
+        { "when": "enter", "target": "Cup4.Master", "action": "Top", "value": { "ecid": 312 } },
+        { "when": "enter", "target": "Cup4.Slave", "action": "Top", "value": { "ecid": 312 } },
+        { "when": "beforeComplete", "target": "Cup4.Master", "action": "Top", "value": { "ecid": 312 } },
+        { "when": "beforeComplete", "target": "Cup4.Slave", "action": "Top", "value": { "ecid": 312 } },
+        { "when": "leave", "target": "Cup4.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup4.Slave", "action": "Hold" }
+      ]
     },
     "Cup[4].Lift.MiddlePos": {
-      "beforeComplete": [ { "svid": 51, "value": { "ecid": 314 } }, { "svid": 52, "value": { "ecid": 314 } } ]
+      "beforeComplete": [ { "svid": 51, "value": { "ecid": 314 } }, { "svid": 52, "value": { "ecid": 314 } } ],
+      "sim": [
+        { "when": "enter", "target": "Cup4.Master", "action": "Middle", "value": { "ecid": 314 } },
+        { "when": "enter", "target": "Cup4.Slave", "action": "Middle", "value": { "ecid": 314 } },
+        { "when": "beforeComplete", "target": "Cup4.Master", "action": "Middle", "value": { "ecid": 314 } },
+        { "when": "beforeComplete", "target": "Cup4.Slave", "action": "Middle", "value": { "ecid": 314 } },
+        { "when": "leave", "target": "Cup4.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup4.Slave", "action": "Hold" }
+      ]
     },
     "Cup[4].Lift.DownPos": {
-      "beforeComplete": [ { "svid": 51, "value": { "ecid": 313 } }, { "svid": 52, "value": { "ecid": 313 } } ]
+      "beforeComplete": [ { "svid": 51, "value": { "ecid": 313 } }, { "svid": 52, "value": { "ecid": 313 } } ],
+      "sim": [
+        { "when": "enter", "target": "Cup4.Master", "action": "Down", "value": { "ecid": 313 } },
+        { "when": "enter", "target": "Cup4.Slave", "action": "Down", "value": { "ecid": 313 } },
+        { "when": "beforeComplete", "target": "Cup4.Master", "action": "Down", "value": { "ecid": 313 } },
+        { "when": "beforeComplete", "target": "Cup4.Slave", "action": "Down", "value": { "ecid": 313 } },
+        { "when": "leave", "target": "Cup4.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup4.Slave", "action": "Hold" }
+      ]
     },
     "Cup[4].Lift.IncrementalJog": {
       "beforeComplete": [ { "svid": 51, "value": { "addParam": "Position" } }, { "svid": 52, "value": { "addParam": "Position" } } ]
     },
-    "Arm[1].Lift.TopPos": {"onEnter": [{"svid": 4, "value": {"ecid": 6}}], "beforeComplete": [{"svid": 2, "value": {"ecid": 12}}], "onLeave": [{"svid": 4, "value": {"constant": 0}}]},
-    "Arm[1].Lift.DownPos": {"onEnter": [{"svid": 4, "value": {"ecid": 6}}], "beforeComplete": [{"svid": 2, "value": {"ecid": 13}}], "onLeave": [{"svid": 4, "value": {"constant": 0}}]},
+    "Arm[1].Lift.TopPos": {"onEnter": [{"svid": 4, "value": {"ecid": 6}}], "beforeComplete": [{"svid": 2, "value": {"ecid": 12}}], "onLeave": [{"svid": 4, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Lift", "action": "Top", "value": {"ecid": 12}}, {"when": "beforeComplete", "target": "Arm1.Lift", "action": "Top", "value": {"ecid": 12}}, {"when": "leave", "target": "Arm1.Lift", "action": "Hold"}]},
+    "Arm[1].Lift.DownPos": {"onEnter": [{"svid": 4, "value": {"ecid": 6}}], "beforeComplete": [{"svid": 2, "value": {"ecid": 13}}], "onLeave": [{"svid": 4, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Lift", "action": "Down", "value": {"ecid": 13}}, {"when": "beforeComplete", "target": "Arm1.Lift", "action": "Down", "value": {"ecid": 13}}, {"when": "leave", "target": "Arm1.Lift", "action": "Hold"}]},
     "Arm[1].Rotate.JogPositive": {"onEnter": [{"svid": 5, "value": {"ecid": 16}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}]},
     "Arm[1].Rotate.JogNegative": {"onEnter": [{"svid": 5, "value": {"ecid": 16, "negate": true}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}]},
     "Arm[1].Rotate.IncrementalJog": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"addParam": "Position"}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}]},
-    "Arm[1].Rotate.NegLimitPos": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"ecid": 21}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}]},
-    "Arm[1].Rotate.PosLimitPos": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"ecid": 20}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}]},
-    "Arm[1].Rotate.NozzlePortPos": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"ecid": 22}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}]},
-    "Arm[1].Rotate.Noz1CenterPos": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"ecid": 23}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}]},
-    "Arm[1].Rotate.Noz2CenterPos": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"ecid": 24}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}]},
-    "Arm[1].Rotate.Noz3CenterPos": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"ecid": 25}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}]},
-    "Arm[1].Nozzle[1].ChemicalSupply": {"onEnter": [{"svid": 9, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 9, "value": {"constant": 0}}]},
-    "Arm[1].Nozzle[2].ChemicalSupply": {"onEnter": [{"svid": 10, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 10, "value": {"constant": 0}}]},
-    "Arm[1].Nozzle[3].ChemicalSupply": {"onEnter": [{"svid": 11, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 11, "value": {"constant": 0}}]},
-    "Arm[1].NozzlePort.Nozzle[1].Supply": {"onEnter": [{"svid": 12, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 12, "value": {"constant": 0}}]},
-    "Arm[1].NozzlePort.Nozzle[2].Supply": {"onEnter": [{"svid": 13, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 13, "value": {"constant": 0}}]},
-    "Arm[1].NozzlePort.Nozzle[3].Supply": {"onEnter": [{"svid": 14, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 14, "value": {"constant": 0}}]},
-    "Arm[2].Lift.TopPos": {"onEnter": [{"svid": 17, "value": {"ecid": 84}}], "beforeComplete": [{"svid": 15, "value": {"ecid": 90}}], "onLeave": [{"svid": 17, "value": {"constant": 0}}]},
-    "Arm[2].Lift.DownPos": {"onEnter": [{"svid": 17, "value": {"ecid": 84}}], "beforeComplete": [{"svid": 15, "value": {"ecid": 91}}], "onLeave": [{"svid": 17, "value": {"constant": 0}}]},
+    "Arm[1].Rotate.NegLimitPos": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"ecid": 21}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Rotate", "action": "NegLimit", "value": {"ecid": 21}}, {"when": "beforeComplete", "target": "Arm1.Rotate", "action": "NegLimit", "value": {"ecid": 21}}, {"when": "leave", "target": "Arm1.Rotate", "action": "Hold"}]},
+    "Arm[1].Rotate.PosLimitPos": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"ecid": 20}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Rotate", "action": "PosLimit", "value": {"ecid": 20}}, {"when": "beforeComplete", "target": "Arm1.Rotate", "action": "PosLimit", "value": {"ecid": 20}}, {"when": "leave", "target": "Arm1.Rotate", "action": "Hold"}]},
+    "Arm[1].Rotate.NozzlePortPos": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"ecid": 22}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Rotate", "action": "NozzlePort", "value": {"ecid": 22}}, {"when": "beforeComplete", "target": "Arm1.Rotate", "action": "NozzlePort", "value": {"ecid": 22}}, {"when": "leave", "target": "Arm1.Rotate", "action": "Hold"}]},
+    "Arm[1].Rotate.Noz1CenterPos": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"ecid": 23}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Rotate", "action": "Noz1Center", "value": {"ecid": 23}}, {"when": "beforeComplete", "target": "Arm1.Rotate", "action": "Noz1Center", "value": {"ecid": 23}}, {"when": "leave", "target": "Arm1.Rotate", "action": "Hold"}]},
+    "Arm[1].Rotate.Noz2CenterPos": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"ecid": 24}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Rotate", "action": "Noz2Center", "value": {"ecid": 24}}, {"when": "beforeComplete", "target": "Arm1.Rotate", "action": "Noz2Center", "value": {"ecid": 24}}, {"when": "leave", "target": "Arm1.Rotate", "action": "Hold"}]},
+    "Arm[1].Rotate.Noz3CenterPos": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"ecid": 25}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Rotate", "action": "Noz3Center", "value": {"ecid": 25}}, {"when": "beforeComplete", "target": "Arm1.Rotate", "action": "Noz3Center", "value": {"ecid": 25}}, {"when": "leave", "target": "Arm1.Rotate", "action": "Hold"}]},
+    "Arm[1].Nozzle[1].ChemicalSupply": {"onEnter": [{"svid": 9, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 9, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Nozzle1", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm1.Nozzle1", "action": "Off"}]},
+    "Arm[1].Nozzle[2].ChemicalSupply": {"onEnter": [{"svid": 10, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 10, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Nozzle2", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm1.Nozzle2", "action": "Off"}]},
+    "Arm[1].Nozzle[3].ChemicalSupply": {"onEnter": [{"svid": 11, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 11, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Nozzle3", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm1.Nozzle3", "action": "Off"}]},
+    "Arm[1].NozzlePort.Nozzle[1].Supply": {"onEnter": [{"svid": 12, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 12, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Port1", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm1.Port1", "action": "Off"}]},
+    "Arm[1].NozzlePort.Nozzle[2].Supply": {"onEnter": [{"svid": 13, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 13, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Port2", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm1.Port2", "action": "Off"}]},
+    "Arm[1].NozzlePort.Nozzle[3].Supply": {"onEnter": [{"svid": 14, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 14, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Port3", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm1.Port3", "action": "Off"}]},
+    "Arm[2].Lift.TopPos": {"onEnter": [{"svid": 17, "value": {"ecid": 84}}], "beforeComplete": [{"svid": 15, "value": {"ecid": 90}}], "onLeave": [{"svid": 17, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Lift", "action": "Top", "value": {"ecid": 90}}, {"when": "beforeComplete", "target": "Arm2.Lift", "action": "Top", "value": {"ecid": 90}}, {"when": "leave", "target": "Arm2.Lift", "action": "Hold"}]},
+    "Arm[2].Lift.DownPos": {"onEnter": [{"svid": 17, "value": {"ecid": 84}}], "beforeComplete": [{"svid": 15, "value": {"ecid": 91}}], "onLeave": [{"svid": 17, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Lift", "action": "Down", "value": {"ecid": 91}}, {"when": "beforeComplete", "target": "Arm2.Lift", "action": "Down", "value": {"ecid": 91}}, {"when": "leave", "target": "Arm2.Lift", "action": "Hold"}]},
     "Arm[2].Rotate.JogPositive": {"onEnter": [{"svid": 18, "value": {"ecid": 94}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}]},
     "Arm[2].Rotate.JogNegative": {"onEnter": [{"svid": 18, "value": {"ecid": 94, "negate": true}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}]},
     "Arm[2].Rotate.IncrementalJog": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"addParam": "Position"}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}]},
-    "Arm[2].Rotate.NegLimitPos": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"ecid": 99}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}]},
-    "Arm[2].Rotate.PosLimitPos": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"ecid": 98}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}]},
-    "Arm[2].Rotate.NozzlePortPos": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"ecid": 100}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}]},
-    "Arm[2].Rotate.Noz1CenterPos": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"ecid": 101}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}]},
-    "Arm[2].Rotate.Noz2CenterPos": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"ecid": 102}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}]},
-    "Arm[2].Rotate.Noz3CenterPos": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"ecid": 103}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}]},
-    "Arm[2].Nozzle[1].ChemicalSupply": {"onEnter": [{"svid": 22, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 22, "value": {"constant": 0}}]},
-    "Arm[2].Nozzle[2].ChemicalSupply": {"onEnter": [{"svid": 23, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 23, "value": {"constant": 0}}]},
-    "Arm[2].Nozzle[3].ChemicalSupply": {"onEnter": [{"svid": 24, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 24, "value": {"constant": 0}}]},
-    "Arm[2].NozzlePort.Nozzle[1].Supply": {"onEnter": [{"svid": 25, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 25, "value": {"constant": 0}}]},
-    "Arm[2].NozzlePort.Nozzle[2].Supply": {"onEnter": [{"svid": 26, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 26, "value": {"constant": 0}}]},
-    "Arm[2].NozzlePort.Nozzle[3].Supply": {"onEnter": [{"svid": 27, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 27, "value": {"constant": 0}}]},
-    "Arm[3].Lift.TopPos": {"onEnter": [{"svid": 30, "value": {"ecid": 162}}], "beforeComplete": [{"svid": 28, "value": {"ecid": 168}}], "onLeave": [{"svid": 30, "value": {"constant": 0}}]},
-    "Arm[3].Lift.DownPos": {"onEnter": [{"svid": 30, "value": {"ecid": 162}}], "beforeComplete": [{"svid": 28, "value": {"ecid": 169}}], "onLeave": [{"svid": 30, "value": {"constant": 0}}]},
+    "Arm[2].Rotate.NegLimitPos": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"ecid": 99}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Rotate", "action": "NegLimit", "value": {"ecid": 99}}, {"when": "beforeComplete", "target": "Arm2.Rotate", "action": "NegLimit", "value": {"ecid": 99}}, {"when": "leave", "target": "Arm2.Rotate", "action": "Hold"}]},
+    "Arm[2].Rotate.PosLimitPos": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"ecid": 98}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Rotate", "action": "PosLimit", "value": {"ecid": 98}}, {"when": "beforeComplete", "target": "Arm2.Rotate", "action": "PosLimit", "value": {"ecid": 98}}, {"when": "leave", "target": "Arm2.Rotate", "action": "Hold"}]},
+    "Arm[2].Rotate.NozzlePortPos": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"ecid": 100}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Rotate", "action": "NozzlePort", "value": {"ecid": 100}}, {"when": "beforeComplete", "target": "Arm2.Rotate", "action": "NozzlePort", "value": {"ecid": 100}}, {"when": "leave", "target": "Arm2.Rotate", "action": "Hold"}]},
+    "Arm[2].Rotate.Noz1CenterPos": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"ecid": 101}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Rotate", "action": "Noz1Center", "value": {"ecid": 101}}, {"when": "beforeComplete", "target": "Arm2.Rotate", "action": "Noz1Center", "value": {"ecid": 101}}, {"when": "leave", "target": "Arm2.Rotate", "action": "Hold"}]},
+    "Arm[2].Rotate.Noz2CenterPos": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"ecid": 102}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Rotate", "action": "Noz2Center", "value": {"ecid": 102}}, {"when": "beforeComplete", "target": "Arm2.Rotate", "action": "Noz2Center", "value": {"ecid": 102}}, {"when": "leave", "target": "Arm2.Rotate", "action": "Hold"}]},
+    "Arm[2].Rotate.Noz3CenterPos": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"ecid": 103}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Rotate", "action": "Noz3Center", "value": {"ecid": 103}}, {"when": "beforeComplete", "target": "Arm2.Rotate", "action": "Noz3Center", "value": {"ecid": 103}}, {"when": "leave", "target": "Arm2.Rotate", "action": "Hold"}]},
+    "Arm[2].Nozzle[1].ChemicalSupply": {"onEnter": [{"svid": 22, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 22, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Nozzle1", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm2.Nozzle1", "action": "Off"}]},
+    "Arm[2].Nozzle[2].ChemicalSupply": {"onEnter": [{"svid": 23, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 23, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Nozzle2", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm2.Nozzle2", "action": "Off"}]},
+    "Arm[2].Nozzle[3].ChemicalSupply": {"onEnter": [{"svid": 24, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 24, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Nozzle3", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm2.Nozzle3", "action": "Off"}]},
+    "Arm[2].NozzlePort.Nozzle[1].Supply": {"onEnter": [{"svid": 25, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 25, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Port1", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm2.Port1", "action": "Off"}]},
+    "Arm[2].NozzlePort.Nozzle[2].Supply": {"onEnter": [{"svid": 26, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 26, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Port2", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm2.Port2", "action": "Off"}]},
+    "Arm[2].NozzlePort.Nozzle[3].Supply": {"onEnter": [{"svid": 27, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 27, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Port3", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm2.Port3", "action": "Off"}]},
+    "Arm[3].Lift.TopPos": {"onEnter": [{"svid": 30, "value": {"ecid": 162}}], "beforeComplete": [{"svid": 28, "value": {"ecid": 168}}], "onLeave": [{"svid": 30, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Lift", "action": "Top", "value": {"ecid": 168}}, {"when": "beforeComplete", "target": "Arm3.Lift", "action": "Top", "value": {"ecid": 168}}, {"when": "leave", "target": "Arm3.Lift", "action": "Hold"}]},
+    "Arm[3].Lift.DownPos": {"onEnter": [{"svid": 30, "value": {"ecid": 162}}], "beforeComplete": [{"svid": 28, "value": {"ecid": 169}}], "onLeave": [{"svid": 30, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Lift", "action": "Down", "value": {"ecid": 169}}, {"when": "beforeComplete", "target": "Arm3.Lift", "action": "Down", "value": {"ecid": 169}}, {"when": "leave", "target": "Arm3.Lift", "action": "Hold"}]},
     "Arm[3].Rotate.JogPositive": {"onEnter": [{"svid": 31, "value": {"ecid": 172}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}]},
     "Arm[3].Rotate.JogNegative": {"onEnter": [{"svid": 31, "value": {"ecid": 172, "negate": true}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}]},
     "Arm[3].Rotate.IncrementalJog": {"onEnter": [{"svid": 31, "value": {"ecid": 171}}], "beforeComplete": [{"svid": 29, "value": {"addParam": "Position"}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}]},
-    "Arm[3].Rotate.NegLimitPos": {"onEnter": [{"svid": 31, "value": {"ecid": 171}}], "beforeComplete": [{"svid": 29, "value": {"ecid": 177}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}]},
-    "Arm[3].Rotate.PosLimitPos": {"onEnter": [{"svid": 31, "value": {"ecid": 171}}], "beforeComplete": [{"svid": 29, "value": {"ecid": 176}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}]},
-    "Arm[3].Rotate.Noz1CenterPos": {"onEnter": [{"svid": 31, "value": {"ecid": 171}}], "beforeComplete": [{"svid": 29, "value": {"ecid": 179}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}]},
-    "Arm[3].Rotate.Noz2CenterPos": {"onEnter": [{"svid": 31, "value": {"ecid": 171}}], "beforeComplete": [{"svid": 29, "value": {"ecid": 180}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}]},
-    "Arm[3].Nozzle[1].ChemicalSupply": {"onEnter": [{"svid": 34, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 34, "value": {"constant": 0}}]},
-    "Arm[3].Nozzle[2].ChemicalSupply": {"onEnter": [{"svid": 35, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 35, "value": {"constant": 0}}]},
-    "Arm[4].Lift.TopPos": {"onEnter": [{"svid": 40, "value": {"ecid": 224}}], "beforeComplete": [{"svid": 38, "value": {"ecid": 230}}], "onLeave": [{"svid": 40, "value": {"constant": 0}}]},
-    "Arm[4].Lift.DownPos": {"onEnter": [{"svid": 40, "value": {"ecid": 224}}], "beforeComplete": [{"svid": 38, "value": {"ecid": 231}}], "onLeave": [{"svid": 40, "value": {"constant": 0}}]},
+    "Arm[3].Rotate.NegLimitPos": {"onEnter": [{"svid": 31, "value": {"ecid": 171}}], "beforeComplete": [{"svid": 29, "value": {"ecid": 177}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Rotate", "action": "NegLimit", "value": {"ecid": 177}}, {"when": "beforeComplete", "target": "Arm3.Rotate", "action": "NegLimit", "value": {"ecid": 177}}, {"when": "leave", "target": "Arm3.Rotate", "action": "Hold"}]},
+    "Arm[3].Rotate.PosLimitPos": {"onEnter": [{"svid": 31, "value": {"ecid": 171}}], "beforeComplete": [{"svid": 29, "value": {"ecid": 176}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Rotate", "action": "PosLimit", "value": {"ecid": 176}}, {"when": "beforeComplete", "target": "Arm3.Rotate", "action": "PosLimit", "value": {"ecid": 176}}, {"when": "leave", "target": "Arm3.Rotate", "action": "Hold"}]},
+    "Arm[3].Rotate.Noz1CenterPos": {"onEnter": [{"svid": 31, "value": {"ecid": 171}}], "beforeComplete": [{"svid": 29, "value": {"ecid": 179}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Rotate", "action": "Noz1Center", "value": {"ecid": 179}}, {"when": "beforeComplete", "target": "Arm3.Rotate", "action": "Noz1Center", "value": {"ecid": 179}}, {"when": "leave", "target": "Arm3.Rotate", "action": "Hold"}]},
+    "Arm[3].Rotate.Noz2CenterPos": {"onEnter": [{"svid": 31, "value": {"ecid": 171}}], "beforeComplete": [{"svid": 29, "value": {"ecid": 180}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Rotate", "action": "Noz2Center", "value": {"ecid": 180}}, {"when": "beforeComplete", "target": "Arm3.Rotate", "action": "Noz2Center", "value": {"ecid": 180}}, {"when": "leave", "target": "Arm3.Rotate", "action": "Hold"}]},
+    "Arm[3].Nozzle[1].ChemicalSupply": {"onEnter": [{"svid": 34, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 34, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Nozzle1", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm3.Nozzle1", "action": "Off"}]},
+    "Arm[3].Nozzle[2].ChemicalSupply": {"onEnter": [{"svid": 35, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 35, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Nozzle2", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm3.Nozzle2", "action": "Off"}]},
+    "Arm[4].Lift.TopPos": {"onEnter": [{"svid": 40, "value": {"ecid": 224}}], "beforeComplete": [{"svid": 38, "value": {"ecid": 230}}], "onLeave": [{"svid": 40, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm4.Lift", "action": "Top", "value": {"ecid": 230}}, {"when": "beforeComplete", "target": "Arm4.Lift", "action": "Top", "value": {"ecid": 230}}, {"when": "leave", "target": "Arm4.Lift", "action": "Hold"}]},
+    "Arm[4].Lift.DownPos": {"onEnter": [{"svid": 40, "value": {"ecid": 224}}], "beforeComplete": [{"svid": 38, "value": {"ecid": 231}}], "onLeave": [{"svid": 40, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm4.Lift", "action": "Down", "value": {"ecid": 231}}, {"when": "beforeComplete", "target": "Arm4.Lift", "action": "Down", "value": {"ecid": 231}}, {"when": "leave", "target": "Arm4.Lift", "action": "Hold"}]},
     "Arm[4].Rotate.JogPositive": {"onEnter": [{"svid": 41, "value": {"ecid": 234}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}]},
     "Arm[4].Rotate.JogNegative": {"onEnter": [{"svid": 41, "value": {"ecid": 234, "negate": true}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}]},
     "Arm[4].Rotate.IncrementalJog": {"onEnter": [{"svid": 41, "value": {"ecid": 233}}], "beforeComplete": [{"svid": 39, "value": {"addParam": "Position"}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}]},
-    "Arm[4].Rotate.NegLimitPos": {"onEnter": [{"svid": 41, "value": {"ecid": 233}}], "beforeComplete": [{"svid": 39, "value": {"ecid": 239}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}]},
-    "Arm[4].Rotate.PosLimitPos": {"onEnter": [{"svid": 41, "value": {"ecid": 233}}], "beforeComplete": [{"svid": 39, "value": {"ecid": 238}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}]},
-    "Arm[4].Rotate.Noz1CenterPos": {"onEnter": [{"svid": 41, "value": {"ecid": 233}}], "beforeComplete": [{"svid": 39, "value": {"ecid": 241}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}]},
-    "Arm[4].Nozzle[1].ChemicalSupply": {"onEnter": [{"svid": 43, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 43, "value": {"constant": 0}}]},
-    "FixedNozzle[1].ChemicalSupply": {"onEnter": [{"svid": 54, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 54, "value": {"constant": 0}}]},
-    "FixedNozzle[2].ChemicalSupply": {"onEnter": [{"svid": 55, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 55, "value": {"constant": 0}}]},
-    "FixedNozzle[3].ChemicalSupply": {"onEnter": [{"svid": 56, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 56, "value": {"constant": 0}}]},
-    "FixedNozzle[4].ChemicalSupply": {"onEnter": [{"svid": 57, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 57, "value": {"constant": 0}}]},
-    "Exhaust.Fan[1].SupplyFlowPID": {"onEnter": [{"svid": 59, "value": {"ecid": 365}}], "onLeave": [{"svid": 59, "value": {"constant": 0}}]},
-    "Exhaust.Fan[2].SupplyFlowPID": {"onEnter": [{"svid": 60, "value": {"ecid": 369}}], "onLeave": [{"svid": 60, "value": {"constant": 0}}]},
-    "Exhaust.Fan[3].SupplyFlowPID": {"onEnter": [{"svid": 61, "value": {"ecid": 373}}], "onLeave": [{"svid": 61, "value": {"constant": 0}}]},
-    "Exhaust.Fan[4].SupplyFlowPID": {"onEnter": [{"svid": 62, "value": {"ecid": 377}}], "onLeave": [{"svid": 62, "value": {"constant": 0}}]}
+    "Arm[4].Rotate.NegLimitPos": {"onEnter": [{"svid": 41, "value": {"ecid": 233}}], "beforeComplete": [{"svid": 39, "value": {"ecid": 239}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm4.Rotate", "action": "NegLimit", "value": {"ecid": 239}}, {"when": "beforeComplete", "target": "Arm4.Rotate", "action": "NegLimit", "value": {"ecid": 239}}, {"when": "leave", "target": "Arm4.Rotate", "action": "Hold"}]},
+    "Arm[4].Rotate.PosLimitPos": {"onEnter": [{"svid": 41, "value": {"ecid": 233}}], "beforeComplete": [{"svid": 39, "value": {"ecid": 238}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm4.Rotate", "action": "PosLimit", "value": {"ecid": 238}}, {"when": "beforeComplete", "target": "Arm4.Rotate", "action": "PosLimit", "value": {"ecid": 238}}, {"when": "leave", "target": "Arm4.Rotate", "action": "Hold"}]},
+    "Arm[4].Rotate.Noz1CenterPos": {"onEnter": [{"svid": 41, "value": {"ecid": 233}}], "beforeComplete": [{"svid": 39, "value": {"ecid": 241}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm4.Rotate", "action": "Noz1Center", "value": {"ecid": 241}}, {"when": "beforeComplete", "target": "Arm4.Rotate", "action": "Noz1Center", "value": {"ecid": 241}}, {"when": "leave", "target": "Arm4.Rotate", "action": "Hold"}]},
+    "Arm[4].Nozzle[1].ChemicalSupply": {"onEnter": [{"svid": 43, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 43, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm4.Nozzle1", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm4.Nozzle1", "action": "Off"}]},
+    "FixedNozzle[1].ChemicalSupply": {"onEnter": [{"svid": 54, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 54, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "FixedNozzle1", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "FixedNozzle1", "action": "Off"}]},
+    "FixedNozzle[2].ChemicalSupply": {"onEnter": [{"svid": 55, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 55, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "FixedNozzle2", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "FixedNozzle2", "action": "Off"}]},
+    "FixedNozzle[3].ChemicalSupply": {"onEnter": [{"svid": 56, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 56, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "FixedNozzle3", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "FixedNozzle3", "action": "Off"}]},
+    "FixedNozzle[4].ChemicalSupply": {"onEnter": [{"svid": 57, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 57, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "FixedNozzle4", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "FixedNozzle4", "action": "Off"}]},
+    "Exhaust.Fan[1].SupplyFlowPID": {"onEnter": [{"svid": 59, "value": {"ecid": 365}}], "onLeave": [{"svid": 59, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "ExhaustFan1", "action": "On", "value": {"ecid": 365}}, {"when": "leave", "target": "ExhaustFan1", "action": "Off"}]},
+    "Exhaust.Fan[2].SupplyFlowPID": {"onEnter": [{"svid": 60, "value": {"ecid": 369}}], "onLeave": [{"svid": 60, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "ExhaustFan2", "action": "On", "value": {"ecid": 369}}, {"when": "leave", "target": "ExhaustFan2", "action": "Off"}]},
+    "Exhaust.Fan[3].SupplyFlowPID": {"onEnter": [{"svid": 61, "value": {"ecid": 373}}], "onLeave": [{"svid": 61, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "ExhaustFan3", "action": "On", "value": {"ecid": 373}}, {"when": "leave", "target": "ExhaustFan3", "action": "Off"}]},
+    "Exhaust.Fan[4].SupplyFlowPID": {"onEnter": [{"svid": 62, "value": {"ecid": 377}}], "onLeave": [{"svid": 62, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "ExhaustFan4", "action": "On", "value": {"ecid": 377}}, {"when": "leave", "target": "ExhaustFan4", "action": "Off"}]}
   }
 }

@@ -43,6 +43,42 @@ internal sealed record ServiceBehaviorConfig
     public List<SvidWriteConfig?>? OnLeave { get; init; } = [];
 
     public ProcessConfig? Process { get; init; }
+
+    public List<SimConfig?>? Sim { get; init; } = [];
+}
+
+internal sealed record SimConfig
+{
+    private static readonly Dictionary<string, SimMoment> Moments = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["enter"] = SimMoment.Enter,
+        ["beforeComplete"] = SimMoment.BeforeComplete,
+        ["leave"] = SimMoment.Leave,
+    };
+
+    public string? When { get; init; }
+
+    public string? Target { get; init; }
+
+    public string? Action { get; init; }
+
+    public ValueConfig? Value { get; init; }
+
+    public string? DryRunAction { get; init; }
+
+    internal static readonly (Func<SimConfig, bool> Invalid, string Message)[] Rules =
+    [
+        (sim => sim.When is null || !Moments.ContainsKey(sim.When), "{0}: when must be enter, beforeComplete or leave."),
+        (sim => string.IsNullOrWhiteSpace(sim.Target), "{0}: target is empty."),
+        (sim => string.IsNullOrWhiteSpace(sim.Action), "{0}: action is empty."),
+        (sim => sim.DryRunAction is not null && string.IsNullOrWhiteSpace(sim.DryRunAction), "{0}: dryRunAction is empty."),
+        (sim => sim.Value is { } value && value.SourceCount() != 1, "{0}: value needs exactly one of constant, param and ecid."),
+        (sim => sim.Value?.AddParam is not null, "{0}: value cannot use addParam."),
+        (sim => sim.Value?.Param is not null && string.IsNullOrWhiteSpace(sim.Value.Param), "{0}: param is empty."),
+        (sim => sim.Value?.Constant is { } constant && !double.IsFinite(constant), "{0}: constant must be a finite number."),
+    ];
+
+    internal SimMoment Moment() => Moments[When!];
 }
 
 internal sealed record RangeConfig
@@ -360,8 +396,8 @@ internal static class ServiceBehaviorLoader
 
     private static void ValidateService(ServiceBehaviorConfig service, string where, string path)
     {
-        if (service.Ranges is null || service.OnEnter is null || service.BeforeComplete is null || service.OnLeave is null)
-            throw ModuleConfigPublisher.Fail(path, $"{where}: ranges, onEnter, beforeComplete and onLeave must not be null.");
+        if (service.Ranges is null || service.OnEnter is null || service.BeforeComplete is null || service.OnLeave is null || service.Sim is null)
+            throw ModuleConfigPublisher.Fail(path, $"{where}: ranges, onEnter, beforeComplete, onLeave and sim must not be null.");
         if (service.Duration is not null && string.IsNullOrWhiteSpace(service.Duration))
             throw ModuleConfigPublisher.Fail(path, $"{where}: duration is empty.");
 
@@ -370,6 +406,7 @@ internal static class ServiceBehaviorLoader
         ValidateEach(service.OnEnter, $"{where}.onEnter", SvidWriteConfig.Rules, path);
         ValidateEach(service.BeforeComplete, $"{where}.beforeComplete", SvidWriteConfig.Rules, path);
         ValidateEach(service.OnLeave, $"{where}.onLeave", SvidWriteConfig.Rules, path);
+        ValidateEach(service.Sim, $"{where}.sim", SimConfig.Rules, path);
     }
 
     private static void ValidateEach<T>(List<T?> items, string where, (Func<T, bool> Invalid, string Message)[] rules, string path, Action<T, string>? validateMore = null)
@@ -504,8 +541,12 @@ internal static class ServiceBehaviorLoader
                 BuildWrites(service.OnEnter!, param, $"{where}.onEnter"),
                 BuildWrites(service.BeforeComplete!, param, $"{where}.beforeComplete"),
                 BuildWrites(service.OnLeave!, param, $"{where}.onLeave"),
-                service.Process is null ? null : BuildProcess(service.Process, param, $"{where}.process"));
+                service.Process is null ? null : BuildProcess(service.Process, param, $"{where}.process"),
+                service.Sim!.Select((sim, index) => BuildSim(sim!, param, $"{where}.sim[{index + 1}]")).ToList());
         }
+
+        private SimAction BuildSim(SimConfig sim, string param, string where) =>
+            new(sim.Moment(), sim.Target!, sim.Action!, sim.Value is null ? null : BuildValue(sim.Value, param, where, targetIsReal: true), sim.DryRunAction);
 
         private ProcessBehavior BuildProcess(ProcessConfig process, string param, string where)
         {

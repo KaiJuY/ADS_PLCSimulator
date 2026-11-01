@@ -20,9 +20,21 @@ internal static class TestWait
 
 internal sealed class NoSimulation : ISimulationSink
 {
-    public void Invoke(string target, string action, object? value)
+    public void Invoke(string target, string action, object? value, int? durationMs = null)
     {
     }
+}
+
+internal sealed class RecordingSimulationSink : ISimulationSink
+{
+    private readonly ConcurrentQueue<SimCall> _calls = new();
+
+    public IReadOnlyList<SimCall> Calls => _calls.ToArray();
+
+    public void Invoke(string target, string action, object? value, int? durationMs = null) =>
+        _calls.Enqueue(new SimCall(target, action, value, durationMs));
+
+    internal readonly record struct SimCall(string Target, string Action, object? Value, int? DurationMs);
 }
 
 internal sealed class RecordingMonitor : IFlowMonitor
