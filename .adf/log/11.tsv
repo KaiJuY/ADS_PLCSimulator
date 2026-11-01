@@ -1,0 +1,10 @@
+time	stage	decision	why	evidence	result
+2026-11-01T12:16:34+08:00	A	grill 2 輪（Q1–Q4 yes、Q5 照 8 檔）；概念檢查 need 1 major（Q5 由 Allen 決定）、fit 1 blocker 3 major（state.js import api.js、循環規則、Running 儲存、不碰追蹤檔）皆補入 issue	-	gh issue 11	PASSED
+2026-11-01T12:16:34+08:00	B	1 unit U1（單一 implementer，依序搬移）＋ stage I CDP 比對；worktree ../_wt_11-split from e68200c；Gate 2/3 無 C# 改動行記為不適用	Allen 核准	-	PASSED
+2026-11-01T12:16:34+08:00	C	proposal：9 檔的內容、匯出、import 表；載入順序與循環規則；stage I 步驟（S10 觸發 live）；9 個 claim 全 VERIFIED（含 node 循環實驗）；與 issue 無衝突	-	.adf/proposals/11.md	PASSED
+2026-11-01T12:21:36+08:00	D+E	3 角度（existing-code 0、correctness 4 major 6 minor、comprehension 4 major 4 nit）；18 FIX、1 REBUT；judge READY	-	.adf/proposals/11.review.md	PASSED
+2026-11-01T12:25:59+08:00	F	U1 implementer 完成（2f0f747）：10 檔 ≤ 226 行；node --check、ESLint no-undef（main 與新版 0）、load-graph（main 與新版 OK，2 個反證失敗）；1223/1223；code review MERGE: yes	-	.adf/evidence/11/	PASSED
+2026-11-01T12:29:26+08:00	G	comment：8 個模組檔頭註解刪除（採納，與 proposal §2 不同，記 drift）；evidence 腳本註解保留（非產品碼，重跑需要用法）；cleanup 9 項皆為邏輯重整或既有重複，依 Q4 只搬移全部不採納	load-graph、node --check 重跑 OK	-	PASSED
+2026-11-01T12:33:15+08:00	H	gate 1 通過；gate 2／3 無 C# 改動行（0/0），Stryker 不適用；correctness 0 問題；structure 0 major、5 nit（採納明確 import variable.js：5127266；setDirty 位置、suggestSymbols 位置、canvas↔palette 循環記為後續；evidence 保留）；drift 4 項皆接受（proposal §11）	-	.adf/out、.adf/proposals/11.md §11	PASSED
+2026-11-01T12:33:48+08:00	I	CDP 比對 9 步：int/11（4ebd9ae、5127266）與 main 全部相同；Stopped 0 像素差異；console 0 錯誤；state.json 已還原、Split11Probe 已刪	-	.adf/scenarios/11.md、$TEMP/ev11	PASSED
+2026-11-01T16:23:43+08:00	J	合併 int/11 → main（8d6f1a5）；build 0 錯誤、測試 1223/1223；#11 已關閉、epic #2 勾選；移除 _wt_11-split、_wt_11-int、impl/11-split，保留 int/11；stage I 證據（cdp11.mjs、run11.sh、JSON、PNG）加入 .adf/evidence/11/；profile 補 CDP 比對方法與 1 條陷阱	Allen：合併並 push main	.adf/evidence/11/	PASSED
