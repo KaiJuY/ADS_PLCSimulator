@@ -1,0 +1,12 @@
+== main (C:\...\AdsPlcSimulator) editor.js, project.js
+exit 0
+== worktree: all .js in wwwroot/editor
+exit 0
+== sanity: rule fires on an undefined name
+
+C:\Users\AllenY\AppData\Local\Temp\claude\C--Users-AllenY-Desktop-WorkSpace-Git-AdsPlcSimulator\85b0aa18-e2e6-4e3e-9257-37bd47d34693\scratchpad\neg\neg.js
+  1:24  error  'missingName' is not defined  no-undef
+
+✖ 1 problem (1 error, 0 warnings)
+
+exit 1

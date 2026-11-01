@@ -1,0 +1,12 @@
+== main
+OK: module graph loaded from C:\Users\AllenY\Desktop\WorkSpace\Git\AdsPlcSimulator\src\AdsPlcSimulator.Host\wwwroot\editor
+exit 0
+== new split
+OK: module graph loaded from C:\Users\AllenY\Desktop\WorkSpace\Git\_wt_11-split\src\AdsPlcSimulator.Host\wwwroot\editor
+exit 0
+== negative: remove export from formatValue in live.js (temp copy)
+FAIL: SyntaxError: The requested module './live.js' does not provide an export named 'formatValue'
+exit 1
+== negative 2: swap TDZ-ish: top-level use of model const (findNode call at top of canvas.js)
+FAIL: ReferenceError: Cannot access 'findNode' before initialization
+exit 1
