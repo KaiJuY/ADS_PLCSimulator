@@ -53,3 +53,15 @@ export const els = {
   variableInput: $('variableInput'),
   variableError: $('variableError'),
 };
+
+export function setDirty(dirty) {
+  state.dirty = dirty;
+  if (dirty) return setSaveState('unsaved', 'warn');
+  if (state.diagnostics.length) return setSaveState(`${state.diagnostics.length} problem(s), not running`, 'error');
+  setSaveState('saved · running', 'ok');
+}
+
+export function setSaveState(text, kind) {
+  els.saveState.textContent = text;
+  els.saveState.className = `pill ${kind}`;
+}

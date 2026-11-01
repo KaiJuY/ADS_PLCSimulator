@@ -1,28 +1,8 @@
-import { state, els, MIN_GROUP_SIZE } from './state.js';
+import { state, els, MIN_GROUP_SIZE, setDirty } from './state.js';
 import { findNode, findGroup, isInsideGroup, linksTo, addLink } from './model.js';
-import { setDirty } from './editor.js';
 import { renderAll, placeGroupElement, drawWires, portCenter, wirePath } from './render.js';
 import { showQuickAdd, hideQuickAdd } from './palette.js';
-
-export function applyView() {
-  const { x, y, scale } = state.view;
-  els.layer.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
-  els.canvas.style.backgroundPosition = `${x}px ${y}px`;
-  els.canvas.style.backgroundSize = `${22 * scale}px ${22 * scale}px`;
-}
-
-export function screenToWorld(clientX, clientY) {
-  const rect = els.canvas.getBoundingClientRect();
-  return {
-    x: (clientX - rect.left - state.view.x) / state.view.scale,
-    y: (clientY - rect.top - state.view.y) / state.view.scale,
-  };
-}
-
-// A group's body is canvas too: it pans, takes right-clicks and accepts dropped wires.
-export function isBackground(target) {
-  return target === els.canvas || target === els.layer || target === els.wires || target?.classList.contains('group');
-}
+import { applyView, screenToWorld, isBackground } from './view.js';
 
 function startDrag(event, onMove, onEnd) {
   const move = (moveEvent) => onMove(moveEvent);

@@ -1,6 +1,5 @@
 import { api } from './api.js';
 import { els } from './state.js';
-import { suggestSymbols } from './render.js';
 import { formatValue } from './live.js';
 
 function showVariable(symbol) {
@@ -19,6 +18,20 @@ export async function readVariable() {
     showVariable(null);
     els.variableError.textContent = error.message;
   }
+}
+
+let symbolTimer;
+export function suggestSymbols(query) {
+  clearTimeout(symbolTimer);
+  symbolTimer = setTimeout(async () => {
+    const symbols = await api(`/api/symbols?limit=80&query=${encodeURIComponent(query)}`);
+    els.symbolOptions.replaceChildren(...symbols.map((symbol) => {
+      const option = document.createElement('option');
+      option.value = symbol.path;
+      option.label = symbol.type;
+      return option;
+    }));
+  }, 150);
 }
 
 els.variablePath.addEventListener('focus', () => suggestSymbols(els.variablePath.value));
