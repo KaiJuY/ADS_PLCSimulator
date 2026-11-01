@@ -1,5 +1,4 @@
-import { state, els, MAX_LOG_ENTRIES } from './state.js';
-import { setDirty } from './editor.js';
+import { state, els, MAX_LOG_ENTRIES, setDirty } from './state.js';
 import { renderAll } from './render.js';
 import { readVariable } from './variable.js';
 

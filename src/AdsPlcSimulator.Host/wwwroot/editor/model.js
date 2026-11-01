@@ -1,5 +1,4 @@
-import { state, NEW_GROUP_SIZE } from './state.js';
-import { setDirty } from './editor.js';
+import { state, NEW_GROUP_SIZE, setDirty } from './state.js';
 import { renderAll } from './render.js';
 
 export const findNode = (id) => state.doc.nodes.find((node) => node.id === id);

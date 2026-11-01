@@ -1,9 +1,8 @@
-import { api } from './api.js';
-import { state, els, CATEGORY_COLORS } from './state.js';
+import { state, els, CATEGORY_COLORS, setDirty } from './state.js';
 import { findNode, definitionOf, isLinked } from './model.js';
-import { setDirty } from './editor.js';
 import { decorateNode } from './live.js';
-import { applyView, screenToWorld } from './canvas.js';
+import { applyView, screenToWorld } from './view.js';
+import { suggestSymbols } from './variable.js';
 
 export function renderAll() {
   els.layer.querySelectorAll('.node, .group').forEach((element) => element.remove());
@@ -151,20 +150,6 @@ function createParamControl(node, param) {
   control.addEventListener('pointerdown', (event) => event.stopPropagation());
   control.addEventListener('keydown', (event) => event.stopPropagation());
   return control;
-}
-
-let symbolTimer;
-export function suggestSymbols(query) {
-  clearTimeout(symbolTimer);
-  symbolTimer = setTimeout(async () => {
-    const symbols = await api(`/api/symbols?limit=80&query=${encodeURIComponent(query)}`);
-    els.symbolOptions.replaceChildren(...symbols.map((symbol) => {
-      const option = document.createElement('option');
-      option.value = symbol.path;
-      option.label = symbol.type;
-      return option;
-    }));
-  }, 150);
 }
 
 export function portCenter(nodeId, dir, port) {
