@@ -1,34 +1,6 @@
 import { state, els, MAX_LOG_ENTRIES, setDirty } from './state.js';
-import { renderAll } from './render.js';
-import { readVariable } from './variable.js';
-
-export function formatValue(value) {
-  if (value === null || value === undefined) return 'null';
-  if (typeof value === 'boolean') return value ? 'TRUE' : 'FALSE';
-  if (typeof value === 'number') return Number.isInteger(value) ? String(value) : String(Number(value.toPrecision(6)));
-  if (typeof value === 'string') return `'${value}'`;
-  return JSON.stringify(value);
-}
-
-export function decorateNode(element, nodeId) {
-  const live = state.live.get(nodeId);
-  const diagnostic = state.diagnostics.find((item) => item.nodeId === nodeId);
-  element.classList.toggle('invalid', Boolean(diagnostic));
-  element.classList.toggle('running', live?.status === 'running');
-  element.classList.toggle('failed', live?.status === 'failed');
-  element.classList.toggle('has-run', live?.status === 'done');
-  const errorText = diagnostic?.message ?? (live?.status === 'failed' ? live.error : '');
-  element.querySelector('.node-error').textContent = errorText ?? '';
-  for (const valueElement of element.querySelectorAll('.value')) {
-    const outputs = live?.outputs ?? {};
-    const has = Object.prototype.hasOwnProperty.call(outputs, valueElement.dataset.port);
-    valueElement.hidden = !has;
-    if (has) {
-      valueElement.textContent = formatValue(outputs[valueElement.dataset.port]);
-      valueElement.title = valueElement.textContent;
-    }
-  }
-}
+import { renderAll, decorateNode } from './render.js';
+import { readVariable, formatValue } from './variable.js';
 
 function applyFlowEvent(event) {
   appendRunLog(event);
