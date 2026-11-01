@@ -4,7 +4,7 @@ import path from 'node:path';
 
 const dir = process.argv[2];
 const graph = new Map();
-const importPattern = /^\s*import\s+(?:[^'"]*?\s+from\s+)?'\.\/([^']+)\.js'/;
+const importPattern = /^\s*import\s+(?:[^'"]*?\s+from\s+)?['"]\.\/([^'"]+)\.js['"]/;
 for (const file of fs.readdirSync(dir).filter((name) => name.endsWith('.js'))) {
   const targets = [];
   for (const line of fs.readFileSync(path.join(dir, file), 'utf8').split(/\r?\n/)) {
