@@ -48,7 +48,7 @@ public sealed class LiveHub : IFlowMonitor, ISimulationSink
         Broadcast(new { type = "flow", @event = flowEvent });
     }
 
-    /// <summary>Hold is only sent: it means "stop where you are", and storing it would replace the last position name that a page needs after it reconnects.</summary>
+    /// <summary>Hold is broadcast but not kept in simState.</summary>
     public void Invoke(string target, string action, object? value, int? durationMs = null)
     {
         var command = new SimulationCommand(target, action, value, durationMs);

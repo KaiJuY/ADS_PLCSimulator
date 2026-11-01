@@ -86,13 +86,9 @@ public sealed partial class ServiceHost
     public void Initialize(ProcessImage image, ConfiguredAlarmTable configuredAlarms) =>
         Initialize(image, configuredAlarms, ServiceBehaviorTable.Empty);
 
-    /// <summary>The same as Initialize(image, configuredAlarms, behaviors, null).</summary>
-    public void Initialize(ProcessImage image, ConfiguredAlarmTable configuredAlarms, ServiceBehaviorTable behaviors) =>
-        Initialize(image, configuredAlarms, behaviors, null);
-
     /// <param name="simulation">Receives the sim actions of the behaviors; null = they are not sent.</param>
     /// <exception cref="ServiceHostException">A configured alarm source or a behavior path cannot be resolved.</exception>
-    public void Initialize(ProcessImage image, ConfiguredAlarmTable configuredAlarms, ServiceBehaviorTable behaviors, ISimulationSink? simulation)
+    public void Initialize(ProcessImage image, ConfiguredAlarmTable configuredAlarms, ServiceBehaviorTable behaviors, ISimulationSink? simulation = null)
     {
         lock (_lock)
         {
@@ -511,7 +507,7 @@ public sealed partial class ServiceHost
 
         service.Rules.WriteOnEnter(image, service.EntryDryRun);
         service.Process?.Resume(image, now);
-        service.Rules.Simulate(SimMoment.Enter, image, service.EntryDryRun, RunLength(service), _simulation);
+        service.Rules.Simulate(SimMoment.Enter, image, service.EntryDryRun, NaturalRunLengthMs(service), _simulation);
     }
 
     private void StartRun(ServiceUnit service, ProcessImage image, TimeSpan now, bool dryRun)
@@ -520,16 +516,18 @@ public sealed partial class ServiceHost
         service.Rules.WriteOnEnter(image, dryRun);
         if (service.ConfigParams is null)
             service.Process = service.Rules.StartProcess(image, now, dryRun);
-        service.Rules.Simulate(SimMoment.Enter, image, dryRun, RunLength(service), _simulation);
+        service.Rules.Simulate(SimMoment.Enter, image, dryRun, NaturalRunLengthMs(service), _simulation);
     }
 
-    // A run with a process or ConfigParams has no length the page could tween over.
-    private int? RunLength(ServiceUnit service)
+    private int? NaturalRunLengthMs(ServiceUnit service)
     {
-        if (service.Behavior != CompletionBehavior.NaturalCompletion || service.Process is not null || service.ConfigParams is not null)
+        if (!HasNaturalLength(service))
             return null;
         return (int)(service.EntryDuration ?? _defaultDelay).TotalMilliseconds;
     }
+
+    private static bool HasNaturalLength(ServiceUnit service) =>
+        service.Behavior == CompletionBehavior.NaturalCompletion && service.Process is null && service.ConfigParams is null;
 
     // The table covers only the Mode for a service without an entry, and only the Mode for an overridden service (a workflow owns its run).
     private static EntryCheck CheckEntry(ModuleUnit owner, ServiceUnit service, bool overridden, ProcessImage image, out bool dryRun)

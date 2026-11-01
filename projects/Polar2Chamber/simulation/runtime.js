@@ -45,25 +45,27 @@ function moveTo(t, goal, durationMs, now) {
 const goalOf = (table, action, index) => (action === "Hold" ? null : (index === undefined ? table[action] : table[action][index]));
 
 const HANDLERS = {
-  spin(entry, action, command, now) {
+  spin(entry, action, now) {
     const s = state.spin[entry.key];
     s.angle = spinAngle(s, now) % (Math.PI * 2);
     s.since = now;
     s.dir = action === "CW" ? 1 : action === "CCW" ? -1 : 0;
   },
-  cup(entry, action, command, now) {
+  cup(entry, action, now, command) {
     moveTo(state.cups[entry.index][entry.side], goalOf(CUP_RIM, action, entry.index), command.durationMs, now);
   },
-  lift(entry, action, command, now) {
+  lift(entry, action, now, command) {
     moveTo(state.lift[entry.index], goalOf(ARM_Z, action), command.durationMs, now);
   },
-  rotate(entry, action, command, now) {
+  rotate(entry, action, now, command) {
     moveTo(state.rotate[entry.index], goalOf(ARM_ROTATE_DEG, action), command.durationMs, now);
   },
   switch(entry, action) {
     state.active[entry.key] = action === "On";
   },
 };
+// A position keeps its last label when a command has no value (the leave Hold); a spin or switch shows nothing once it stops.
+const POSITION_TYPES = new Set(["cup", "lift", "rotate"]);
 const handlerOf = (type) => HANDLERS[type] ?? HANDLERS.switch;
 
 function formatLabel(value, unit) {
@@ -86,8 +88,10 @@ function apply(command, now) {
     reportUnknown(command ?? { target: "", action: "" });
     return;
   }
-  handlerOf(entry.type)(entry, action, command, now);
-  state.labels[entry.key] = formatLabel(command.value, entry.unit);
+  handlerOf(entry.type)(entry, action, now, command);
+  const label = formatLabel(command.value, entry.unit);
+  if (label === null && POSITION_TYPES.has(entry.type)) return;
+  state.labels[entry.key] = label;
 }
 
 const labelBlockNodes = labelBlocks().map((spec) => {
@@ -129,12 +133,11 @@ function update(id, key, make) {
   byId(id).innerHTML = make();
 }
 const show = (id, on) => { byId(id).style.display = on ? "" : "none"; };
-const fixed = (value) => String(value);
 
 function drawCups(now) {
   const rims = state.cups.map((cup) => [valueAt(cup.Slave, now), valueAt(cup.Master, now)]);
   rims.forEach(([west, east], index) => {
-    const key = fixed(west) + "," + fixed(east);
+    const key = `${west},${east}`;
     const id = "Cup" + (index + 1);
     if (drawn.get(id) === key) return;
     drawn.set(id, key);
@@ -148,9 +151,9 @@ function drawCups(now) {
 function drawFixed(rim) {
   FIXED_ANGLE_DEG.forEach((_, index) => {
     const id = "FixedNozzle" + (index + 1);
-    update(id + "-base", fixed(rim[0]) + "," + fixed(rim[1]), () => fixedNozzleParts(index, rim[0], rim[1]).base);
+    update(id + "-base", `${rim[0]},${rim[1]}`, () => fixedNozzleParts(index, rim[0], rim[1]).base);
     show(id + "-jet", state.active[id]);
-    if (state.active[id]) update(id + "-jet", fixed(rim[0]) + "," + fixed(rim[1]), () => fixedNozzleParts(index, rim[0], rim[1]).jet);
+    if (state.active[id]) update(id + "-jet", `${rim[0]},${rim[1]}`, () => fixedNozzleParts(index, rim[0], rim[1]).jet);
   });
 }
 
@@ -158,7 +161,7 @@ function drawArms(now) {
   CORNERS.forEach((_, index) => {
     const rotate = valueAt(state.rotate[index], now);
     const lift = valueAt(state.lift[index], now);
-    const key = fixed(rotate) + "," + fixed(lift);
+    const key = `${rotate},${lift}`;
     const id = "Arm" + (index + 1);
     update(id, key, () => armBodySvg(index, rotate, lift));
     for (let nozzle = 0; nozzle < NOZZLE_COUNT[index]; nozzle++) {
@@ -174,8 +177,8 @@ function drawArms(now) {
 function draw(now) {
   const holder = spinAngle(state.spin.Holder, now);
   const ring = spinAngle(state.spin.OutsideRing, now);
-  update("Holder", fixed(holder % (Math.PI * 2)), () => holderSvg(holder));
-  update("OutsideRing-ticks", fixed(ring % (Math.PI * 2)), () => ringTicksSvg(ring));
+  update("Holder", String(holder % (Math.PI * 2)), () => holderSvg(holder));
+  update("OutsideRing-ticks", String(ring % (Math.PI * 2)), () => ringTicksSvg(ring));
   drawFixed(drawCups(now));
   drawArms(now);
   EXHAUST_ANGLE_DEG.forEach((_, index) => show("ExhaustFan" + (index + 1) + "-flow", state.active["ExhaustFan" + (index + 1)]));
@@ -204,13 +207,14 @@ document.addEventListener("visibilitychange", refresh);
 const setStatus = (text) => { statusEl.textContent = text; };
 
 function onMessage(data) {
+  if (typeof data !== "object" || data === null) return;
   const now = performance.now();
   if (data.type === "project") {
     state = freshState();
     drawn.clear();
     setStatus(data.running ? String(data.name ?? "") : "Polar2 未執行");
   }
-  if (data.type === "simState") (data.commands ?? []).forEach((command) => apply({ ...command, durationMs: 0 }, now));
+  if (data.type === "simState") (Array.isArray(data.commands) ? data.commands : []).forEach((command) => apply({ ...command, durationMs: 0 }, now));
   if (data.type === "sim") apply(data.command, now);
   refresh();
 }

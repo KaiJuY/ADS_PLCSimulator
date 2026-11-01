@@ -238,7 +238,6 @@ internal sealed class ServiceRules
         return new ResolvedSim(action, source is null ? null : ModuleRules.Resolve(symbols, source));
     }
 
-    /// <summary>Sends the sim actions of one moment in list order; the sink must not throw.</summary>
     public void Simulate(SimMoment moment, ProcessImage image, bool dryRun, int? durationMs, ISimulationSink sink)
     {
         foreach (ResolvedSim sim in _sims.Where(sim => sim.Action.When == moment))
