@@ -1,6 +1,13 @@
 import { api } from './api.js';
 import { els } from './state.js';
-import { formatValue } from './live.js';
+
+export function formatValue(value) {
+  if (value === null || value === undefined) return 'null';
+  if (typeof value === 'boolean') return value ? 'TRUE' : 'FALSE';
+  if (typeof value === 'number') return Number.isInteger(value) ? String(value) : String(Number(value.toPrecision(6)));
+  if (typeof value === 'string') return `'${value}'`;
+  return JSON.stringify(value);
+}
 
 function showVariable(symbol) {
   els.variableType.textContent = symbol ? symbol.type : '';

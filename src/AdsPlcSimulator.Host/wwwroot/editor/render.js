@@ -1,8 +1,7 @@
 import { state, els, CATEGORY_COLORS, setDirty } from './state.js';
-import { findNode, definitionOf, isLinked } from './model.js';
-import { decorateNode } from './live.js';
+import { findNode, definitionOf, isLinked } from './lookup.js';
 import { applyView, screenToWorld } from './view.js';
-import { suggestSymbols } from './variable.js';
+import { suggestSymbols, formatValue } from './variable.js';
 
 export function renderAll() {
   els.layer.querySelectorAll('.node, .group').forEach((element) => element.remove());
@@ -53,6 +52,26 @@ function createNodeElement(node) {
 
   decorateNode(element, node.id);
   return element;
+}
+
+export function decorateNode(element, nodeId) {
+  const live = state.live.get(nodeId);
+  const diagnostic = state.diagnostics.find((item) => item.nodeId === nodeId);
+  element.classList.toggle('invalid', Boolean(diagnostic));
+  element.classList.toggle('running', live?.status === 'running');
+  element.classList.toggle('failed', live?.status === 'failed');
+  element.classList.toggle('has-run', live?.status === 'done');
+  const errorText = diagnostic?.message ?? (live?.status === 'failed' ? live.error : '');
+  element.querySelector('.node-error').textContent = errorText ?? '';
+  for (const valueElement of element.querySelectorAll('.value')) {
+    const outputs = live?.outputs ?? {};
+    const has = Object.prototype.hasOwnProperty.call(outputs, valueElement.dataset.port);
+    valueElement.hidden = !has;
+    if (has) {
+      valueElement.textContent = formatValue(outputs[valueElement.dataset.port]);
+      valueElement.title = valueElement.textContent;
+    }
+  }
 }
 
 function createGroupElement(group) {
