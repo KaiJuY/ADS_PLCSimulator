@@ -1,0 +1,10 @@
+time	stage	decision	why	evidence	result
+2026-11-01T22:47:56+08:00	A	grill 1 輪（Q1–Q5 yes）；概念檢查 need 0 blocker 2 minor 2 nit（寫明可達性檢查與 cycles.mjs 位置、lookup.js import 限制）；fit 尚未回報時 Allen 指示建立，fit 結果併入 stage C；建立 #21、加入 epic #2	Allen：yes、建立	https://github.com/KaiJuY/ADS_PLCSimulator/issues/21	PASSED
+2026-11-01T22:51:00+08:00	B	1 unit U1（消除循環，6 檔＋cycles.mjs，單一 implementer）；worktree ../_wt_21-acyclic from 8433291；stage I 自寫 cdp-acyclic.mjs；C、D+E 不跳過；Gate 2/3 無 C# 改動行記為不適用；fit 3 major 已併入 issue	Allen 核准	-	PASSED
+2026-11-01T22:52:24+08:00	C	proposal：3 段搬移的來源行與位置、6 檔完整 import 區塊（canvas.js 第 2 行拆兩行）、新舊求值順序、main 4 個環的預期反證、cycles.mjs 規格、stage I 加 liveValues 與 10c（完整 scalar 路徑，值須非空）；8 個 claim VERIFIED；與 issue 無衝突	-	.adf/proposals/21.md	PASSED
+2026-11-01T22:57:03+08:00	D+E	3 角度（existing-code 3 nit、correctness 2 major 4 minor、comprehension 3 major 5 minor 5 nit）；FIX 21、REBUT 2；judge round 1 NOT READY（J-M1 model.js 範圍應為 4-11、8 行）→ 修正後只重跑 judge；round 2 READY	-	.adf/proposals/21.review.md	PASSED
+2026-11-01T22:59:49+08:00	F	U1 implementer 完成（0535aa3）：6 檔 src +45/-44、cycles.mjs；node --check、ESLint 0、load-graph OK、依賴 grep 與可達性無輸出；cycles.mjs 新版 0、base 4（與 §4 相同）；逐位元組 3 段 OK；非 moved 行只有 import 與空行；1223/1223；code review MERGE: yes	-	.adf/evidence/21/	PASSED
+2026-11-01T23:01:49+08:00	G	cleanup 0 項；comment：cycles.mjs 第 1 行用法註解 KEEP（proposal §2 要求、記錄工具限制）；src 無註解變動	-	-	PASSED
+2026-11-01T23:05:43+08:00	H	gate 1 通過；gate 2／3 無 C# 改動行（0/0）；correctness 0 Critical/High/Medium、2 Low（採納 cycles.mjs 接受雙引號：4d68402，加反證；註解誤判已揭露不改）；structure 0 major、2 nit 不採納（Q3、issue 指定 6 函式）；drift 0 差異	-	.adf/out/gate-20261101-230149	PASSED
+2026-11-01T23:05:43+08:00	I	CDP 比對：main 2 次與 int/21 2 次 18 欄全部相同；liveValues 4 項、variableRead=2；console 0；Stopped 第一次 int21 有 8 像素 RGB±1 反鋸齒雜訊，重跑 int21b 0 差異；proposal §11 記 3 項 drift（皆接受）	-	.adf/scenarios/21.md	PASSED
+2026-11-01T23:07:48+08:00	J	合併 int/21 → main（8883468）；build 0 錯誤、測試 1223/1223；#21 已關閉、epic #2 勾選；移除 _wt_21-acyclic、_wt_21-int、impl/21-acyclic，保留 int/21；stage I 證據（cdp-acyclic.mjs、run-acyclic.sh、4 次 JSON 與 PNG）加入 .adf/evidence/21/；profile 改指向 run-acyclic.sh，循環規則改為 cycles.mjs 檢查，加截圖雜訊說明	Allen：合併並 push main	.adf/evidence/21/	PASSED
