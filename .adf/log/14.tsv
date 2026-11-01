@@ -1,0 +1,8 @@
+time	stage	decision	why	evidence	result
+2026-11-01T23:15:54+08:00	A	issue 已存在（#13 stage H 開立）；重現：暫時測試顯示 17 MOD 5 = 2、MOD 0 與 / 0 照常 division by zero → bug 不存在（C# pattern `is "/" or "MOD"` 的 or 只作用於 pattern）	Allen：加測試再關閉	暫時測試 ModProbe14（已刪）	PASSED
+2026-11-01T23:15:54+08:00	B/C/D+E	跳過：只在 ConstantTests.cs 加 3 個回歸測試，一個檔案、測試明確（flow 小改動規則）	-	-	SKIPPED
+2026-11-01T23:17:37+08:00	F	U1 由 owner 直接寫（3 個測試，27 行）：ConstantTests 加 Remainder（17 MOD 5 = 2）與陣列上界 MOD 0、/ 0 建置失敗；1226/1226；負控制（407 行改成錯誤優先順序）新測試失敗；code review MERGE: yes	-	ee12137	PASSED
+2026-11-01T23:20:26+08:00	G	cleanup／comment reviewer 不派：diff 只有 27 行測試、沒有註解、沒有刪除（owner 檢查）	-	b628c0c	PASSED
+2026-11-01T23:20:26+08:00	H	gate 1 通過（1226）；gate 2／3 無產品碼改動行（0/0）；correctness／structure reviewer 不派：沒有產品碼，code review 已檢查測試；drift 不適用（stage C 跳過）	-	.adf/out	PASSED
+2026-11-01T23:20:26+08:00	I	不適用：沒有行為變更；行為已由 stage A 暫時測試與新測試驗證	-	-	SKIPPED
+2026-11-01T23:21:54+08:00	J	合併 int/14 → main（7757051）；build 0 錯誤、測試 1226/1226；#14 已關閉（bug 不存在）；移除 _wt_14-tests、_wt_14-int、impl/14-tests，保留 int/14；profile 測試數 1226、加 1 條陷阱	Allen：合併並 push main	-	PASSED

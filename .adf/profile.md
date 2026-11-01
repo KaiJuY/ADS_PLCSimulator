@@ -12,7 +12,7 @@ The scripts read `.adf/profile.json`. Keep both files in step.
 | Target frameworks | net9.0 (all three projects) |
 | Main framework (development gates) | net9.0 |
 | Release frameworks | net9.0 |
-| Expected test count | 1223 on 2026-11-01 (net9.0; #9) |
+| Expected test count | 1226 on 2026-11-01 (net9.0; #14) |
 | Full suite time | about 1 minute with coverage (net9.0) |
 
 ## Known load-dependent tests
@@ -46,6 +46,7 @@ The scripts read `.adf/profile.json`. Keep both files in step.
 - `projects/**` (sample PLC project data and the generated simulation page)
 
 ## Project traps
+- 2026-11-01: In C#, `x is "/" or "MOD"` binds `or` inside the pattern, so `y == 0 && op is "/" or "MOD"` means `y == 0 && (op is "/" or "MOD")`. #14 was opened on the wrong reading; check pattern combinators before reporting a precedence bug.
 - 2026-11-01: Editor modules with top-level side effects (`canvas.js`, `variable.js`) are loaded only by an import; after moving exports out of such a module, keep a bare `import './x.js'` in `editor.js`. load-graph and console errors do not catch a module that is never loaded (the canvas simply stops reacting); the reachability loop in `.adf/proposals/20.md` §6.2 and the CDP comparison do (#20).
 - 2026-11-01: The Editor gives a new node the id of the last type segment plus a number (`trigger.onStart` → `onStart1`, `flow.delay` → `delay1`). The Editor module graph has no import cycles since #21; after changing Editor imports, run `node .adf/evidence/21/cycles.mjs src/AdsPlcSimulator.Host/wwwroot/editor` in stage F (must print `cycles: 0`), plus ESLint (`.adf/evidence/20/eslint.config.mjs`) and `.adf/evidence/11/load-graph.mjs`. Headless Edge screenshots can differ by a few anti-aliased pixels (RGB ±1) between runs of the same code; on a small pixel diff, run that side again before calling it a regression (#21). Back up and restore `%LOCALAPPDATA%\AdsPlcSimulator\state.json` around a browser run; Run writes `lastProject`.
 - 2026-10-30: Polar2Chamber sets `MaxConfigParamPerModule` to 500 (real PLC: 300), so `Chamber_Control` is 12966720 bytes and offsets differ from 854; use symbol names, not fixed offsets. Run publishes `config/module-config.json` before the workflows start (64 SVIDs, 438 ECIDs for slot 1); an invalid config fails the Run (#7).
