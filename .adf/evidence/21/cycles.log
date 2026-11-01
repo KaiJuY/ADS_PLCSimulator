@@ -1,0 +1,15 @@
+== new
+cycles: 0
+exit 0
+== base 8433291
+live -> render -> live
+live -> render -> variable -> live
+live -> variable -> live
+model -> render -> model
+cycles: 4
+exit 1
+== negative: copy of new with a double-quoted import added to variable.js (from "./live.js")
+live -> render -> variable -> live
+live -> variable -> live
+cycles: 2
+exit 1

@@ -1,5 +1,6 @@
 import { state, els, MIN_GROUP_SIZE, setDirty } from './state.js';
-import { findNode, findGroup, isInsideGroup, linksTo, addLink } from './model.js';
+import { findNode, findGroup, isInsideGroup, linksTo } from './lookup.js';
+import { addLink } from './model.js';
 import { renderAll, placeGroupElement, drawWires, portCenter, wirePath } from './render.js';
 import { showQuickAdd, hideQuickAdd } from './palette.js';
 import { applyView, screenToWorld, isBackground } from './view.js';

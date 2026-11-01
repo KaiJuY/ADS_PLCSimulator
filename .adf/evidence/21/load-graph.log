@@ -1,0 +1,13 @@
+OK: module graph loaded from C:\Users\AllenY\Desktop\WorkSpace\Git\_wt_21-acyclic\src\AdsPlcSimulator.Host\wwwroot\editor
+== deps greps (cwd wwwroot/editor)
+-- live.js import in variable/render:
+-- model.js import in render/lookup:
+-- lookup imports:
+1:import { state } from './state.js';
+-- reachability:
+(end)
+== byte check (CR ignored)
+live.js:5-11 in variable.js: OK
+live.js:13-31 in render.js: OK
+model.js:4-11 in lookup.js: OK
+== git diff --color-moved=zebra 8433291 (index): non-moved +/- lines other than blank are import lines only (checked by script: 14 import lines, 0 others)
