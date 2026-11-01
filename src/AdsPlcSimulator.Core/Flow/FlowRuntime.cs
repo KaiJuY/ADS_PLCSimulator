@@ -94,7 +94,7 @@ public sealed class FlowRuntime : IAsyncDisposable
         _hostedTasks[taskId] = Task.Run(async () =>
         {
             string name = workflow.Compiled.Name;
-            var context = new HostedNodeContext(_services.Image, Registry, name);
+            var context = new HostedNodeContext(_services.Image, Registry, name, _services.Simulation);
             try
             {
                 await ((HostedNode)node.Node).RunAsync(context, workflow.Cancellation);

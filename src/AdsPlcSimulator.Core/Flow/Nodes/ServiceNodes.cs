@@ -35,7 +35,7 @@ public sealed class ServiceHostNode : HostedNode
         context.Registry.Register(context.Workflow, _host);
         try
         {
-            _host.Initialize(context.Image, context.Registry.ConfiguredAlarms, context.Registry.ServiceBehaviors);
+            _host.Initialize(context.Image, context.Registry.ConfiguredAlarms, context.Registry.ServiceBehaviors, context.Simulation);
             long start = TimeProvider.System.GetTimestamp();
             using var timer = new PeriodicTimer(ServiceHost.ScanInterval);
             while (await timer.WaitForNextTickAsync(cancellation))

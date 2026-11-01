@@ -37,5 +37,6 @@ public interface IFlowMonitor
 /// <summary>Receives commands for the visual simulation, e.g. target "Chamber1.Door", action "Open".</summary>
 public interface ISimulationSink
 {
-    void Invoke(string target, string action, object? value);
+    /// <param name="durationMs">How long the action takes in milliseconds; null = the source does not know. An implementation must not throw: the caller does not catch.</param>
+    void Invoke(string target, string action, object? value, int? durationMs = null);
 }

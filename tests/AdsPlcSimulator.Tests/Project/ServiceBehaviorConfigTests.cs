@@ -392,9 +392,25 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         { Json("""{ "Plain": {} }"""), "is UDINT, not ST_ServiceCtrl" },
         { Json("""{ "A": null }"""), "services.A is null" },
         { Json("""{ "A": {}, "a": {} }"""), "appears more than once" },
-        { Json("""{ "A": { "ranges": null } }"""), "ranges, onEnter, beforeComplete and onLeave must not be null" },
+        { Json("""{ "A": { "ranges": null } }"""), "ranges, onEnter, beforeComplete, onLeave and sim must not be null" },
         { Json("""{ "A": { "onEnter": null } }"""), "must not be null" },
         { Json("""{ "A": { "onEnter": [ null ] } }"""), "services.A.onEnter[1] is null" },
+        { Json("""{ "A": { "sim": null } }"""), "sim must not be null" },
+        { Json("""{ "A": { "sim": [ null ] } }"""), "services.A.sim[1] is null" },
+        { Json("""{ "A": { "sim": [ { "when": "later", "target": "T", "action": "X" } ] } }"""), "services.A.sim[1]: when must be enter, beforeComplete or leave" },
+        { Json("""{ "A": { "sim": [ { "target": "T", "action": "X" } ] } }"""), "services.A.sim[1]: when must be" },
+        { Json("""{ "A": { "sim": [ { "when": "enter", "target": " ", "action": "X" } ] } }"""), "services.A.sim[1]: target is empty" },
+        { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "" } ] } }"""), "services.A.sim[1]: action is empty" },
+        { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "X" }, { "when": "leave", "target": "T", "action": "X", "value": { "constant": 1, "param": "Speed" } } ] } }"""), "services.A.sim[2]: value needs exactly one of constant, param and ecid" },
+        { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "X", "value": { } } ] } }"""), "services.A.sim[1]: value needs exactly one" },
+        { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "X", "value": { "addParam": "Speed" } } ] } }"""), "services.A.sim[1]: value cannot use addParam" },
+        { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "X", "value": { "param": " " } } ] } }"""), "services.A.sim[1]: param is empty" },
+        { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "X", "dryRunAction": " " } ] } }"""), "services.A.sim[1]: dryRunAction is empty" },
+        { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "X", "label": 1 } ] } }"""), "invalid JSON" },
+        { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "X", "value": { "ecid": 99 } } ] } }"""), "services.A.sim[1]: ECID 99 is not in module-config.json" },
+        { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "X", "value": { "ecid": 12 } } ] } }"""), "services.A.sim[1]: ECID 12 is BOOL, not DINT or REAL" },
+        { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "X", "value": { "param": "Nope" } } ] } }"""), "services.A.sim[1]: cannot resolve" },
+        { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "X", "value": { "param": "Flag" } } ] } }"""), "services.A.sim[1]: ServiceParam.A.Flag is BOOL, not an integer or REAL" },
         { Json("""{ "A": { "ranges": [ { "field": "Nope", "min": 1, "max": 2 } ] } }"""), "services.A: cannot resolve" },
         { Json("""{ "A": { "ranges": [ { "field": "Time", "min": 1, "max": 2 } ] } }"""), "TIME, not an integer or REAL" },
         { Json("""{ "A": { "ranges": [ { "field": "Big", "min": 1, "max": 2 } ] } }"""), "ULINT, not an integer or REAL" },
@@ -678,5 +694,40 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         var exception = Assert.Throws<ModuleConfigException>(() => ServiceBehaviorLoader.Parse("null", Path));
 
         Assert.Contains("the file is empty", exception.Message);
+    }
+
+    [Fact]
+    [Trait("AC", "1")]
+    public void A_sim_list_is_built_with_the_moment_the_value_source_and_the_dry_run_action()
+    {
+        string json = Json("""
+            { "A": { "sim": [
+                { "when": "ENTER", "target": "Holder", "action": "CW", "value": { "ecid": 10 } },
+                { "when": "beforeComplete", "target": "Holder", "action": "CW", "value": { "param": "Speed", "negate": true } },
+                { "when": "leave", "target": "Holder", "action": "Stop" },
+                { "when": "enter", "target": "Nozzle", "action": "On", "value": { "constant": 1.5 }, "dryRunAction": "Off" } ] },
+              "B": {} }
+            """);
+
+        IReadOnlyDictionary<string, ServiceBehavior> services = Module(json).Services;
+
+        Assert.Equal(
+            [
+                new SimAction(SimMoment.Enter, "Holder", "CW", new SvidValue(SvidValueKind.Ecid, 0, "ModuleConfigParamList[1].Value", false), null),
+                new SimAction(SimMoment.BeforeComplete, "Holder", "CW", new SvidValue(SvidValueKind.Param, 0, "Speed", true), null),
+                new SimAction(SimMoment.Leave, "Holder", "Stop", null, null),
+                new SimAction(SimMoment.Enter, "Nozzle", "On", new SvidValue(SvidValueKind.Constant, 1.5, null, false), "Off"),
+            ],
+            services["A"].Sim);
+    }
+
+    [Fact]
+    [Trait("AC", "1")]
+    public void A_service_without_sim_has_an_empty_sim_list()
+    {
+        IReadOnlyDictionary<string, ServiceBehavior> services = Module(Json("""{ "B": { "onLeave": [] } }""")).Services;
+
+        Assert.NotNull(services["B"].Sim);
+        Assert.Empty(services["B"].Sim!);
     }
 }

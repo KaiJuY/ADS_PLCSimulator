@@ -1,4 +1,5 @@
 using System.Globalization;
+using AdsPlcSimulator.Core.Flow;
 using AdsPlcSimulator.Core.PackML.ConfigParam;
 using AdsPlcSimulator.Core.Plc;
 
@@ -100,6 +101,7 @@ internal sealed class ServiceRules
     private readonly List<ResolvedWrite> _beforeComplete;
     private readonly List<ResolvedWrite> _onLeave;
     private readonly ProcessRules? _process;
+    private readonly List<ResolvedSim> _sims;
 
     // Stryker disable once Block: ServiceRules.None is a static instance created once per test process, so the per-test mutant switch of Stryker cannot reach this constructor
     private ServiceRules()
@@ -108,11 +110,13 @@ internal sealed class ServiceRules
         _onEnter = [];
         _beforeComplete = [];
         _onLeave = [];
+        _sims = [];
     }
 
     private ServiceRules(
         List<ResolvedRange> ranges, SymbolRef? duration, string? durationField,
-        List<ResolvedWrite> onEnter, List<ResolvedWrite> beforeComplete, List<ResolvedWrite> onLeave, ProcessRules? process)
+        List<ResolvedWrite> onEnter, List<ResolvedWrite> beforeComplete, List<ResolvedWrite> onLeave, ProcessRules? process,
+        List<ResolvedSim> sims)
     {
         _ranges = ranges;
         _duration = duration;
@@ -121,9 +125,12 @@ internal sealed class ServiceRules
         _beforeComplete = beforeComplete;
         _onLeave = onLeave;
         _process = process;
+        _sims = sims;
     }
 
     private sealed record ResolvedWrite(SymbolRef Target, SvidWrite Write, SymbolRef? Source);
+
+    private sealed record ResolvedSim(SimAction Action, SymbolRef? Source);
 
     // Min and Max are the bounds as the field type holds them: a REAL field compares against float bounds.
     private sealed record ResolvedRange(SymbolRef Symbol, ParamRange Range, bool IsInteger, double Min, double Max);
@@ -141,7 +148,8 @@ internal sealed class ServiceRules
             ResolveAll(behavior.OnEnter),
             ResolveAll(behavior.BeforeComplete),
             ResolveAll(behavior.OnLeave),
-            behavior.Process is null ? null : ProcessRules.Create(symbols, modulePath, param, behavior.Process));
+            behavior.Process is null ? null : ProcessRules.Create(symbols, modulePath, param, behavior.Process),
+            (behavior.Sim ?? []).Select(action => ResolveSim(symbols, modulePath, param, action)).ToList());
     }
 
     public EntryCheck CheckParams(ProcessImage image)
@@ -217,6 +225,44 @@ internal sealed class ServiceRules
             _ => null,
         };
         return new ResolvedWrite(target, write, source is null ? null : ModuleRules.Resolve(symbols, source));
+    }
+
+    private static ResolvedSim ResolveSim(SymbolTable symbols, string modulePath, string param, SimAction action)
+    {
+        string? source = action.Value?.Kind switch
+        {
+            SvidValueKind.Param => $"{param}.{action.Value.Source}",
+            SvidValueKind.Ecid => $"{modulePath}.{action.Value.Source}",
+            _ => null,
+        };
+        return new ResolvedSim(action, source is null ? null : ModuleRules.Resolve(symbols, source));
+    }
+
+    /// <summary>Sends the sim actions of one moment in list order; the sink must not throw.</summary>
+    public void Simulate(SimMoment moment, ProcessImage image, bool dryRun, int? durationMs, ISimulationSink sink)
+    {
+        foreach (ResolvedSim sim in _sims.Where(sim => sim.Action.When == moment))
+        {
+            bool swapped = dryRun && sim.Action.DryRunAction is not null;
+            string action = swapped ? sim.Action.DryRunAction! : sim.Action.Action;
+            sink.Invoke(sim.Action.Target, action, swapped ? null : SimValue(sim, image), durationMs);
+        }
+    }
+
+    private static double? SimValue(ResolvedSim sim, ProcessImage image)
+    {
+        if (sim.Action.Value is not { } value)
+            return null;
+
+        double number = value.Kind switch
+        {
+            SvidValueKind.Param => PlcValue.ToDouble(image.ReadValue(sim.Source!.Value)),
+            SvidValueKind.Ecid => ParseNumber((string)image.ReadValue(sim.Source!.Value)),
+            _ => value.Constant,
+        };
+        if (!double.IsFinite(number))
+            return null;
+        return value.Negate && number != 0 ? -number : number;
     }
 
     private static void WriteAll(List<ResolvedWrite> writes, ProcessImage image, bool dryRun)

@@ -36,7 +36,7 @@ public abstract class HostedNode : RuntimeNode
     public abstract Task RunAsync(HostedNodeContext context, CancellationToken cancellation);
 }
 
-public sealed record HostedNodeContext(ProcessImage Image, ServiceHostRegistry Registry, string Workflow);
+public sealed record HostedNodeContext(ProcessImage Image, ServiceHostRegistry Registry, string Workflow, ISimulationSink? Simulation = null);
 
 /// <summary>A node that needs the runtime's registry; FlowRuntime.Load calls Attach before the workflow starts.</summary>
 public interface IRegistryAware
