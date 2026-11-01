@@ -25,6 +25,9 @@ public sealed partial class ServiceHost
 
     private const uint AliveTimeoutErrorId = 940;
 
+    // BeforeComplete arrives at once (0 ms); Leave passes null because it has no length.
+    private const int SnapDurationMs = 0;
+
     private static long s_generationCounter;
 
     private readonly Lock _lock = new();
@@ -420,7 +423,7 @@ public sealed partial class ServiceHost
             return false;
 
         service.Rules.WriteBeforeComplete(image, service.EntryDryRun);
-        service.Rules.Simulate(SimMoment.BeforeComplete, image, service.EntryDryRun, 0, _simulation);
+        service.Rules.Simulate(SimMoment.BeforeComplete, image, service.EntryDryRun, SnapDurationMs, _simulation);
         return true;
     }
 

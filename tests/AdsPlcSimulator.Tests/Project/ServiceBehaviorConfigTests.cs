@@ -403,6 +403,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "" } ] } }"""), "services.A.sim[1]: action is empty" },
         { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "X" }, { "when": "leave", "target": "T", "action": "X", "value": { "constant": 1, "param": "Speed" } } ] } }"""), "services.A.sim[2]: value needs exactly one of constant, param and ecid" },
         { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "X", "value": { } } ] } }"""), "services.A.sim[1]: value needs exactly one" },
+        { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "X", "value": { "constant": 1, "addParam": "Speed" } } ] } }"""), "services.A.sim[1]: value cannot use addParam" },
         { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "X", "value": { "addParam": "Speed" } } ] } }"""), "services.A.sim[1]: value cannot use addParam" },
         { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "X", "value": { "param": " " } } ] } }"""), "services.A.sim[1]: param is empty" },
         { Json("""{ "A": { "sim": [ { "when": "enter", "target": "T", "action": "X", "dryRunAction": " " } ] } }"""), "services.A.sim[1]: dryRunAction is empty" },

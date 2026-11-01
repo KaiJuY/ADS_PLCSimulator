@@ -218,25 +218,22 @@ internal sealed class ServiceRules
     private static ResolvedWrite ResolveWrite(SymbolTable symbols, string modulePath, string param, SvidWrite write)
     {
         SymbolRef target = ModuleRules.Resolve(symbols, $"{modulePath}.{write.Target}");
-        string? source = write.Value.Kind switch
-        {
-            SvidValueKind.Param or SvidValueKind.AddParam => $"{param}.{write.Value.Source}",
-            SvidValueKind.Ecid => $"{modulePath}.{write.Value.Source}",
-            _ => null,
-        };
+        string? source = SourcePath(write.Value, modulePath, param);
         return new ResolvedWrite(target, write, source is null ? null : ModuleRules.Resolve(symbols, source));
     }
 
     private static ResolvedSim ResolveSim(SymbolTable symbols, string modulePath, string param, SimAction action)
     {
-        string? source = action.Value?.Kind switch
-        {
-            SvidValueKind.Param => $"{param}.{action.Value.Source}",
-            SvidValueKind.Ecid => $"{modulePath}.{action.Value.Source}",
-            _ => null,
-        };
+        string? source = action.Value is null ? null : SourcePath(action.Value, modulePath, param);
         return new ResolvedSim(action, source is null ? null : ModuleRules.Resolve(symbols, source));
     }
+
+    private static string? SourcePath(SvidValue value, string modulePath, string param) => value.Kind switch
+    {
+        SvidValueKind.Param or SvidValueKind.AddParam => $"{param}.{value.Source}",
+        SvidValueKind.Ecid => $"{modulePath}.{value.Source}",
+        _ => null,
+    };
 
     public void Simulate(SimMoment moment, ProcessImage image, bool dryRun, int? durationMs, ISimulationSink sink)
     {

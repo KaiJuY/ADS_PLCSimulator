@@ -72,10 +72,8 @@ internal sealed record SimConfig
         (sim => string.IsNullOrWhiteSpace(sim.Target), "{0}: target is empty."),
         (sim => string.IsNullOrWhiteSpace(sim.Action), "{0}: action is empty."),
         (sim => sim.DryRunAction is not null && string.IsNullOrWhiteSpace(sim.DryRunAction), "{0}: dryRunAction is empty."),
-        (sim => sim.Value is { } value && value.SourceCount() != 1, "{0}: value needs exactly one of constant, param and ecid."),
         (sim => sim.Value?.AddParam is not null, "{0}: value cannot use addParam."),
-        (sim => sim.Value?.Param is not null && string.IsNullOrWhiteSpace(sim.Value.Param), "{0}: param is empty."),
-        (sim => sim.Value?.Constant is { } constant && !double.IsFinite(constant), "{0}: constant must be a finite number."),
+        (sim => sim.Value is { } value && value.SourceCount() != 1, "{0}: value needs exactly one of constant, param and ecid."),
     ];
 
     internal SimMoment Moment() => Moments[When!];
@@ -111,9 +109,6 @@ internal sealed record SvidWriteConfig
         (write => write.Svid == 0, "{0}: svid must be greater than 0."),
         (write => write.Value is null, "{0}: value is missing."),
         (write => write.Value!.SourceCount() != 1, "{0}: value needs exactly one of constant, param, ecid and addParam."),
-        (write => write.Value!.Param is not null && string.IsNullOrWhiteSpace(write.Value.Param), "{0}: param is empty."),
-        (write => write.Value!.AddParam is not null && string.IsNullOrWhiteSpace(write.Value.AddParam), "{0}: addParam is empty."),
-        (write => write.Value!.Constant is { } constant && !double.IsFinite(constant), "{0}: constant must be a finite number."),
     ];
 }
 
@@ -128,6 +123,13 @@ internal sealed record ValueConfig
     public string? AddParam { get; init; }
 
     public bool Negate { get; init; }
+
+    internal static readonly (Func<ValueConfig, bool> Invalid, string Message)[] Rules =
+    [
+        (value => value.Param is not null && string.IsNullOrWhiteSpace(value.Param), "{0}: param is empty."),
+        (value => value.AddParam is not null && string.IsNullOrWhiteSpace(value.AddParam), "{0}: addParam is empty."),
+        (value => value.Constant is { } constant && !double.IsFinite(constant), "{0}: constant must be a finite number."),
+    ];
 
     internal int SourceCount() =>
         (Constant is null ? 0 : 1) + (Param is null ? 0 : 1) + (Ecid is null ? 0 : 1) + (AddParam is null ? 0 : 1);
@@ -394,19 +396,31 @@ internal static class ServiceBehaviorLoader
         }
     }
 
+    private static bool HasNullList(ServiceBehaviorConfig service) =>
+        service.Ranges is null || service.OnEnter is null || service.BeforeComplete is null || service.OnLeave is null || service.Sim is null;
+
     private static void ValidateService(ServiceBehaviorConfig service, string where, string path)
     {
-        if (service.Ranges is null || service.OnEnter is null || service.BeforeComplete is null || service.OnLeave is null || service.Sim is null)
+        if (HasNullList(service))
             throw ModuleConfigPublisher.Fail(path, $"{where}: ranges, onEnter, beforeComplete, onLeave and sim must not be null.");
         if (service.Duration is not null && string.IsNullOrWhiteSpace(service.Duration))
             throw ModuleConfigPublisher.Fail(path, $"{where}: duration is empty.");
 
         ValidateProcess(service, where, path);
         ValidateEach(service.Ranges, $"{where}.ranges", RangeConfig.Rules, path);
-        ValidateEach(service.OnEnter, $"{where}.onEnter", SvidWriteConfig.Rules, path);
-        ValidateEach(service.BeforeComplete, $"{where}.beforeComplete", SvidWriteConfig.Rules, path);
-        ValidateEach(service.OnLeave, $"{where}.onLeave", SvidWriteConfig.Rules, path);
-        ValidateEach(service.Sim, $"{where}.sim", SimConfig.Rules, path);
+        ValidateWrites(service.OnEnter, $"{where}.onEnter", path);
+        ValidateWrites(service.BeforeComplete, $"{where}.beforeComplete", path);
+        ValidateWrites(service.OnLeave, $"{where}.onLeave", path);
+        ValidateEach(service.Sim, $"{where}.sim", SimConfig.Rules, path, (sim, at) => ValidateValue(sim.Value, at, path));
+    }
+
+    private static void ValidateWrites(List<SvidWriteConfig?> writes, string where, string path) =>
+        ValidateEach(writes, where, SvidWriteConfig.Rules, path, (write, at) => ValidateValue(write.Value, at, path));
+
+    private static void ValidateValue(ValueConfig? value, string location, string path)
+    {
+        if (value is not null)
+            ApplyRules(value, location, ValueConfig.Rules, path);
     }
 
     private static void ValidateEach<T>(List<T?> items, string where, (Func<T, bool> Invalid, string Message)[] rules, string path, Action<T, string>? validateMore = null)
