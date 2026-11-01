@@ -1,0 +1,40 @@
+== run1.log ==
+PASS S6 MoveVelocityCW runs until Stop | expected: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop | actual: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop
+FAIL S7 Start while Execute is rejected | expected: reaches Execute; ResponseId echoes the second RequestId; bCommandRejected=True; ErrorID in 1002..1010; state=Execute | actual: reaches Execute; NOT ResponseId echoes the second RequestId ResponseId=1004; bCommandRejected=False (WRONG); NOT ErrorID in 1002..1010 ErrorID=0; state=Execute
+1/2 scenarios passed
+== run2.log ==
+FAIL S6 MoveVelocityCW runs until Stop | expected: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop | actual: reaches Execute; left Execute during the 6 s hold=False; NOT Stopped after Stop
+PASS S7 Start while Execute is rejected | expected: reaches Execute; ResponseId echoes the second RequestId; bCommandRejected=True; ErrorID in 1002..1010; state=Execute | actual: reaches Execute; ResponseId echoes the second RequestId ResponseId=1007; bCommandRejected=True; ErrorID in 1002..1010 ErrorID=1004; state=Execute
+1/2 scenarios passed
+== run3.log ==
+FAIL S6 MoveVelocityCW runs until Stop | expected: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop | actual: reaches Execute; left Execute during the 6 s hold=False; NOT Stopped after Stop
+PASS S7 Start while Execute is rejected | expected: reaches Execute; ResponseId echoes the second RequestId; bCommandRejected=True; ErrorID in 1002..1010; state=Execute | actual: reaches Execute; ResponseId echoes the second RequestId ResponseId=1007; bCommandRejected=True; ErrorID in 1002..1010 ErrorID=1004; state=Execute
+1/2 scenarios passed
+== run4.log ==
+FAIL S6 MoveVelocityCW runs until Stop | expected: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop | actual: reaches Execute; left Execute during the 6 s hold=False; NOT Stopped after Stop
+FAIL S7 Start while Execute is rejected | expected: reaches Execute; ResponseId echoes the second RequestId; bCommandRejected=True; ErrorID in 1002..1010; state=Execute | actual: reaches Execute; NOT ResponseId echoes the second RequestId ResponseId=1006; bCommandRejected=False (WRONG); NOT ErrorID in 1002..1010 ErrorID=0; state=Execute
+0/2 scenarios passed
+== run5.log ==
+PASS S6 MoveVelocityCW runs until Stop | expected: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop | actual: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop
+FAIL S7 Start while Execute is rejected | expected: reaches Execute; ResponseId echoes the second RequestId; bCommandRejected=True; ErrorID in 1002..1010; state=Execute | actual: reaches Execute; NOT ResponseId echoes the second RequestId ResponseId=1004; bCommandRejected=False (WRONG); NOT ErrorID in 1002..1010 ErrorID=0; state=Execute
+1/2 scenarios passed
+== run6.log ==
+PASS S6 MoveVelocityCW runs until Stop | expected: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop | actual: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop
+PASS S7 Start while Execute is rejected | expected: reaches Execute; ResponseId echoes the second RequestId; bCommandRejected=True; ErrorID in 1002..1010; state=Execute | actual: reaches Execute; ResponseId echoes the second RequestId ResponseId=1005; bCommandRejected=True; ErrorID in 1002..1010 ErrorID=1004; state=Execute
+2/2 scenarios passed
+== run7.log ==
+FAIL S6 MoveVelocityCW runs until Stop | expected: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop | actual: reaches Execute; left Execute during the 6 s hold=False; NOT Stopped after Stop
+PASS S7 Start while Execute is rejected | expected: reaches Execute; ResponseId echoes the second RequestId; bCommandRejected=True; ErrorID in 1002..1010; state=Execute | actual: reaches Execute; ResponseId echoes the second RequestId ResponseId=1007; bCommandRejected=True; ErrorID in 1002..1010 ErrorID=1004; state=Execute
+1/2 scenarios passed
+== run8.log ==
+PASS S6 MoveVelocityCW runs until Stop | expected: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop | actual: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop
+PASS S7 Start while Execute is rejected | expected: reaches Execute; ResponseId echoes the second RequestId; bCommandRejected=True; ErrorID in 1002..1010; state=Execute | actual: reaches Execute; ResponseId echoes the second RequestId ResponseId=1005; bCommandRejected=True; ErrorID in 1002..1010 ErrorID=1004; state=Execute
+2/2 scenarios passed
+== run9.log ==
+PASS S6 MoveVelocityCW runs until Stop | expected: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop | actual: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop
+PASS S7 Start while Execute is rejected | expected: reaches Execute; ResponseId echoes the second RequestId; bCommandRejected=True; ErrorID in 1002..1010; state=Execute | actual: reaches Execute; ResponseId echoes the second RequestId ResponseId=1005; bCommandRejected=True; ErrorID in 1002..1010 ErrorID=1004; state=Execute
+2/2 scenarios passed
+== run10.log ==
+FAIL S6 MoveVelocityCW runs until Stop | expected: reaches Execute; left Execute during the 6 s hold=False; Stopped after Stop | actual: reaches Execute; left Execute during the 6 s hold=False; NOT Stopped after Stop
+FAIL S7 Start while Execute is rejected | expected: reaches Execute; ResponseId echoes the second RequestId; bCommandRejected=True; ErrorID in 1002..1010; state=Execute | actual: reaches Execute; NOT ResponseId echoes the second RequestId ResponseId=1006; bCommandRejected=False (WRONG); NOT ErrorID in 1002..1010 ErrorID=0; state=Execute
+0/2 scenarios passed

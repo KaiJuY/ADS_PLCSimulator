@@ -1,0 +1,5 @@
+time	stage	decision	why	evidence	result
+2026-11-01T10:53:02+08:00	A	沿用既有 issue #8（bug，有重現步驟）；先在 main 重現	issue 已有 AC	gh issue view 8	PASSED
+2026-11-01T10:53:02+08:00	B–H	跳過：原因是 Send 的 FALSE／TRUE 在同一 scan 內沒有上升沿，#16 的 1ccb2dd 已修，main 不需改程式	5 s 等待 10/10、0 s／3 s 各 5/5、Now listening 立即 5/5；間隔 0 ms 反證 3/10	.adf/evidence/8/	SKIPPED
+2026-11-01T10:53:02+08:00	I	同一 Host 連續 10 次 Stop／Run，S6、S7 每次都通過（AC3）；就緒條件為 Run 回 200 或 Now listening（AC2）	ProjectHost.RunCoreAsync 先載入 workflow 才註冊 port	.adf/evidence/8/loop8-w5.log	PASSED
+2026-11-01T10:53:02+08:00	J	Allen 核准；#8 留言原因並關閉，profile 刪除等待秒數與陷阱，epic #2 勾 #8	無程式改動	.adf/profile.md	DONE
