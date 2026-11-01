@@ -1,7 +1,7 @@
 import { $ } from './api.js';
 import { state, els, CATEGORY_COLORS, NEW_NODE_WIDTH } from './state.js';
 import { addNode, addGroup, renameGroup, paste, compatiblePort, addLink } from './model.js';
-import { screenToWorld, isBackground } from './canvas.js';
+import { screenToWorld, isBackground } from './view.js';
 
 function filteredDefinitions(query) {
   const text = query.trim().toLowerCase();

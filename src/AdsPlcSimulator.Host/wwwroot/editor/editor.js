@@ -3,12 +3,13 @@
 
 import { initProjectBar } from './project.js';
 import { $, api } from './api.js';
-import { state, els, WORKFLOW_NAME } from './state.js';
+import { state, els, WORKFLOW_NAME, setDirty, setSaveState } from './state.js';
 import { copySelection, paste, deleteSelection } from './model.js';
 import { renderAll, drawWires } from './render.js';
 import { renderPalette } from './palette.js';
 import { connectLive } from './live.js';
 import './variable.js';
+import './canvas.js';
 
 async function refreshWorkflowList(selectName) {
   const workflows = await api('/api/workflows');
@@ -73,18 +74,6 @@ async function saveWorkflow() {
   } catch (error) {
     setSaveState(`save failed: ${error.message}`, 'error');
   }
-}
-
-export function setDirty(dirty) {
-  state.dirty = dirty;
-  if (dirty) return setSaveState('unsaved', 'warn');
-  if (state.diagnostics.length) return setSaveState(`${state.diagnostics.length} problem(s), not running`, 'error');
-  setSaveState('saved · running', 'ok');
-}
-
-function setSaveState(text, kind) {
-  els.saveState.textContent = text;
-  els.saveState.className = `pill ${kind}`;
 }
 
 window.addEventListener('keydown', (event) => {

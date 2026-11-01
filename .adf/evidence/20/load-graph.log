@@ -1,0 +1,9 @@
+OK: module graph loaded from C:\Users\AllenY\Desktop\WorkSpace\Git\_wt_20-deps\src\AdsPlcSimulator.Host\wwwroot\editor
+exit=0
+
+## dependency greps (in wwwroot/editor)
+-- from './editor.js'
+-- palette/render from './canvas.js'
+-- variable from './render.js'
+-- reachability
+-- end
