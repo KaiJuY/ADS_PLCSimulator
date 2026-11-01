@@ -34,6 +34,7 @@ Host 啟動時預設**不載入任何專案**（Stopped，不註冊 ADS port）�
 - Editor 最後一次 Run 的專案記在 `%LOCALAPPDATA%\AdsPlcSimulator\state.json`，下次 Host 啟動時在清單預選它（不會自動 Run）。
 - 每次 Run，ADS symbol version（IG 0xF008）加 1（1–255 循環），ADS client 藉此知道符號表換過。
 - Stopped 時 `/api/symbols*`、`/api/workflows*` 回 409；`/simulation/` 跟著執行中專案。
+- `/api` 下 GET、HEAD 以外的請求帶 `Origin` header 且與 Host 的 origin 不同時回 403（擋跨站網頁停止或改寫專案）；沒有 `Origin` 的請求（curl、腳本）照常處理。
 
 | API | 說明 |
 |---|---|
