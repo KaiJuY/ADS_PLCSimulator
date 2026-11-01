@@ -14,6 +14,7 @@ internal static class SimulatorEndpoints
     public static void MapSimulatorApi(this WebApplication app)
     {
         RouteGroupBuilder api = app.MapGroup("/api");
+        api.AddEndpointFilter(CrossOriginGuard.InvokeAsync);
 
         api.MapGet("/nodes", () => NodeCatalog.Default.Definitions);
         api.MapGet("/symbols", Symbols);
