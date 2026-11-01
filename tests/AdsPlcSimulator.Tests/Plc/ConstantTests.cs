@@ -10,6 +10,7 @@ public class ConstantTests
             Short : TIME := T#100MS;
             Count : INT := 30;
             Total : INT := Count + 70 * 2;
+            Remainder : INT := 17 MOD 5;
             Zero : INT := 0;
             Broken : INT := 1 / Zero;
             Dependent : INT := Broken + 1;
@@ -45,6 +46,32 @@ public class ConstantTests
         Assert.True(symbols.TryGetConstant("GVL_Test.Total", out object total));
         Assert.Equal(30L, count);
         Assert.Equal(170L, total);
+    }
+
+    [Fact]
+    [Trait("AC", "1")]
+    public void Modulo_with_a_nonzero_divisor_is_evaluated()
+    {
+        Assert.True(Symbols.TryGetConstant("GVL_Test.Remainder", out object remainder));
+        Assert.Equal(2L, remainder);
+    }
+
+    [Theory]
+    [InlineData("MOD")]
+    [InlineData("/")]
+    [Trait("AC", "1")]
+    public void Modulo_or_division_by_zero_in_an_array_bound_fails_the_build(string op)
+    {
+        var exception = Assert.Throws<PlcBuildException>(() => TestPaths.BuildFromText($"""
+            VAR_GLOBAL CONSTANT
+                Zero : INT := 0;
+            END_VAR
+            VAR_GLOBAL
+                values : ARRAY[0..(10 {op} Zero)] OF INT;
+            END_VAR
+            """));
+
+        Assert.Contains("division by zero", exception.Message);
     }
 
     [Fact]
