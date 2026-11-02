@@ -52,9 +52,9 @@ const redraw = () => ev('draw(performance.now())');
 const exists = (selector) => ev(`document.querySelector(${JSON.stringify(selector)}) !== null`);
 const count = (selector) => ev(`document.querySelectorAll(${JSON.stringify(selector)}).length`);
 const stored = (key) => ev(`window.localStorage.getItem('polar2-sim:SelfTest:${key}')`);
-const shot = async (name) => {
+const shot = async (name, part = [0, 0, 1, 1], scale = 1.6) => {
   const box = await ev('(() => { const r = document.querySelector(".iso-plate").getBoundingClientRect(); return [r.x + scrollX, r.y + scrollY, r.width, r.height]; })()');
-  const clip = { x: box[0], y: box[1], width: box[2], height: box[3], scale: 1.6 };
+  const clip = { x: box[0] + box[2] * part[0], y: box[1] + box[3] * part[1], width: box[2] * part[2], height: box[3] * part[3], scale };
   const data = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip });
   writeFileSync(join(HERE, name), Buffer.from(data.result.data, 'base64'));
 };
@@ -98,6 +98,11 @@ try {
   await sleep(900);
   await redraw();
   await shot('all-on.png');
+  await reset();
+  await cmd('Arm1.Nozzle1', 'On', 20, 0);
+  await cmd('Holder', 'CW', 1500, 0);
+  await redraw();
+  await shot('splash.png', [0.25, 0.3, 0.5, 0.4], 3);
   if (shotsOnly) process.exit(0);
 
   // 1 initial shape

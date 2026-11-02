@@ -162,7 +162,7 @@ const PAGE_EXTRA_CSS = [
   ".liquid .iso-fill{fill:rgba(107,155,255,.35)}",
   ".liquid .iso-shade{fill:rgba(107,155,255,.45)}",
   ".liquid .iso-top{fill:rgba(160,190,255,.6)}",
-  ".splash path{fill:none;stroke:var(--anatomy-blue);stroke-opacity:.85;stroke-width:1.3;stroke-linecap:round;vector-effect:none}",
+  ".splash path{fill:none;stroke:var(--anatomy-blue);stroke-opacity:1;stroke-width:1.8;stroke-linecap:round;vector-effect:none}",
   ".jet-line{fill:none;stroke:var(--anatomy-blue);stroke-opacity:.7;stroke-width:2.2;stroke-linecap:round;vector-effect:none}",
   ".part-label{font:8.5px var(--anatomy-mono);fill:var(--anatomy-strong);paint-order:stroke;stroke:var(--anatomy-card);stroke-width:2.5px;stroke-linejoin:round;pointer-events:none}",
   ".part-label .lbl-key{fill:var(--anatomy-muted)}",

@@ -95,7 +95,7 @@ export const BASE_H = 46;
 export const BASE_Z = -PLATE_H - BASE_H;
 export const BASE_FLOOR = 2;
 export const VACUUM_PAD = { r: 10, top: PIN_TOP };
-export const CLAMP = { count: 6, orbit: WAFER_R + 1.5, r: 1.4, reach: 3, openDeg: 90 };
+export const CLAMP = { count: 6, orbit: WAFER_R + 2, r: 2, reach: 5, openDeg: 90 };
 export const GRIPPER_INITIAL = "Open";
 export const RING_LIFT = { Down: 0, Top: 8 };
 export const RING_LIFT_INITIAL = "Down";
@@ -118,7 +118,7 @@ export const ACTION_UNITS = {
 export const STORAGE_PREFIX = "polar2-sim:";
 export const SPLASH = {
   lowRpm: 300, highRpm: 1000, periodMs: 600, z: WAFER_TOP + 0.5,
-  levels: { low: { drops: 8, length: 3, reach: 0.5 }, mid: { drops: 16, length: 5, reach: 0.8 }, high: { drops: 32, length: 8, reach: 1 } },
+  levels: { low: { drops: 8, length: 6, reach: 0.5 }, mid: { drops: 16, length: 10, reach: 0.8 }, high: { drops: 32, length: 16, reach: 1 } },
 };
 
 export const SPIN_DEG_PER_S = 90;
