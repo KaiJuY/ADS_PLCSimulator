@@ -6,9 +6,10 @@
 {attribute 'to_string'}
 TYPE E_PolarIIChamberTargetMode :
 (
-	Unknown := 0,
+	Disable := 0,
 	Manual := 1,
-	Disable := 2
+	DryRun := 2,
+	Auto := 3
 ) UINT;
 END_TYPE
 ]]></Declaration>
