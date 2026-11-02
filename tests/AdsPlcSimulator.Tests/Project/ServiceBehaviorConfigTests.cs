@@ -109,6 +109,15 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         Assert.Null(module.Services["Chamber.ArmTest"].DurationField);
     }
 
+    private static bool HasSvidWrites(ServiceBehavior service) =>
+        service.OnEnter.Count + service.BeforeComplete.Count + service.OnLeave.Count > 0;
+
+    private static void AssertHasNoSvidWrites(IReadOnlyDictionary<string, ServiceBehavior> services, string key)
+    {
+        Assert.True(services.TryGetValue(key, out ServiceBehavior? service), key);
+        Assert.False(HasSvidWrites(service!), key);
+    }
+
     [Fact]
     [Trait("AC", "1")]
     [Trait("AC", "2")]
@@ -116,7 +125,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
     [Trait("AC", "6")]
     [Trait("AC", "8")]
     [Trait("AC", "10")]
-    public void The_Polar2_file_has_88_services_with_the_batch_2_rules_and_none_for_services_without_an_SVID()
+    public void The_Polar2_file_has_135_services_with_the_batch_2_rules_and_no_SVID_writes_for_services_without_an_SVID()
     {
         ModuleConfigFile config = ModuleConfigPublisher.Parse(File.ReadAllText(System.IO.Path.Combine(TestPaths.Polar2Project, "config", "module-config.json")), "module-config.json");
         ModuleConfigEntry slot = config.Modules!.Single(entry => entry!.Enabled)!;
@@ -125,7 +134,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
 
         IReadOnlyDictionary<string, ServiceBehavior> services = ServiceBehaviorLoader.LoadIfPresent(TestPaths.Polar2Project, s_polar2.Value.Symbols, config)!.For(Module1)!.Services;
 
-        Assert.Equal(88, services.Count);
+        Assert.Equal(135, services.Count);
         Assert.Equal(new ParamRange("Position", 0, 360), services["Holder.Rotate.MoveModulo"].Ranges.Single());
         Assert.Equal($"ModuleVariableList[{SvidPosition(53)}].Value", services["Holder.Rotate.MoveModulo"].OnEnter.Single().Target);
         Assert.Equal(new SvidValue(SvidValueKind.Ecid, 0, $"ModuleConfigParamList[{EcidPosition(361)}].Value", true), services["OutsideRing.Rotate.MoveVelocityCCW"].OnEnter.Single().Value);
@@ -147,7 +156,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         Assert.All(services["Cup[1].Lift.TopPos"].BeforeComplete, write => Assert.False(write.DryRunZero));
         Assert.All(
             ["Shutter.Open", "Cup[1].Lift.JogPositive", "Cup[2].Drainer.Select3", "Holder.Gripper.Open"],
-            key => Assert.DoesNotContain(key, services.Keys));
+            key => AssertHasNoSvidWrites(services, key));
     }
 
     [Fact]
@@ -205,9 +214,10 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         Assert.Equal(Ecid(369), fan.Value.Source);
         Assert.False(fan.DryRunZero);
 
+        Assert.DoesNotContain("Arm[1].Rotate.MoveRecipe", services.Keys);
         Assert.All(
-            ["Arm[1].Rotate.MoveRecipe", "Arm[2].NozzlePort.DrainSelect1", "Exhaust.Damper.AEX", "SideVent[1].Open"],
-            key => Assert.DoesNotContain(key, services.Keys));
+            ["Arm[2].NozzlePort.DrainSelect1", "Exhaust.Damper.AEX", "SideVent[1].Open"],
+            key => AssertHasNoSvidWrites(services, key));
     }
 
     [Fact]
@@ -297,7 +307,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         string EcidName(string path) => slot.ConfigParamList![PositionOf(path) - 1]!.Name!;
         (string Key, string Prefix)[] batch = [.. services.Keys
             .Select(key => (Key: key, Match: Regex.Match(key, @"^(Arm|FixedNozzle|Exhaust\.Fan)\[(\d)\]")))
-            .Where(item => item.Match.Success)
+            .Where(item => item.Match.Success && HasSvidWrites(services[item.Key]))
             .Select(item => (item.Key, string.Format(devices[item.Match.Groups[1].Value], item.Match.Groups[2].Value)))];
 
         Assert.Equal(62, batch.Length);
