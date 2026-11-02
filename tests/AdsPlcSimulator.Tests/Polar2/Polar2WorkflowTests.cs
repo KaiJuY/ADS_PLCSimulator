@@ -170,6 +170,7 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
     public async Task Holder_vacuum_establish_has_service_id_3007_and_completes()
     {
         await StartPlcAsync();
+        await WaitUntilAsync(() => ReadNumber($"{Root}[6].ModuleStatus.PackMLOut.eStateCurrent") == (long)PackMLState.Execute, "the last module to initialize");
 
         Assert.True(_program.Symbols.TryGetEnumValue("E_PolarIIChamber_ServiceId.Holder_VacuumEstablish", out long serviceId));
         Assert.Equal(3007, serviceId);
