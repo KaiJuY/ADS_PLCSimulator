@@ -148,8 +148,6 @@ export function isLinkedParam(node, definition, param) {
   return definition.inputs.some((port) => port.name === param.name) && isLinked('in', node.id, param.name);
 }
 
-// Writes the value to the document and mirrors it into every other control of the same parameter,
-// without re-rendering so the field being typed in keeps focus.
 export function setParam(node, name, value, source) {
   node.params[name] = value;
   setDirty(true);
@@ -181,7 +179,7 @@ export function createParamControl(node, param) {
   control.dataset.paramNode = node.id;
   control.dataset.param = param.name;
   control.addEventListener('input', () => setParam(node, param.name, control.value, control));
-  // Keep typing and clicking inside widgets from dragging or deleting the node. Ctrl+S still reaches the save handler.
+  // Keep typing and clicking inside widgets from dragging or deleting the node.
   control.addEventListener('pointerdown', (event) => event.stopPropagation());
   control.addEventListener('keydown', (event) => {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') return;

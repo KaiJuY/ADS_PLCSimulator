@@ -11,7 +11,7 @@ function applyWidth(value) {
 
 function loadWidth() {
   let saved = null;
-  try { saved = localStorage.getItem(SIDEBAR_WIDTH_KEY); } catch { /* storage may be unavailable */ }
+  try { saved = localStorage.getItem(SIDEBAR_WIDTH_KEY); } catch {}
   const value = Number(saved);
   applyWidth(saved === null || !Number.isFinite(value) ? SIDEBAR_WIDTH.fallback : value);
 }
@@ -25,7 +25,7 @@ els.sidebarResize.addEventListener('pointermove', (event) => {
   applyWidth(els.layout.getBoundingClientRect().right - event.clientX - HANDLE_HALF_WIDTH);
 });
 els.sidebarResize.addEventListener('lostpointercapture', () => {
-  try { localStorage.setItem(SIDEBAR_WIDTH_KEY, String(width)); } catch { /* the width just is not remembered */ }
+  try { localStorage.setItem(SIDEBAR_WIDTH_KEY, String(width)); } catch {}
   requestAnimationFrame(drawWires);
 });
 

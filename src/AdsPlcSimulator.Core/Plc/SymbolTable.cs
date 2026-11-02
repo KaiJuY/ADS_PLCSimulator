@@ -113,16 +113,15 @@ public sealed class SymbolTable
         {
             parent = ResolveSegments(path, segments.GetRange(0, segments.Count - 1));
             prefixMode = parent.Type.Unaliased is ArrayType parentArray && lastIndices.Count < parentArray.Dimensions.Count;
-            prefix = lastIndices;
             if (prefixMode)
+            {
+                prefix = lastIndices;
                 CheckPrefix((ArrayType)parent.Type.Unaliased, prefix);
+            }
         }
 
         if (!prefixMode)
-        {
             parent = ResolveSegments(path, segments);
-            prefix = [];
-        }
 
         switch (parent.Type.Unaliased)
         {
@@ -143,7 +142,7 @@ public sealed class SymbolTable
         RequireNoRange(from, to);
         List<SymbolChild> roots = Roots
             .Where(root => root.Path.Split('.')[0].Equals(scopeName, StringComparison.OrdinalIgnoreCase))
-            .Select(root => ChildOf(new SymbolRef(root.Path, root.Type, root.Offset), root.Path.Split('.')[1]))
+            .Select(root => ChildOf(root.Path, root.Type, root.Path.Split('.')[1]))
             .ToList();
         if (roots.Count == 0)
             throw new SymbolResolutionException($"Scope '{path}' is not declared.");
@@ -207,7 +206,10 @@ public sealed class SymbolTable
     }
 
     private static SymbolChild ChildOf(SymbolRef symbol, string name) =>
-        new(name, symbol.Path, symbol.Type.Name, symbol.Type.IsScalar);
+        ChildOf(symbol.Path, symbol.Type, name);
+
+    private static SymbolChild ChildOf(string path, PlcType type, string name) =>
+        new(name, path, type.Name, type.IsScalar);
 
     private static void RequireNoRange(int? from, int? to)
     {
