@@ -32,6 +32,7 @@ export const RING_TICKS = { count: 24, every: 6, lengths: [0.9, 1.8] };
 
 export const CUP_OUTER_R = [50, 58, 66, 74];
 export const CUP_WALL = 2.4;
+export const OUTERMOST_WALL_R = CUP_OUTER_R[CUP_OUTER_R.length - 1];
 export const CUP_LIP_REACH = 8;
 export const CUP_LIP_RISE = 4;
 export const CUP_LIP_T = 1.6;
@@ -108,7 +109,6 @@ export const FAN = { r: 14, blades: 5, inset: 30, degPerS: 360, depth: 8 };
 export const DAMPER = { pipeR: 5, drop: 18, branchLen: 34, flapLen: 9 };
 export const DAMPER_Z = BASE_Z - DAMPER.drop;
 export const DAMPER_INITIAL = "AEX";
-export const PORT_CUP_COUNT = 4;
 export const JOG = { rotateDegPerS: 10, cupMmPerS: 6, rotateStepDeg: 5, cupStepMm: 4 };
 export const JOG_ACTIONS = ["JogPositive", "JogNegative", "IncrementalJog", "StepDone"];
 export const ACTION_UNITS = {

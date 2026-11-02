@@ -75,31 +75,29 @@ const clampTo = (axis, value) => Math.min(axis.max, Math.max(axis.min, value));
 const isJog = (action) => JOG_ACTIONS.includes(action);
 
 const storageKey = (key) => STORAGE_PREFIX + projectName + ":" + key;
+// Browsers throw on localStorage access in private windows or when site data is blocked.
+function guardStorage(action, fallback) {
+  try {
+    return action();
+  } catch {
+    return fallback;
+  }
+}
 function storeRead(key) {
   if (!projectName) return null;
-  try {
+  return guardStorage(() => {
     const raw = window.localStorage.getItem(storageKey(key));
     const number = raw === null ? NaN : Number(raw);
     return Number.isFinite(number) ? number : null;
-  } catch {
-    return null;
-  }
+  }, null);
 }
 function storeWrite(key, value) {
   if (!projectName) return;
-  try {
-    window.localStorage.setItem(storageKey(key), String(value));
-  } catch {
-    // storage unavailable: the next reload shows the initial position
-  }
+  guardStorage(() => window.localStorage.setItem(storageKey(key), String(value)));
 }
 function storeRemove(key) {
   if (!projectName) return;
-  try {
-    window.localStorage.removeItem(storageKey(key));
-  } catch {
-    // storage unavailable
-  }
+  guardStorage(() => window.localStorage.removeItem(storageKey(key)));
 }
 
 function startStep(entry, axis, command, now) {
@@ -199,17 +197,19 @@ const HANDLERS = {
 };
 const handlerOf = (type) => HANDLERS[type] ?? HANDLERS.switch;
 
+const KEEP = Symbol("keep");
+const CLEAR = Symbol("clear");
+
 function formatLabel(value, unit) {
-  if (value === null || value === undefined) return null;
+  if (value === null || value === undefined) return CLEAR;
   const number = Number(value);
   return (Number.isFinite(number) ? number.toFixed(1) : String(value)) + " " + unit;
 }
 
-// A label function returns undefined to keep the shown label, null to clear it, or the new text.
-const positionLabel = (entry, action, value) => (value === null || value === undefined ? undefined : formatLabel(value, ACTION_UNITS[entry.type]?.[action] ?? UNITS[entry.type]));
+const positionLabel = (entry, action, value) => (value === null || value === undefined ? KEEP : formatLabel(value, ACTION_UNITS[entry.type]?.[action] ?? UNITS[entry.type]));
 const spinLabel = (entry, action, value) => {
   if (action === "CW" || action === "CCW") return formatLabel(value, "RPM");
-  return null;
+  return CLEAR;
 };
 const actionLabel = (entry, action) => action;
 const LABELS = {
@@ -255,7 +255,8 @@ function apply(command, now, replay = false) {
   afterAction(entry, action, now);
   if (action === "Hold") return;
   const label = labelOf(entry, action, command.value);
-  if (label !== undefined) state.labels[entry.key] = label;
+  if (label === KEEP) return;
+  state.labels[entry.key] = label === CLEAR ? null : label;
 }
 
 const labelBlockNodes = labelBlocks().map((spec) => {
@@ -335,10 +336,11 @@ function drawArms(now) {
 const SPLASH_SOURCES = TARGETS.filter((entry) => entry.type === "nozzle" || entry.type === "fixed").map((entry) => entry.key);
 const splashing = () => state.spin.Holder.dir !== 0 && SPLASH_SOURCES.some((key) => state.active[key]);
 
-// The liquid leaves the wafer edge and stops at the inner wall of the first raised cup, or at the outermost wall when none is raised.
+const firstRaisedCupIndex = (now) => state.cups.findIndex((cup, index) => (valueAt(cup.Master, now) + valueAt(cup.Slave, now)) / 2 >= CUP_RIM.Top[index] - 1);
+
 function splashStopR(now) {
-  const raised = state.cups.findIndex((cup, index) => (valueAt(cup.Master, now) + valueAt(cup.Slave, now)) / 2 >= CUP_RIM.Top[index] - 1);
-  return raised < 0 ? CUP_OUTER_R[CUP_OUTER_R.length - 1] : CUP_OUTER_R[raised] - CUP_WALL;
+  const raised = firstRaisedCupIndex(now);
+  return raised < 0 ? OUTERMOST_WALL_R : CUP_OUTER_R[raised] - CUP_WALL;
 }
 
 function drawSplash(now) {
@@ -360,12 +362,13 @@ function drawRingLift(now) {
 function drawExhaust(now) {
   state.fans.forEach((fan, index) => {
     const angle = fanAngle(fan, now);
-    show("Exhaust" + (index + 1) + "-flow", fan.on && valueAt(state.vents[index], now) > 0.5);
-    update("Fan" + (index + 1), String(angle % TWO_PI), () => fanSvg(index, angle));
     const open = valueAt(state.vents[index], now);
+    show("Exhaust" + (index + 1) + "-flow", fan.on && open > 0.5);
+    update("Fan" + (index + 1), String(angle % TWO_PI), () => fanSvg(index, angle));
     update("SideVent" + (index + 1), String(open), () => ventSvg(index, open));
   });
-  update("Damper", String(valueAt(state.damper, now)), () => damperSvg(valueAt(state.damper, now)));
+  const damper = valueAt(state.damper, now);
+  update("Damper", String(damper), () => damperSvg(damper));
 }
 
 function draw(now) {

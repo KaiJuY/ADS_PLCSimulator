@@ -9,7 +9,7 @@ const {
   HOUSING_R, HOUSING_H, CHUCK_R, CHUCK_TOP, CUP_RIM, CUP_INITIAL, PIVOT_R, PIVOT_H, NOZZLE_COUNT, ARM_Z,
   ARM_LIFT_INITIAL, ARM_ROTATE_INITIAL, ARM_ROTATE_DEG, ARM_ROTATE_NEEDS, PORT_COUNT, PORT_FLOOR, PORT_JET_H,
   GRIPPER_INITIAL, SHUTTER_Z, SHUTTER_INITIAL, DAMPER_INITIAL, TARGETS,
-  at, S, L, D, depth, armGeometry, cupParts, outsideRingParts, ringTicksSvg, holderSvg, portCentre, nozzlePoints, jetColumn,
+  at, S, L, D, depth, armGeometry, cupParts, outsideRingParts, ringTicksSvg, holderSvg, nozzlePoints, jetColumn,
   armBodySvg, armJetSvg, fixedNozzleParts, baseSvg, ventSvg, fanSvg, damperSvg, shutterSvg, portCupSvg, exhaustFlowSvg,
 } = g;
 
@@ -200,13 +200,18 @@ function simMismatches() {
   return found;
 }
 
+function classicScript(html) {
+  const classic = html.replace('</main><script type="module">', "</main><script>");
+  if (classic === html) throw new Error("module script marker not found");
+  return classic;
+}
+
 const mismatches = simMismatches();
 if (mismatches.length) {
   console.error(mismatches.join("\n"));
   process.exitCode = 1;
 } else {
   const html = k.pageHtml({ title: "Polar2 Simulation", theme, body: page, script, width: 760 });
-  // A classic script keeps the top-level functions and let bindings reachable from the page self-test.
-  writeFileSync(outFile, html.replace('</main><script type="module">', "</main><script>"));
+  writeFileSync(outFile, classicScript(html));
   console.log("wrote", outFile);
 }
