@@ -61,6 +61,14 @@ export const els = {
   variablePane: $('variablePane'),
   nodePane: $('nodePane'),
   nodeDetail: $('nodeDetail'),
+  variableTree: $('variableTree'),
+  variableTreeError: $('variableTreeError'),
+  symbolDialog: $('symbolDialog'),
+  symbolDialogPath: $('symbolDialogPath'),
+  symbolDialogTree: $('symbolDialogTree'),
+  symbolDialogError: $('symbolDialogError'),
+  symbolDialogOk: $('symbolDialogOk'),
+  symbolDialogCancel: $('symbolDialogCancel'),
 };
 
 export function setDirty(dirty) {

@@ -65,6 +65,8 @@
             </div>
             <div id="variableError" class="variable-error"></div>
           </form>
+          <div id="variableTreeError" class="variable-error"></div>
+          <div id="variableTree"></div>
         </div>
         <div id="nodePane" class="tab-pane" hidden><div id="nodeDetail"></div></div>
       </section>
@@ -83,6 +85,17 @@
     <input id="quickAddSearch" type="search" placeholder="Add node…">
     <ul id="quickAddList"></ul>
   </div>
+
+  <dialog id="symbolDialog" class="symbol-dialog">
+    <h2>Select symbol</h2>
+    <input id="symbolDialogPath" class="symbol" list="symbolOptions" placeholder="GVL.Variable.Member" autocomplete="off">
+    <div id="symbolDialogTree" class="symbol-dialog-tree"></div>
+    <div id="symbolDialogError" class="variable-error"></div>
+    <div class="symbol-dialog-actions">
+      <button id="symbolDialogCancel" type="button">Cancel</button>
+      <button id="symbolDialogOk" type="button" class="primary">OK</button>
+    </div>
+  </dialog>
 
   <datalist id="symbolOptions"></datalist>
   <script type="module" src="editor.js"></script>

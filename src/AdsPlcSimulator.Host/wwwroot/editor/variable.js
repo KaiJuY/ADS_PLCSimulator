@@ -1,5 +1,6 @@
 import { api } from './api.js';
 import { els } from './state.js';
+import { createSymbolTree } from './tree.js';
 
 export function formatValue(value) {
   if (value === null || value === undefined) return 'null';
@@ -31,14 +32,30 @@ let symbolTimer;
 export function suggestSymbols(query) {
   clearTimeout(symbolTimer);
   symbolTimer = setTimeout(async () => {
-    const symbols = await api(`/api/symbols?limit=80&query=${encodeURIComponent(query)}`);
-    els.symbolOptions.replaceChildren(...symbols.map((symbol) => {
-      const option = document.createElement('option');
-      option.value = symbol.path;
-      option.label = symbol.type;
-      return option;
-    }));
+    try {
+      const symbols = await api(`/api/symbols?limit=80&query=${encodeURIComponent(query)}`);
+      els.symbolOptions.replaceChildren(...symbols.map((symbol) => {
+        const option = document.createElement('option');
+        option.value = symbol.path;
+        option.label = symbol.type;
+        return option;
+      }));
+    } catch {
+      els.symbolOptions.replaceChildren();
+    }
   }, 150);
+}
+
+export function initVariableTree() {
+  const tree = createSymbolTree({
+    onPick: (path) => {
+      els.variablePath.value = path;
+      readVariable();
+    },
+    onError: (message) => { els.variableTreeError.textContent = message; },
+  });
+  els.variableTree.append(tree.element);
+  tree.load();
 }
 
 els.variablePath.addEventListener('focus', () => suggestSymbols(els.variablePath.value));

@@ -8,7 +8,7 @@ import { copySelection, paste, deleteSelection } from './model.js';
 import { renderAll, drawWires } from './render.js';
 import { renderPalette } from './palette.js';
 import { connectLive } from './live.js';
-import './variable.js';
+import { initVariableTree } from './variable.js';
 import './canvas.js';
 import './tabs.js';
 import './sidebar.js';
@@ -110,6 +110,7 @@ async function init() {
   renderPalette();
   const project = await initProjectBar({ isDirty: () => state.dirty });
   if (project.state !== 'Running') return;
+  initVariableTree();
 
   const workflows = await refreshWorkflowList();
   const requested = new URLSearchParams(location.search).get('workflow');

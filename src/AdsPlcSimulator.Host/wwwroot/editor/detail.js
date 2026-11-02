@@ -1,8 +1,9 @@
 import { state, els } from './state.js';
 import { findNode, findGroup, definitionOf, linksTo, isInsideGroup } from './lookup.js';
-import { createParamControl, isLinkedParam } from './render.js';
+import { createParamControl, isLinkedParam, setParam } from './render.js';
 import { showTab } from './tabs.js';
 import { formatValue } from './variable.js';
+import { pickSymbol } from './picker.js';
 
 const EMPTY_TEXT = 'Select a node on the canvas';
 let shownNodeId = null;
@@ -22,6 +23,17 @@ function headElement(title, type, id) {
   return head;
 }
 
+function pickButton(node, param) {
+  const button = element('button', 'pick', '…');
+  button.type = 'button';
+  button.title = 'Browse symbols';
+  button.addEventListener('click', async () => {
+    const path = await pickSymbol(node.params[param.name] ?? '');
+    if (path !== null) setParam(node, param.name, path, null);
+  });
+  return button;
+}
+
 function paramRow(node, definition, param) {
   const row = element('div', 'detail-param');
   row.append(element('label', '', param.label));
@@ -33,6 +45,7 @@ function paramRow(node, definition, param) {
   }
   const control = element('div', 'detail-control');
   control.append(createParamControl(node, param));
+  if (param.kind === 'Symbol') control.append(pickButton(node, param));
   row.append(control);
   return row;
 }
