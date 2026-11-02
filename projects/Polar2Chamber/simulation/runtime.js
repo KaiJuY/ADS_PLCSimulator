@@ -332,6 +332,21 @@ function drawArms(now) {
   });
 }
 
+const SPLASH_SOURCES = TARGETS.filter((entry) => entry.type === "nozzle" || entry.type === "fixed").map((entry) => entry.key);
+const splashing = () => state.spin.Holder.dir !== 0 && SPLASH_SOURCES.some((key) => state.active[key]);
+
+// The liquid leaves the wafer edge and stops at the inner wall of the first raised cup, or at the outermost wall when none is raised.
+function splashStopR(now) {
+  const raised = state.cups.findIndex((cup, index) => (valueAt(cup.Master, now) + valueAt(cup.Slave, now)) / 2 >= CUP_RIM.Top[index] - 1);
+  return raised < 0 ? CUP_OUTER_R[CUP_OUTER_R.length - 1] : CUP_OUTER_R[raised] - CUP_WALL;
+}
+
+function drawSplash(now) {
+  if (!splashing()) return update("Splash", "off", () => "");
+  drawn.set("Splash", "on");
+  byId("Splash").innerHTML = splashSvg(shownAngle(state.spin.Holder, now), splashLevel(state.spin.Holder.rpm), splashStopR(now), now);
+}
+
 function drawRingLift(now) {
   const rise = at([0, 0, valueAt(state.ringLift, now)])[1] - at([0, 0, 0])[1];
   const transform = `translate(0 ${rise.toFixed(2)})`;
@@ -345,6 +360,7 @@ function drawRingLift(now) {
 function drawExhaust(now) {
   state.fans.forEach((fan, index) => {
     const angle = fanAngle(fan, now);
+    show("Exhaust" + (index + 1) + "-flow", fan.on && valueAt(state.vents[index], now) > 0.5);
     update("Fan" + (index + 1), String(angle % TWO_PI), () => fanSvg(index, angle));
     const open = valueAt(state.vents[index], now);
     update("SideVent" + (index + 1), String(open), () => ventSvg(index, open));
@@ -365,6 +381,7 @@ function draw(now) {
   drawFixed();
   drawArms(now);
   drawExhaust(now);
+  drawSplash(now);
   drawLabels();
 }
 
@@ -372,7 +389,7 @@ function busy(now) {
   const tweens = [...state.lift, ...state.rotate, ...state.cups.flatMap((cup) => [cup.Master, cup.Slave]), state.gripper, state.ringLift, state.shutter, ...state.vents, state.damper];
   const homes = [state.spin.Holder.home, state.spin.OutsideRing.home].filter(Boolean);
   const moving = [...tweens, ...homes].some((t) => !settled(t, now));
-  return moving || state.spin.Holder.dir !== 0 || state.spin.OutsideRing.dir !== 0 || state.fans.some((fan) => fan.on);
+  return moving || state.spin.Holder.dir !== 0 || state.spin.OutsideRing.dir !== 0 || state.fans.some((fan) => fan.on) || splashing();
 }
 
 let frame = 0;

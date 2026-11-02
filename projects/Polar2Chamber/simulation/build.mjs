@@ -10,7 +10,7 @@ const {
   ARM_LIFT_INITIAL, ARM_ROTATE_INITIAL, ARM_ROTATE_DEG, ARM_ROTATE_NEEDS, PORT_COUNT, PORT_FLOOR, PORT_JET_H,
   GRIPPER_INITIAL, SHUTTER_Z, SHUTTER_INITIAL, DAMPER_INITIAL, TARGETS,
   at, S, L, D, depth, armGeometry, cupParts, outsideRingParts, ringTicksSvg, holderSvg, portCentre, nozzlePoints, jetColumn,
-  armBodySvg, armJetSvg, fixedNozzleParts, baseSvg, ventSvg, fanSvg, damperSvg, shutterSvg, portCupSvg,
+  armBodySvg, armJetSvg, fixedNozzleParts, baseSvg, ventSvg, fanSvg, damperSvg, shutterSvg, portCupSvg, exhaustFlowSvg,
 } = g;
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -88,7 +88,8 @@ function portSvg(index) {
   return group(`Arm${index + 1}-PortCup`, portCupSvg(index)) + jets;
 }
 
-const fanAndVent = (index) => group(`Fan${index + 1}`, fanSvg(index, 0)) + group(`SideVent${index + 1}`, ventSvg(index, 0));
+const fanAndVent = (index) => group(`Fan${index + 1}`, fanSvg(index, 0)) + group(`SideVent${index + 1}`, ventSvg(index, 0))
+  + group(`Exhaust${index + 1}-flow`, exhaustFlowSvg(index), shownIf(showActive));
 
 const armsByDepth = [0, 1, 2, 3].sort((a, b) => depth([...armGeometry(a).post, 0]) - depth([...armGeometry(b).post, 0]));
 
@@ -134,6 +135,7 @@ function build() {
     group("OutsideRing-back", ring.back),
     chuckSvg(),
     group("Holder", holderSvg(0, clamp)),
+    group("Splash", "", ' class="splash"'),
     group("OutsideRing-front", ring.front + group("OutsideRing-ticks", ringTicksSvg(0))),
     ...all.map((index) => group(`Cup${index + 1}-front`, cups[index].front)),
     ...all.map(fixedSvg),
@@ -160,6 +162,7 @@ const PAGE_EXTRA_CSS = [
   ".liquid .iso-fill{fill:rgba(107,155,255,.35)}",
   ".liquid .iso-shade{fill:rgba(107,155,255,.45)}",
   ".liquid .iso-top{fill:rgba(160,190,255,.6)}",
+  ".splash path{fill:none;stroke:var(--anatomy-blue);stroke-opacity:.85;stroke-width:1.3;stroke-linecap:round;vector-effect:none}",
   ".jet-line{fill:none;stroke:var(--anatomy-blue);stroke-opacity:.7;stroke-width:2.2;stroke-linecap:round;vector-effect:none}",
   ".part-label{font:8.5px var(--anatomy-mono);fill:var(--anatomy-strong);paint-order:stroke;stroke:var(--anatomy-card);stroke-width:2.5px;stroke-linejoin:round;pointer-events:none}",
   ".part-label .lbl-key{fill:var(--anatomy-muted)}",

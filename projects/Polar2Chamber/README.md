@@ -175,6 +175,11 @@ node build.mjs
 | `Arm{n}.Rotate`、`Cup{n}.Master`、`Cup{n}.Slave` | 既有，加 `JogPositive`、`JogNegative`、`IncrementalJog`、`StepDone` | 見下 |
 | `ExhaustFan{n}` | `On`、`Off` | 風扇轉動；每個 SideVent 的風扇都以每秒 360° 轉 |
 
+### 排氣流線與甩液
+
+- 排氣流線：`ExhaustFan{n}` 是 On，而且 `SideVent{n}` 開度超過一半時，SideVent n 外側顯示 3 條流動的藍色虛線。
+- 甩液：Holder 在轉（`CW`、`CCW`），而且任一 `Arm{n}.Nozzle{m}` 或 `FixedNozzle{n}` 是 On 時，晶圓邊緣向外畫液滴線段（Port 不算，DryRun 的送液類 `dryRunAction` 是 `Off`，所以不會甩液）。液滴數看 Holder 的 RPM（`value`）：低於 300 為 8 個、300 到 1000 或沒有數值為 16 個、高於 1000 為 32 個。液滴飛到第一層升起的 Cup（`Top` 附近）的內壁為止；沒有 Cup 升起時畫到 Cup4 外壁。液滴位置由時間算出，不用亂數。
+
 ### Jog 與重新整理
 
 - `JogPositive`、`JogNegative`：從目前值等速移動，Arm 每秒 10°（範圍 −48° 到 35°），Cup 每秒 6 mm（範圍 Down 到 Top）；到邊界停住，直到收到 `Hold`。標籤顯示 `value`，單位為 RPM 或 mm/s（Jog 速度的 ECID 單位）。

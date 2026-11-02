@@ -201,6 +201,53 @@ try {
   await cmd('Holder', 'Home', null, 0);
   check('6c Home with durationMs 0 is a whole number of turns at once', whole(await turns()));
 
+  // 7 exhaust flow lines
+  const flowShown = () => ev('document.getElementById("Exhaust1-flow").style.display !== "none"');
+  await reset();
+  await cmd('ExhaustFan1', 'On', 250, 0);
+  await cmd('SideVent1', 'Close', null, 0);
+  await redraw();
+  const closedFlow = await flowShown();
+  await cmd('SideVent1', 'Open', null, 0);
+  await redraw();
+  const openFlow = await flowShown();
+  check('7 flow lines show only with the fan On and SideVent1 Open', closedFlow === false && openFlow === true, `closed ${closedFlow}, open ${openFlow}`);
+
+  // 8 splash
+  const drops = async () => { await redraw(); return count('#Splash path'); };
+  await reset();
+  await cmd('Arm1.Nozzle1', 'On', 20, 0);
+  await cmd('Holder', 'CW', 1500, 0);
+  const high = await drops();
+  await cmd('Holder', 'CW', 100, 0);
+  const low = await drops();
+  await cmd('Holder', 'CW', 0, 0);
+  const mid = await drops();
+  check('8a splash drops: 1500 RPM 32, 100 RPM 8, 0 RPM 16', high === 32 && low === 8 && mid === 16, `${high}, ${low}, ${mid}`);
+  const reach = (limit) => ev(`(() => { let worst = 0; for (let t = 0; t < 600; t += 40) { const now = performance.now() + t; worst = Math.max(worst, ...splashDrops(0, "high", splashStopR(now), now).map((d) => d.to)); } return worst <= ${limit} + 1e-9 && worst > WAFER_R; })()`);
+  await cmd('Cup2.Master', 'Top', null, 0);
+  await cmd('Cup2.Slave', 'Top', null, 0);
+  const cup2 = await reach('CUP_OUTER_R[1] - CUP_WALL');
+  await reset();
+  await cmd('Arm1.Nozzle1', 'On', 20, 0);
+  await cmd('Holder', 'CW', 1500, 0);
+  const none = await reach('CUP_OUTER_R[3]');
+  check('8b drops stop at the Cup2 inner wall with Cup2 Top, at the Cup4 outer wall with no cup raised', cup2 === true && none === true, `${cup2}, ${none}`);
+  await cmd('Arm1.Nozzle1', 'Off', null, 0);
+  const off = await drops();
+  await cmd('Arm1.Nozzle1', 'On', 20, 0);
+  await cmd('Holder', 'Stop', null, 0);
+  const stopped = await drops();
+  check('8c no splash with the nozzle Off or the Holder stopped', off === 0 && stopped === 0, `${off}, ${stopped}`);
+  await cmd('FixedNozzle2', 'On', 20, 0);
+  await cmd('Arm1.Nozzle1', 'Off', null, 0);
+  await cmd('Holder', 'CW', 600, 0);
+  const fixed = await drops();
+  await cmd('FixedNozzle2', 'Off', null, 0);
+  await cmd('Arm1.Port1', 'On', 20, 0);
+  const portOnly = await drops();
+  check('8d a Fixed Nozzle starts the splash, a Port does not', fixed === 16 && portOnly === 0, `${fixed}, ${portOnly}`);
+
   // 9 damper and drain labels
   await reset();
   await cmd('Damper', 'SEX', null, 500); await sleep(600);

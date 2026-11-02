@@ -116,6 +116,10 @@ export const ACTION_UNITS = {
   cup: { JogPositive: "mm/s", JogNegative: "mm/s" },
 };
 export const STORAGE_PREFIX = "polar2-sim:";
+export const SPLASH = {
+  lowRpm: 300, highRpm: 1000, periodMs: 600, z: WAFER_TOP + 0.5,
+  levels: { low: { drops: 8, length: 3, reach: 0.5 }, mid: { drops: 16, length: 5, reach: 0.8 }, high: { drops: 32, length: 8, reach: 1 } },
+};
 
 export const SPIN_DEG_PER_S = 90;
 export const TWEEN_DEFAULT_MS = 1500;
@@ -474,6 +478,37 @@ export function shutterSvg(z) {
     + D([[GATE.x + 4, GATE.y + GATE.d], [GATE.x + GATE.w - 4, GATE.y + GATE.d]].map(([x, y]) => at([x, y, z + GATE_H - 8])), { size: 0.45 });
 }
 
+export function exhaustFlowSvg(index) {
+  const lines = [-1, 0, 1].map((slot) => {
+    const along = slot * EXHAUST_FLOW_SPREAD;
+    return L(k.pathOf([at(onFace(index, FACE_R + FLOW_GAP, along, VENT_Z)), at(onFace(index, FACE_R + FLOW_GAP + EXHAUST_FLOW_LEN, along, VENT_Z))]), { tone: "blue", flow: true });
+  });
+  return lines.join("");
+}
+
+export function splashLevel(rpm) {
+  const number = Number(rpm);
+  if (!number) return "mid";
+  if (number < SPLASH.lowRpm) return "low";
+  return number > SPLASH.highRpm ? "high" : "mid";
+}
+
+export function splashDrops(angle, level, stopR, now) {
+  const { drops, length, reach } = SPLASH.levels[level];
+  return Array.from({ length: drops }, (_, index) => {
+    const phase = (now / SPLASH.periodMs + index / drops) % 1;
+    const a = angle + (index / drops) * Math.PI * 2;
+    const from = WAFER_R + phase * reach * (stopR - WAFER_R);
+    return { a, from, to: Math.min(from + length, stopR) };
+  });
+}
+
+export function splashSvg(angle, level, stopR, now) {
+  return splashDrops(angle, level, stopR, now)
+    .map(({ a, from, to }) => `<path d="${k.pathOf([at([...polar(0, 0, from, a), SPLASH.z]), at([...polar(0, 0, to, a), SPLASH.z])])}"/>`)
+    .join("");
+}
+
 function targetList() {
   const list = [];
   const add = (key, type, actions, extra = {}) => list.push({ key, type, unit: UNITS[type], actions, ...extra });
@@ -519,7 +554,7 @@ export function labelBlocks() {
   ];
   const sideAlign = ["start", "end", "end", "start"];
   const fixedSpot = FIXED_ANGLE_DEG.map((degrees) => [...polar(0, 0, FACE_R + 8, degrees * RAD), FIXED_WALL.z]);
-  const exhaustSpot = EXHAUST_ANGLE_DEG.map((_, index) => onFace(index, FACE_R + 6, 0, VENT_Z - VENT.h / 2 - 6));
+  const exhaustSpot = EXHAUST_ANGLE_DEG.map((_, index) => onFace(index, FACE_R + 6, 0, VENT_Z - VENT.h / 2 - 16));
   const backCorner = { 2: [-FACE_R, FACE_R], 3: [FACE_R, -FACE_R] };
   const exhaustBlock = (spot, index) => {
     const edge = backCorner[index];
