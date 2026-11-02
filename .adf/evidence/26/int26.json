@@ -1,0 +1,108 @@
+{
+  "c1_initial": {
+    "variable": true,
+    "node": false,
+    "nodePaneHidden": true
+  },
+  "probeNodes": [
+    "readSymbol1",
+    "writeSymbol1"
+  ],
+  "c2_select": {
+    "tabs": {
+      "variable": false,
+      "node": true,
+      "nodePaneHidden": false
+    },
+    "id": "writeSymbol1",
+    "params": 2
+  },
+  "c3_reselect": {
+    "back": {
+      "variable": true,
+      "node": false,
+      "nodePaneHidden": true
+    },
+    "again": {
+      "variable": false,
+      "node": true,
+      "nodePaneHidden": false
+    }
+  },
+  "c4_toCanvas": {
+    "canvas": "abc",
+    "focusInDetail": true
+  },
+  "c4_toDetail": "xyz",
+  "c5_saved": true,
+  "c5_saveState": "2 problem(s), not running",
+  "c5_nodeKept": true,
+  "c6_linked": {
+    "text": "← readSymbol1.value",
+    "hasInput": false
+  },
+  "c6_wire": {
+    "d": "M 439 159.1875 C 515 159.1875, 515 181.1875, 591 181.1875",
+    "box": [
+      510,
+      246,
+      152,
+      22
+    ]
+  },
+  "c7_empty": "Select a node on the canvas",
+  "c7_wire": "Select a node on the canvas",
+  "c8_450": 450,
+  "c8_max": 600,
+  "c8_reload": 600,
+  "c8_invalid": 300,
+  "c9_root": [
+    "GVL_Module"
+  ],
+  "c9_expand": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "c9_ranges": [
+    "[1..50]",
+    "[51..100]",
+    "[101..150]",
+    "[151..200]",
+    "[201..250]",
+    "[251..300]",
+    "[301..350]",
+    "[351..400]",
+    "[401..450]",
+    "[451..500]"
+  ],
+  "c9_rangeLoaded": true,
+  "c9_rangeCount": 50,
+  "c9_pick": {
+    "path": "GVL_Module.Chamber_Control[1].ModuleConfigParamList[1].Id",
+    "value": "1",
+    "error": ""
+  },
+  "c9_member": "GVL_Module.Chamber_Control[1].ModuleConfigParamList[1].Id",
+  "c10_open": true,
+  "c10_okDisabledEmpty": true,
+  "c10_okEnabledAfterPick": true,
+  "c10_afterOk": {
+    "detail": "GVL_Module.Chamber_Control[1].ModuleConfigParamList[1].Id",
+    "canvas": "GVL_Module.Chamber_Control[1].ModuleConfigParamList[1].Id",
+    "open": false
+  },
+  "c10_afterCancel": {
+    "detail": "GVL_Module.Chamber_Control[1].ModuleConfigParamList[1].Id",
+    "canvas": "GVL_Module.Chamber_Control[1].ModuleConfigParamList[1].Id",
+    "open": false
+  },
+  "c10_afterEscape": {
+    "detail": "GVL_Module.Chamber_Control[1].ModuleConfigParamList[1].Id",
+    "canvas": "GVL_Module.Chamber_Control[1].ModuleConfigParamList[1].Id",
+    "open": false
+  },
+  "c11_treeError": "No project is running.",
+  "errors": []
+}
