@@ -1,0 +1,27 @@
+PASS Chamber_Control size: 12964944
+PASS module size: 2160824
+PASS ServiceCtrl.Holder.VacuumEstablish offset/size: 129892/20
+PASS ServiceParam.Holder.VacuumEstablish offset/size: 221232/1
+PASS ServiceStatus.Holder.VacuumEstablish offset/size: 1868724/11684
+PASS ServiceStatus.Shutter.Open offset/size: 1973880/11684
+PASS ModuleConfigParamList offset/size: 58672/68400
+PASS ModuleConfigParamList elements: 450 expected
+PASS M1 ServiceId: 3007
+PASS M1 CompletionBehavior: 1 (1 = NaturalCompletion)
+PASS M2 ServiceId: 3007
+PASS M2 CompletionBehavior: 1 (1 = NaturalCompletion)
+PASS M3 ServiceId: 3007
+PASS M3 CompletionBehavior: 1 (1 = NaturalCompletion)
+PASS M4 ServiceId: 3007
+PASS M4 CompletionBehavior: 1 (1 = NaturalCompletion)
+PASS M5 ServiceId: 3007
+PASS M5 CompletionBehavior: 1 (1 = NaturalCompletion)
+PASS M6 ServiceId: 3007
+PASS M6 CompletionBehavior: 1 (1 = NaturalCompletion)
+PASS Shutter.Open ServiceId unchanged: 3301
+PASS Holder.Rotate.MoveModulo ServiceId unchanged: 3006
+PASS starts Idle: state=4
+PASS Start reaches Execute: state=17
+PASS Execute reaches Complete: state=17 after 5022 ms
+PASS Reset returns to Idle: state=4
+ALL PASS
