@@ -16,11 +16,17 @@ public readonly record struct SymbolRef(string Path, PlcType Type, int Offset)
 
 public sealed class SymbolResolutionException(string message) : Exception(message);
 
+/// <summary>One entry of a symbol tree level: a scope, a root, a struct member, an array element, an index prefix of a
+/// multi-dimensional array, or a range of indices of a large array.</summary>
+public sealed record SymbolChild(string Name, string Path, string? Type, bool IsScalar, int? From = null, int? To = null);
+
 /// <summary>
 /// Resolves ADS-style instance paths (<c>GVL.Var[1].Member</c>, case-insensitive) to typed memory locations.
 /// </summary>
 public sealed class SymbolTable
 {
+    public const int ChildPageSize = 50;
+
     private readonly Dictionary<string, RootSymbol> _rootsByPath;
     private readonly Dictionary<string, long> _enumValues;
     private readonly Dictionary<string, object> _constants;
@@ -65,6 +71,168 @@ public sealed class SymbolTable
         }
     }
 
+    /// <summary>One level of the symbol tree under <paramref name="path"/>: scopes for null or blank, roots for a scope,
+    /// members for a struct, elements or index ranges for an array. <paramref name="from"/> and <paramref name="to"/>
+    /// are inclusive index values and select a page of an array level.</summary>
+    public bool TryGetChildren(string? path, int? from, int? to, out IReadOnlyList<SymbolChild> children, out string? error)
+    {
+        children = [];
+        error = null;
+        try
+        {
+            children = ListChildren(path, from, to);
+            return true;
+        }
+        catch (Exception exception) when (exception is SymbolResolutionException or ArgumentException or FormatException or OverflowException)
+        {
+            error = exception.Message;
+            return false;
+        }
+    }
+
+    private IReadOnlyList<SymbolChild> ListChildren(string? path, int? from, int? to)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return ListScopes(from, to);
+
+        List<PathSegment> segments = ParsePath(path);
+        return segments.Count == 1 && segments[0].Member is { } scopeName
+            ? ListScope(path, scopeName, from, to)
+            : ListLevel(path, segments, from, to);
+    }
+
+    private IReadOnlyList<SymbolChild> ListLevel(string path, List<PathSegment> segments, int? from, int? to)
+    {
+        (SymbolRef parent, IReadOnlyList<int> prefix) = ResolveLevel(path, segments);
+        return parent.Type.Unaliased switch
+        {
+            StructType structure => ListMembers(parent, structure, from, to),
+            ArrayType array => ListArray(parent, array, prefix, from, to),
+            _ => throw new SymbolResolutionException($"'{parent.Path}' is {parent.Type.Name} and has no children."),
+        };
+    }
+
+    private IReadOnlyList<SymbolChild> ListScopes(int? from, int? to)
+    {
+        RequireNoRange(from, to);
+        return Roots
+            .Select(root => root.Path.Split('.')[0])
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(scope => new SymbolChild(scope, scope, null, false))
+            .ToList();
+    }
+
+    private static IReadOnlyList<SymbolChild> ListMembers(SymbolRef parent, StructType structure, int? from, int? to)
+    {
+        RequireNoRange(from, to);
+        return structure.Members
+            .Select(member => ChildOf(MemberOf(parent, member), member.Name))
+            .ToList();
+    }
+
+    /// <summary>The symbol whose children are listed. A trailing index list shorter than the array rank
+    /// stays a prefix of the array being listed.</summary>
+    private (SymbolRef Parent, IReadOnlyList<int> Prefix) ResolveLevel(string path, List<PathSegment> segments)
+    {
+        IReadOnlyList<int>? trailing = TrailingIndices(segments);
+        if (trailing is null)
+            return (ResolveSegments(path, segments), []);
+
+        SymbolRef container = ResolveSegments(path, segments.GetRange(0, segments.Count - 1));
+        if (container.Type.Unaliased is not ArrayType array || trailing.Count >= array.Dimensions.Count)
+            return (ResolveSegments(path, segments), []);
+
+        CheckPrefix(array, trailing);
+        return (container, trailing);
+    }
+
+    private static IReadOnlyList<int>? TrailingIndices(List<PathSegment> segments) =>
+        segments is [.., { Member: null, Indices: { } indices }] ? indices : null;
+
+    private IReadOnlyList<SymbolChild> ListScope(string path, string scopeName, int? from, int? to)
+    {
+        RequireNoRange(from, to);
+        List<SymbolChild> roots = Roots
+            .Where(root => root.Path.Split('.')[0].Equals(scopeName, StringComparison.OrdinalIgnoreCase))
+            .Select(root => ChildOf(root.Path, root.Type, root.Path.Split('.')[1]))
+            .ToList();
+        if (roots.Count == 0)
+            throw new SymbolResolutionException($"Scope '{path}' is not declared.");
+        return roots;
+    }
+
+    private static IReadOnlyList<SymbolChild> ListArray(SymbolRef baseRef, ArrayType array, IReadOnlyList<int> prefix, int? from, int? to)
+    {
+        int level = prefix.Count;
+        ArrayDimension dimension = array.Dimensions[level];
+        (int first, int last) = PageBounds(dimension, from, to);
+        if (!from.HasValue && dimension.Length > ChildPageSize)
+            return ListRanges(level == 0 ? baseRef.Path : $"{baseRef.Path}[{string.Join(",", prefix)}]", dimension);
+
+        bool isLastDimension = level + 1 == array.Dimensions.Count;
+        var items = new List<SymbolChild>();
+        for (int index = first; index <= last; index++)
+        {
+            int[] indices = [.. prefix, index];
+            items.Add(isLastDimension
+                ? ChildOf(ElementOf(baseRef, array, indices), $"[{index}]")
+                : new SymbolChild($"[{index}]", $"{baseRef.Path}[{string.Join(",", indices)}]", null, false));
+        }
+
+        return items;
+    }
+
+    private static (int First, int Last) PageBounds(ArrayDimension dimension, int? from, int? to)
+    {
+        if (!from.HasValue && !to.HasValue)
+            return (dimension.LowerBound, dimension.UpperBound);
+
+        (int first, int last) = RequirePair(from, to);
+        if (!IsValidPage(dimension, first, last))
+            throw new SymbolResolutionException($"Range {first}..{last} is outside {dimension} or longer than {ChildPageSize}.");
+        return (first, last);
+    }
+
+    private static (int From, int To) RequirePair(int? from, int? to) =>
+        from.HasValue && to.HasValue ? (from.Value, to.Value) : throw new SymbolResolutionException("from and to must be given together.");
+
+    private static bool IsValidPage(ArrayDimension dimension, int first, int last) =>
+        first >= dimension.LowerBound && first <= last && last <= dimension.UpperBound && (long)last - first + 1 <= ChildPageSize;
+
+    private static void CheckPrefix(ArrayType array, IReadOnlyList<int> prefix)
+    {
+        for (int level = 0; level < prefix.Count; level++)
+        {
+            ArrayDimension dimension = array.Dimensions[level];
+            if (prefix[level] < dimension.LowerBound || prefix[level] > dimension.UpperBound)
+                throw new SymbolResolutionException($"Index {prefix[level]} is outside [{dimension}] of {array.Name}.");
+        }
+    }
+
+    private static List<SymbolChild> ListRanges(string path, ArrayDimension dimension)
+    {
+        var ranges = new List<SymbolChild>();
+        for (int first = dimension.LowerBound; first <= dimension.UpperBound; first += ChildPageSize)
+        {
+            int last = Math.Min(first + ChildPageSize - 1, dimension.UpperBound);
+            ranges.Add(new SymbolChild($"[{first}..{last}]", path, null, false, first, last));
+        }
+
+        return ranges;
+    }
+
+    private static SymbolChild ChildOf(SymbolRef symbol, string name) =>
+        ChildOf(symbol.Path, symbol.Type, name);
+
+    private static SymbolChild ChildOf(string path, PlcType type, string name) =>
+        new(name, path, type.Name, type.IsScalar);
+
+    private static void RequireNoRange(int? from, int? to)
+    {
+        if (from.HasValue || to.HasValue)
+            throw new SymbolResolutionException("from and to are only valid for an array.");
+    }
+
     /// <summary>Every scalar variable, depth first. Large arrays make this long; callers should limit it.</summary>
     public IEnumerable<SymbolRef> EnumerateScalars()
     {
@@ -82,8 +250,7 @@ public sealed class SymbolTable
             case StructType structure:
                 foreach (StructMember member in structure.Members)
                 {
-                    var child = new SymbolRef($"{symbol.Path}.{member.Name}", member.Type, symbol.Offset + member.Offset);
-                    foreach (SymbolRef scalar in EnumerateScalars(child))
+                    foreach (SymbolRef scalar in EnumerateScalars(MemberOf(symbol, member)))
                         yield return scalar;
                 }
 
@@ -91,11 +258,7 @@ public sealed class SymbolTable
             case ArrayType array:
                 foreach (int[] indices in EnumerateIndices(array.Dimensions))
                 {
-                    var element = new SymbolRef(
-                        $"{symbol.Path}[{string.Join(",", indices)}]",
-                        array.ElementType,
-                        symbol.Offset + array.OffsetOf(indices));
-                    foreach (SymbolRef scalar in EnumerateScalars(element))
+                    foreach (SymbolRef scalar in EnumerateScalars(ElementOf(symbol, array, indices)))
                         yield return scalar;
                 }
 
@@ -147,16 +310,21 @@ public sealed class SymbolTable
 
         StructMember member = structure.Find(memberName)
             ?? throw new SymbolResolutionException($"{structure.Name} has no member '{memberName}' (in '{parent.Path}').");
-        return new SymbolRef($"{parent.Path}.{member.Name}", member.Type, parent.Offset + member.Offset);
+        return MemberOf(parent, member);
     }
+
+    private static SymbolRef MemberOf(SymbolRef parent, StructMember member) =>
+        new($"{parent.Path}.{member.Name}", member.Type, parent.Offset + member.Offset);
+
+    private static SymbolRef ElementOf(SymbolRef parent, ArrayType array, IReadOnlyList<int> indices) =>
+        new($"{parent.Path}[{string.Join(",", indices)}]", array.ElementType, parent.Offset + array.OffsetOf(indices));
 
     private static SymbolRef SelectElement(SymbolRef parent, IReadOnlyList<int> indices)
     {
         if (parent.Type.Unaliased is not ArrayType array)
             throw new SymbolResolutionException($"'{parent.Path}' is {parent.Type.Name}, not an array.");
 
-        int offset = array.OffsetOf(indices);
-        return new SymbolRef($"{parent.Path}[{string.Join(",", indices)}]", array.ElementType, parent.Offset + offset);
+        return ElementOf(parent, array, indices);
     }
 
     private sealed record PathSegment(string? Member, IReadOnlyList<int>? Indices);

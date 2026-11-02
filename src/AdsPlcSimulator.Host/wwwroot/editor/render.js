@@ -2,6 +2,7 @@ import { state, els, CATEGORY_COLORS, setDirty } from './state.js';
 import { findNode, definitionOf, isLinked } from './lookup.js';
 import { applyView, screenToWorld } from './view.js';
 import { suggestSymbols, formatValue } from './variable.js';
+import { showTab } from './tabs.js';
 
 export function renderAll() {
   els.layer.querySelectorAll('.node, .group').forEach((element) => element.remove());
@@ -11,6 +12,7 @@ export function renderAll() {
   applyView();
   renderProblems();
   requestAnimationFrame(drawWires);
+  document.dispatchEvent(new Event('editor:rendered'));
 }
 
 function createNodeElement(node) {
@@ -126,7 +128,7 @@ function createParams(node, definition) {
   for (const param of definition.params) {
     const row = document.createElement('div');
     row.className = 'param';
-    const linkedInput = definition.inputs.some((port) => port.name === param.name) && isLinked('in', node.id, param.name);
+    const linkedInput = isLinkedParam(node, definition, param);
     if (linkedInput) {
       row.classList.add('overridden');
       row.title = 'The linked input provides this value.';
@@ -142,7 +144,20 @@ function createParams(node, definition) {
   return container;
 }
 
-function createParamControl(node, param) {
+export function isLinkedParam(node, definition, param) {
+  return definition.inputs.some((port) => port.name === param.name) && isLinked('in', node.id, param.name);
+}
+
+export function setParam(node, name, value, source) {
+  node.params[name] = value;
+  setDirty(true);
+  const selector = `[data-param-node="${CSS.escape(node.id)}"][data-param="${CSS.escape(name)}"]`;
+  for (const control of document.querySelectorAll(selector)) {
+    if (control !== source) control.value = value;
+  }
+}
+
+export function createParamControl(node, param) {
   const current = node.params[param.name] ?? '';
   let control;
   if (param.kind === 'Choice') {
@@ -161,13 +176,15 @@ function createParamControl(node, param) {
       control.addEventListener('input', () => suggestSymbols(control.value));
     }
   }
-  control.addEventListener('input', () => {
-    node.params[param.name] = control.value;
-    setDirty(true);
-  });
+  control.dataset.paramNode = node.id;
+  control.dataset.param = param.name;
+  control.addEventListener('input', () => setParam(node, param.name, control.value, control));
   // Keep typing and clicking inside widgets from dragging or deleting the node.
   control.addEventListener('pointerdown', (event) => event.stopPropagation());
-  control.addEventListener('keydown', (event) => event.stopPropagation());
+  control.addEventListener('keydown', (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') return;
+    event.stopPropagation();
+  });
   return control;
 }
 
@@ -225,4 +242,5 @@ function focusNode(nodeId) {
   state.view.y = rect.height / 2 - node.y * state.view.scale - 40;
   state.selection = { kind: 'node', id: nodeId };
   renderAll();
+  showTab('node');
 }

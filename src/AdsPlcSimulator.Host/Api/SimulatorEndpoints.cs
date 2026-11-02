@@ -18,6 +18,7 @@ internal static class SimulatorEndpoints
 
         api.MapGet("/nodes", () => NodeCatalog.Default.Definitions);
         api.MapGet("/symbols", Symbols);
+        api.MapGet("/symbols/children", SymbolChildren);
         api.MapGet("/symbols/value", ReadSymbol);
         api.MapPut("/symbols/value", WriteSymbol);
         api.MapGet("/workflows", Workflows);
@@ -47,6 +48,16 @@ internal static class SimulatorEndpoints
             .Where(symbol => string.IsNullOrEmpty(query) || symbol.Path.Contains(query, StringComparison.OrdinalIgnoreCase))
             .Take(Math.Clamp(limit ?? 100, 1, MaxSymbolResults))
             .Select(symbol => new { symbol.Path, Type = symbol.Type.Name }));
+    }
+
+    internal static IResult SymbolChildren(ProjectHost host, string? path, int? from, int? to)
+    {
+        if (host.Current is not { } session)
+            return ProjectEndpoints.NotRunning();
+
+        return session.Program.Symbols.TryGetChildren(path, from, to, out IReadOnlyList<SymbolChild> children, out string? error)
+            ? Results.Ok(children)
+            : Results.NotFound(new { error });
     }
 
     internal static IResult ReadSymbol(ProjectHost host, string path)
