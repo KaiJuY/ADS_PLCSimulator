@@ -7,14 +7,11 @@ const RAD = Math.PI / 180;
 
 export const PLATE = { x: -130, y: -130, w: 260, d: 260, r: 6 };
 export const PLATE_H = 16;
+export const PLATE_OPACITY = 0.6;
 
 export const WALL = 4;
 export const SHELL_H = 118;
 export const WALL_OPACITY = 0.5;
-export const FFU = { x: -80, y: -80, w: 160, d: 160, r: 3 };
-export const FFU_T = 5;
-export const FFU_DOTS = { columns: 15, gap: 9.6 };
-export const FFU_OPACITY = 0.7;
 
 export const SLOT = { x0: -22, x1: 22, z0: 22, z1: 52 };
 export const GATE = { x: -26, y: 130.4, w: 52, d: 3, r: 1 };
@@ -25,9 +22,6 @@ export const HOUSING_R = 19;
 export const HOUSING_H = 9;
 export const CHUCK_R = 36;
 export const CHUCK_TOP = 13;
-export const PIN_R = 1.1;
-export const PIN_ORBIT = 30;
-export const PIN_COUNT = 6;
 export const PIN_TOP = 16.5;
 export const WAFER_R = 33;
 export const WAFER_T = 1;
@@ -38,6 +32,7 @@ export const RING_TICKS = { count: 24, every: 6, lengths: [0.9, 1.8] };
 
 export const CUP_OUTER_R = [50, 58, 66, 74];
 export const CUP_WALL = 2.4;
+export const OUTERMOST_WALL_R = CUP_OUTER_R[CUP_OUTER_R.length - 1];
 export const CUP_LIP_REACH = 8;
 export const CUP_LIP_RISE = 4;
 export const CUP_LIP_T = 1.6;
@@ -87,32 +82,72 @@ export const PORT_JET_H = 9;
 export const JET_R = 1;
 
 export const FIXED_ANGLE_DEG = [0, 90, 180, 270];
-export const FIXED_R = 72;
 export const FIXED_BODY = 2.6;
 export const FIXED_BODY_H = 5;
 export const FIXED_REACH = 7;
 export const FIXED_LAND_R = 6;
+export const FIXED_WALL = { r: PLATE.w / 2 - WALL - 3, z: SHELL_H - 20 };
 
 export const EXHAUST_ANGLE_DEG = [0, 90, 180, 270];
-export const EXHAUST_FROM_R = 118;
-export const EXHAUST_TO_R = 144;
-export const EXHAUST_Z = 10;
-export const EXHAUST_PIPE_R = 7;
 export const EXHAUST_FLOW_LEN = 34;
-export const EXHAUST_FLOW_SPREAD = 3.5;
+export const EXHAUST_FLOW_SPREAD = 9;
+
+export const BASE_H = 46;
+export const BASE_Z = -PLATE_H - BASE_H;
+export const BASE_FLOOR = 2;
+export const VACUUM_PAD = { r: 10, top: PIN_TOP };
+export const CLAMP = { count: 6, orbit: WAFER_R + 2, r: 2, reach: 5, openDeg: 90 };
+export const GRIPPER_GOAL = { Open: 0, Close: 1 };
+export const GRIPPER_INITIAL = "Open";
+export const RING_LIFT = { Down: 0, Top: 8 };
+export const RING_LIFT_INITIAL = "Down";
+export const SHUTTER_Z = { Close: GATE_Z, Open: SLOT.z1 + 4 };
+export const SHUTTER_INITIAL = "Close";
+export const VENT = { w: 70, h: 26, slats: 6, maxDeg: 75 };
+export const VENT_GOAL = { Open: 1, Close: 0 };
+export const VENT_INITIAL = "Close";
+export const VENT_Z = BASE_Z + BASE_H / 2;
+export const FAN = { r: 14, blades: 5, inset: 30, degPerS: 360, depth: 8 };
+export const DAMPER = { pipeR: 5, drop: 18, branchLen: 34, flapLen: 9 };
+export const DAMPER_Z = BASE_Z - DAMPER.drop;
+export const DAMPER_GOAL = { AEX: 0, SEX: 1 };
+export const DAMPER_INITIAL = "AEX";
+export const ringLiftTransform = (lift) => `translate(0 ${(at([0, 0, lift])[1] - at([0, 0, 0])[1]).toFixed(2)})`;
+export const JOG = { rotateDegPerS: 10, cupMmPerS: 6, rotateStepDeg: 5, cupStepMm: 4 };
+export const JOG_ACTIONS = ["JogPositive", "JogNegative", "IncrementalJog", "StepDone"];
+export const ACTION_UNITS = {
+  rotate: { JogPositive: "RPM", JogNegative: "RPM" },
+  cup: { JogPositive: "mm/s", JogNegative: "mm/s" },
+};
+export const STORAGE_PREFIX = "polar2-sim:";
+export const SPLASH = {
+  lowRpm: 300, highRpm: 1000, periodMs: 600, z: WAFER_TOP + 0.5,
+  levels: { low: { drops: 8, length: 6, reach: 0.5 }, mid: { drops: 16, length: 10, reach: 0.8 }, high: { drops: 32, length: 16, reach: 1 } },
+};
 
 export const SPIN_DEG_PER_S = 90;
 export const TWEEN_DEFAULT_MS = 1500;
 export const ERROR_LINES = 20;
 export const LABEL_LINE_PX = 10;
 
-export const UNITS = { spin: "RPM", cup: "mm", lift: "mm", rotate: "deg", nozzle: "ml/s", port: "ml/s", fixed: "ml/s", exhaust: "Pa" };
+const FACE_R = PLATE.w / 2;
+const FLOW_GAP = 3;
+
+export const UNITS = {
+  spin: "RPM", cup: "mm", lift: "mm", rotate: "deg", nozzle: "ml/s", port: "ml/s", fixed: "ml/s", exhaust: "Pa",
+  gripper: "", ringLift: "", shutter: "", vent: "", damper: "", drain: "",
+};
 
 export const P = k.fitProjection(
   [
-    ...k.boxCorners(PLATE, -PLATE_H, 0),
-    ...k.boxCorners(PLATE, 0, SHELL_H + FFU_T),
-    ...[1, -1].flatMap((side) => [[side * (EXHAUST_TO_R + EXHAUST_FLOW_LEN), 0, EXHAUST_Z], [0, side * (EXHAUST_TO_R + EXHAUST_FLOW_LEN), EXHAUST_Z]]),
+    ...k.boxCorners(PLATE, BASE_Z, SHELL_H),
+    [0, 0, DAMPER_Z - DAMPER.pipeR],
+    [DAMPER.branchLen, 0, DAMPER_Z - DAMPER.pipeR],
+    [0, DAMPER.branchLen, DAMPER_Z - DAMPER.pipeR],
+    ...[1, -1].flatMap((side) => {
+      const reach = side * (FACE_R + FLOW_GAP + EXHAUST_FLOW_LEN);
+      return [[reach, 0, VENT_Z], [0, reach, VENT_Z]];
+    }),
   ],
   WIDTH,
   HEIGHT,
@@ -148,6 +183,23 @@ const lightOf = ([nx, ny]) => {
   const [lx, ly] = [-Math.sin(viewerAngle), Math.cos(viewerAngle)];
   return Math.min(k.SHADES - 1, Math.max(0, Math.floor(((nx * lx + ny * ly + 1) / 2) * k.SHADES)));
 };
+
+const flat = (points, shade, tone = "lo") => {
+  const d = k.pathOf(points.map(at), true);
+  return `<g class="iso-solid"><path class="iso-fill" d="${d}"/><path class="iso-shade" data-shade="${shade}" d="${d}"/><path class="iso-line iso-edge" data-tone="${tone}" d="${d}"/></g>`;
+};
+const disc = (cx, cy, radius, z, steps = 24) => k.circleRing(cx, cy, radius, steps).map(([x, y]) => [x, y, z]);
+
+const faceOf = (index) => {
+  const angle = EXHAUST_ANGLE_DEG[index] * RAD;
+  const u = [Math.round(Math.cos(angle)), Math.round(Math.sin(angle))];
+  return { u, t: [-u[1], u[0]] };
+};
+const onFace = (index, radius, along, z) => {
+  const { u, t } = faceOf(index);
+  return [u[0] * radius + t[0] * along, u[1] * radius + t[1] * along, z];
+};
+const facesViewer = (u) => u[0] * Math.cos(viewerAngle) + u[1] * Math.sin(viewerAngle) > 0;
 
 const pt = (r, z, abs = false) => ({ r, z, abs });
 const seg = (a, b, n) => {
@@ -229,18 +281,30 @@ export function ringTicksSvg(angle) {
   return L(ticks.minor, { tone: "lo" }) + L(ticks.major, { tone: "mid" });
 }
 
-export function holderSvg(angle) {
-  const pinAngles = Array.from({ length: PIN_COUNT }, (_, index) => angle + (index / PIN_COUNT) * Math.PI * 2);
-  const pins = byDepth(pinAngles.map((a) => polar(0, 0, PIN_ORBIT, a)))
-    .map(([x, y]) => S(k.cylinder(x, y, PIN_R, CHUCK_TOP, PIN_TOP - CHUCK_TOP, P, 12), { tone: "mid", crease: "none" })
-      + S(k.cylinder(x, y, PIN_R + 0.5, PIN_TOP - 0.7, 0.7, P, 12), { tone: "hi", crease: "lo" })).join("");
+const CLAMP_HEAD_H = 1;
+
+export function holderSvg(angle, clamp) {
+  const open = (1 - clamp) * CLAMP.openDeg * RAD;
+  const spots = Array.from({ length: CLAMP.count }, (_, index) => angle + (index / CLAMP.count) * Math.PI * 2).map((a) => ({ a, at: polar(0, 0, CLAMP.orbit, a) }));
+  const sorted = [...spots].sort((a, b) => depth([...a.at, 0]) - depth([...b.at, 0]));
+  const posts = sorted.map(({ at: [x, y] }) => S(k.cylinder(x, y, CLAMP.r, CHUCK_TOP, WAFER_TOP - CHUCK_TOP, P, 12), { tone: "mid", crease: "none" })).join("");
+  const heads = sorted.map(({ a, at: [x, y] }) => {
+    const aim = a + Math.PI + open;
+    const tip = polar(x, y, CLAMP.reach, aim);
+    return solidRing(rectRing([x, y], tip, CLAMP.r * 1.8), WAFER_TOP, CLAMP_HEAD_H, { tone: "hi", crease: "lo" })
+      + S(k.cylinder(x, y, CLAMP.r + 0.3, WAFER_TOP + CLAMP_HEAD_H, 0.6, P, 12), { tone: "hi", crease: "lo" });
+  }).join("");
   const ticks = k.radialTicks(0, 0, CHUCK_R - 1, 36, 6, CHUCK_TOP, [1, 2], P, angle);
+  const pad = S(k.cylinder(0, 0, VACUUM_PAD.r, CHUCK_TOP, VACUUM_PAD.top - CHUCK_TOP, P, 32), { tone: "mid", crease: "none" });
   const notchFrom = polar(0, 0, WAFER_R - 6, angle);
   const notchTo = polar(0, 0, WAFER_R - 0.6, angle);
   const wafer = S(k.cylinder(0, 0, WAFER_R, PIN_TOP, WAFER_T, P, 72), { tone: "hi", lit: true, className: "wafer" })
     + L(k.ring(0, 0, WAFER_R - 2.5, WAFER_TOP, P, 72), { tone: "faint" })
     + L(k.lineOnTop(notchFrom, notchTo, WAFER_TOP, P), { tone: "lit", free: "start" });
-  return L(ticks.minor, { tone: "lo" }) + L(ticks.major, { tone: "mid" }) + pins + wafer;
+  const hidden = L(k.ring(0, 0, VACUUM_PAD.r, WAFER_TOP, P, 32), { tone: "faint", dashed: true })
+    + L(k.ring(0, 0, VACUUM_PAD.r / 2, WAFER_TOP, P, 24), { tone: "faint", dashed: true })
+    + D(Array.from({ length: 6 }, (_, index) => at([...polar(0, 0, VACUUM_PAD.r * 0.75, angle + (index / 6) * Math.PI * 2), WAFER_TOP])), { size: 0.5, tone: "lo" });
+  return L(ticks.minor, { tone: "lo" }) + L(ticks.major, { tone: "mid" }) + pad + posts + wafer + hidden + heads;
 }
 
 export const armGeometry = (index) => {
@@ -297,31 +361,181 @@ export function armJetSvg(index, nozzle, rotateDeg, liftZ) {
   return jetColumn(point, liftZ - HEAD_BELOW - NOZZLE_LEN, jetFloor(index, point));
 }
 
-export function fixedNozzleParts(index, cupWest, cupEast) {
+export function portCupSvg(index) {
+  const [cx, cy] = portCentre(index);
+  const body = S(k.cylinder(cx, cy, PORT_R, 0, PORT_H, P, 40, 0.4), { tone: "mid", crease: "lo" });
+  const mouth = flat(disc(cx, cy, PORT_RIM_R, PORT_H, 40), 0, "lo");
+  const floor = flat(disc(cx, cy, PORT_RIM_R - 3.5, PORT_FLOOR + 1, 32), 1, "faint");
+  return body + mouth + floor + L(k.ring(cx, cy, PORT_R - 0.8, PORT_H, P, 40), { tone: "hi" });
+}
+
+export function fixedNozzleParts(index) {
   const angle = FIXED_ANGLE_DEG[index] * RAD;
-  const [x, y] = polar(0, 0, FIXED_R, angle);
-  const rim = slantHeight(cupWest, cupEast, CUP_OUTER_R[3])(x) + 1;
-  const [tx, ty] = polar(0, 0, FIXED_R - FIXED_REACH, angle);
+  const [ux, uy] = [Math.round(Math.cos(angle)), Math.round(Math.sin(angle))];
+  const [x, y] = polar(0, 0, FIXED_WALL.r, angle);
+  const [tx, ty] = polar(0, 0, FIXED_WALL.r - FIXED_REACH, angle);
+  const z = FIXED_WALL.z;
+  const tipZ = z + FIXED_BODY_H - 1.5;
+  const wallAt = FACE_R - WALL;
+  const bracket = ux
+    ? { x: ux * wallAt - 1 + (ux > 0 ? -0.5 : 0.5), y: -5, w: 2, d: 10, r: 0.5 }
+    : { x: -5, y: uy * wallAt - 1 + (uy > 0 ? -0.5 : 0.5), w: 10, d: 2, r: 0.5 };
   const bodyPlan = { x: x - FIXED_BODY, y: y - FIXED_BODY, w: FIXED_BODY * 2, d: FIXED_BODY * 2, r: 0.8 };
-  const tipZ = rim + FIXED_BODY_H - 1.5;
   const [lx, ly] = polar(0, 0, FIXED_LAND_R, angle);
-  const base = S(k.slabOf(bodyPlan, rim, FIXED_BODY_H, P, 3, 0.3), { tone: "hi", crease: "lo" })
+  const base = S(k.slabOf(bracket, z - 2, FIXED_BODY_H + 4, P, 2, 0.3), { tone: "mid", crease: "lo" })
+    + S(k.slabOf(bodyPlan, z, FIXED_BODY_H, P, 3, 0.3), { tone: "hi", crease: "lo" })
     + tubeSvg([x, y, tipZ], [tx, ty, tipZ], 0.8);
-  const jet = `<path class="jet-line" d="${k.pathOf([at([tx, ty, tipZ]), at([lx, ly, WAFER_TOP])])}"/>`;
+  const samples = Array.from({ length: 17 }, (_, step) => {
+    const s = step / 16;
+    return at([tx + (lx - tx) * s, ty + (ly - ty) * s, tipZ + (WAFER_TOP - tipZ) * s * s]);
+  });
+  const jet = `<path class="jet-line" d="${k.pathOf(samples)}"/>`;
   return { base, jet };
+}
+
+const BASE_WALLS = {
+  back: { x: PLATE.x, y: PLATE.y, w: PLATE.w, d: WALL, r: 1 },
+  left: { x: PLATE.x, y: PLATE.y + WALL, w: WALL, d: PLATE.d - 2 * WALL, r: 0.5 },
+  front: { x: PLATE.x, y: PLATE.y + PLATE.d - WALL, w: PLATE.w, d: WALL, r: 1 },
+  right: { x: PLATE.x + PLATE.w - WALL, y: PLATE.y + WALL, w: WALL, d: PLATE.d - 2 * WALL, r: 0.5 },
+};
+
+export function baseSvg() {
+  const floor = S(k.slabOf(PLATE, BASE_Z, BASE_FLOOR, P, 6, 0.4), { tone: "lo" });
+  const walls = ["back", "left", "front", "right"]
+    .map((name) => S(k.slabOf(BASE_WALLS[name], BASE_Z, BASE_H, P, 3, 0.4), { tone: "mid", inner: L(k.sideSeam(BASE_WALLS[name], BASE_Z + BASE_H - 6, P, 3), { tone: "faint" }) }))
+    .join("");
+  return floor + walls;
+}
+
+export function ventSvg(index, open) {
+  const { u } = faceOf(index);
+  const face = FACE_R + 0.3;
+  const half = VENT.w / 2;
+  const pitch = VENT.h / VENT.slats;
+  const chord = pitch * 1.5;
+  const theta = open * VENT.maxDeg * RAD;
+  const shade = Math.min(k.SHADES - 1, lightOf(u) + Math.round(open * 2));
+  const margin = 2;
+  const top = VENT_Z + VENT.h / 2 + margin;
+  const bottom = VENT_Z - VENT.h / 2 - margin;
+  const frame = flat([onFace(index, face, -half - margin, bottom), onFace(index, face, half + margin, bottom), onFace(index, face, half + margin, top), onFace(index, face, -half - margin, top)], 0, "mid");
+  const slats = Array.from({ length: VENT.slats }, (_, slat) => {
+    const z = VENT_Z - VENT.h / 2 + (slat + 0.5) * pitch;
+    const [dn, dz] = [(chord / 2) * Math.sin(theta), (chord / 2) * Math.cos(theta)];
+    return flat([onFace(index, face + dn, -half + 1, z + dz), onFace(index, face + dn, half - 1, z + dz), onFace(index, face - dn, half - 1, z - dz), onFace(index, face - dn, -half + 1, z - dz)], shade, "mid");
+  }).join("");
+  const rod = L(k.pathOf([at(onFace(index, face + 0.4, half - 3, bottom + 1)), at(onFace(index, face + 0.4, half - 3, top - 1))]), { tone: "hi" });
+  return frame + slats + rod;
+}
+
+export function fanSvg(index, angle) {
+  const { u } = faceOf(index);
+  const centre = FACE_R - FAN.inset;
+  const half = FAN.r + 2;
+  const front = facesViewer(u);
+  const plane = centre + (front ? 1 : -1) * (FAN.depth / 2);
+  const planePoint = (rho, phi) => {
+    const { t } = faceOf(index);
+    return [u[0] * plane + t[0] * rho * Math.cos(phi), u[1] * plane + t[1] * rho * Math.cos(phi), VENT_Z + rho * Math.sin(phi)];
+  };
+  const [cx, cy] = [u[0] * centre, u[1] * centre];
+  const housing = S(k.slabOf(
+    { x: cx - (u[0] ? FAN.depth / 2 : half), y: cy - (u[1] ? FAN.depth / 2 : half), w: u[0] ? FAN.depth : half * 2, d: u[1] ? FAN.depth : half * 2, r: 1.5 },
+    VENT_Z - half, half * 2, P, 3, 0.4,
+  ), { tone: "hi", crease: "lo" });
+  const duct = tubeSvg(onFace(index, centre + FAN.depth / 2, 0, VENT_Z), onFace(index, FACE_R - WALL, 0, VENT_Z), FAN.r - 2);
+  const blades = Array.from({ length: FAN.blades }, (_, blade) => {
+    const phi = angle + (blade / FAN.blades) * Math.PI * 2;
+    return flat([planePoint(3, phi), planePoint(3, phi + 0.7), planePoint(FAN.r - 1.5, phi + 1.2), planePoint(FAN.r - 1.5, phi + 0.5)], 2, "mid");
+  }).join("");
+  const bore = flat(Array.from({ length: 24 }, (_, step) => planePoint(FAN.r - 0.5, (step / 24) * Math.PI * 2)), 0, "lo");
+  const hub = flat(Array.from({ length: 12 }, (_, step) => planePoint(3.2, (step / 12) * Math.PI * 2)), 3, "hi");
+  return (front ? housing + duct : duct + housing) + bore + blades + hub;
+}
+
+export function damperSvg(position) {
+  const r = DAMPER.pipeR;
+  const flange = (centre, axis) => L(k.sideRing(centre, r + 1.5, axis, P, 24), { tone: "mid" });
+  const swing = (1 - position) * (Math.PI / 2);
+  const hinge = [0, 0, DAMPER_Z];
+  const tip = [DAMPER.flapLen * Math.cos(swing), DAMPER.flapLen * Math.sin(swing)];
+  const flap = flat([[0, 0, DAMPER_Z - r], [tip[0], tip[1], DAMPER_Z - r], [tip[0], tip[1], DAMPER_Z + r], [0, 0, DAMPER_Z + r]], 3, "hi");
+  const actuator = tubeSvg([-24, 0, DAMPER_Z], [-9, 0, DAMPER_Z], 3.5)
+    + tubeSvg([-9, 0, DAMPER_Z], [-2, 0, DAMPER_Z], 0.9)
+    + L(k.sideRing([-24, 0, DAMPER_Z], 3.5, "x", P, 16) + k.sideRing([-9, 0, DAMPER_Z], 3.5, "x", P, 16), { tone: "mid" });
+  const labels = (text, point) => `<text class="part-label" text-anchor="middle" x="${at(point)[0].toFixed(1)}" y="${(at(point)[1] + 10).toFixed(1)}"><tspan class="lbl-key">${text}</tspan></text>`;
+  return actuator
+    + tubeSvg([0, 0, BASE_Z], [0, 0, DAMPER_Z], r)
+    + L(k.ring(0, 0, r + 2, BASE_Z, P, 20), { tone: "mid" })
+    + tubeSvg([0, 0, DAMPER_Z], [DAMPER.branchLen, 0, DAMPER_Z], r)
+    + tubeSvg([0, 0, DAMPER_Z], [0, DAMPER.branchLen, DAMPER_Z], r)
+    + flange([DAMPER.branchLen, 0, DAMPER_Z], "x") + flange([0, DAMPER.branchLen, DAMPER_Z], "y")
+    + flap
+    + S(k.cylinder(hinge[0], hinge[1], 1.2, DAMPER_Z - r - 2, 2 * r + 4, P, 10), { tone: "hi", crease: "none" })
+    + labels("AEX", [DAMPER.branchLen, 0, DAMPER_Z - r]) + labels("SEX", [0, DAMPER.branchLen, DAMPER_Z - r]);
+}
+
+export function shutterSvg(z) {
+  return S(k.slabOf(GATE, z, GATE_H, P, 2, 0.4), { tone: "hi", crease: "lo" })
+    + L(k.sideSeam(GATE, z + GATE_H - 5, P, 2), { tone: "lo" })
+    + D([[GATE.x + 4, GATE.y + GATE.d], [GATE.x + GATE.w - 4, GATE.y + GATE.d]].map(([x, y]) => at([x, y, z + GATE_H - 8])), { size: 0.45 });
+}
+
+export function exhaustFlowSvg(index) {
+  const lines = [-1, 0, 1].map((slot) => {
+    const along = slot * EXHAUST_FLOW_SPREAD;
+    return L(k.pathOf([at(onFace(index, FACE_R + FLOW_GAP, along, VENT_Z)), at(onFace(index, FACE_R + FLOW_GAP + EXHAUST_FLOW_LEN, along, VENT_Z))]), { tone: "blue", flow: true });
+  });
+  return lines.join("");
+}
+
+export function splashLevel(rpm) {
+  const number = Number(rpm);
+  if (!number) return "mid";
+  if (number < SPLASH.lowRpm) return "low";
+  return number > SPLASH.highRpm ? "high" : "mid";
+}
+
+export function splashDrops(angle, level, stopR, now) {
+  const { drops, length, reach } = SPLASH.levels[level];
+  return Array.from({ length: drops }, (_, index) => {
+    const phase = (now / SPLASH.periodMs + index / drops) % 1;
+    const a = angle + (index / drops) * Math.PI * 2;
+    const from = WAFER_R + phase * reach * (stopR - WAFER_R);
+    return { a, from, to: Math.min(from + length, stopR) };
+  });
+}
+
+export function splashSvg(angle, level, stopR, now) {
+  return splashDrops(angle, level, stopR, now)
+    .map(({ a, from, to }) => `<path d="${k.pathOf([at([...polar(0, 0, from, a), SPLASH.z]), at([...polar(0, 0, to, a), SPLASH.z])])}"/>`)
+    .join("");
 }
 
 function targetList() {
   const list = [];
   const add = (key, type, actions, extra = {}) => list.push({ key, type, unit: UNITS[type], actions, ...extra });
-  add("Holder", "spin", ["CW", "CCW", "Stop"]);
+  const switchAction = { gripper: ["Open", "Close"], ringLift: ["Top", "Down"], shutter: ["Open", "Close"], vent: ["Open", "Close"], damper: ["AEX", "SEX"] };
+  const holds = (type) => [...switchAction[type], "Hold"];
+  const select = ["Select1", "Select2", "Select3"];
+  add("Holder", "spin", ["CW", "CCW", "Stop", "Home", "Hold"]);
+  add("Holder.Gripper", "gripper", holds("gripper"));
   add("OutsideRing", "spin", ["CW", "CCW", "Stop"]);
-  CUP_OUTER_R.forEach((_, index) => ["Master", "Slave"].forEach((side) => add(`Cup${index + 1}.${side}`, "cup", ["Top", "Middle", "Down", "Hold"], { index, side })));
+  add("OutsideRing.Lift", "ringLift", holds("ringLift"));
+  add("Shutter", "shutter", holds("shutter"));
+  EXHAUST_ANGLE_DEG.forEach((_, index) => add(`SideVent${index + 1}`, "vent", holds("vent"), { index }));
+  add("Damper", "damper", holds("damper"));
+  CUP_OUTER_R.forEach((_, index) => {
+    ["Master", "Slave"].forEach((side) => add(`Cup${index + 1}.${side}`, "cup", ["Top", "Middle", "Down", "Hold", ...JOG_ACTIONS], { index, side }));
+    add(`Cup${index + 1}.Drain`, "drain", select, { index });
+  });
   CORNERS.forEach((_, index) => {
     add(`Arm${index + 1}.Lift`, "lift", ["Top", "Down", "Hold"], { index });
-    add(`Arm${index + 1}.Rotate`, "rotate", [...Object.keys(ARM_ROTATE_DEG), "Hold"], { index });
+    add(`Arm${index + 1}.Rotate`, "rotate", [...Object.keys(ARM_ROTATE_DEG), "Hold", ...JOG_ACTIONS], { index });
     for (let nozzle = 0; nozzle < NOZZLE_COUNT[index]; nozzle++) add(`Arm${index + 1}.Nozzle${nozzle + 1}`, "nozzle", ["On", "Off"], { index });
     for (let port = 0; port < PORT_COUNT[index]; port++) add(`Arm${index + 1}.Port${port + 1}`, "port", ["On", "Off"], { index });
+    if (PORT_COUNT[index]) add(`Arm${index + 1}.PortDrain`, "drain", select, { index });
   });
   FIXED_ANGLE_DEG.forEach((_, index) => add(`FixedNozzle${index + 1}`, "fixed", ["On", "Off"], { index }));
   EXHAUST_ANGLE_DEG.forEach((_, index) => add(`ExhaustFan${index + 1}`, "exhaust", ["On", "Off"], { index }));
@@ -340,16 +554,27 @@ export function labelBlocks() {
     single(`Arm${index + 1}.Rotate`, "Rot"),
     ...Array.from({ length: NOZZLE_COUNT[index] }, (_, n) => single(`Arm${index + 1}.Nozzle${n + 1}`, `N${n + 1}`)),
     ...Array.from({ length: PORT_COUNT[index] }, (_, n) => single(`Arm${index + 1}.Port${n + 1}`, `P${n + 1}`)),
+    ...(PORT_COUNT[index] ? [single(`Arm${index + 1}.PortDrain`, "PD")] : []),
   ];
-  const fixedSpot = [[FIXED_R + 24, 0, 0], [0, FIXED_R + 24, 0], [-(FIXED_R + 24), 0, 0], [0, -(FIXED_R + 24), 0]];
   const sideAlign = ["start", "end", "end", "start"];
-  const exhaustSpot = [[EXHAUST_TO_R + 6, 0, EXHAUST_Z + 14], [0, EXHAUST_TO_R + 6, EXHAUST_Z + 14], [-(EXHAUST_TO_R + 6), 0, EXHAUST_Z + 14], [0, -(EXHAUST_TO_R + 6), EXHAUST_Z + 14]];
+  const fixedSpot = FIXED_ANGLE_DEG.map((degrees) => [...polar(0, 0, FACE_R + 8, degrees * RAD), FIXED_WALL.z]);
+  const exhaustSpot = EXHAUST_ANGLE_DEG.map((_, index) => onFace(index, FACE_R + 6, 0, VENT_Z - VENT.h / 2 - 16));
+  const backCorner = { 2: [-FACE_R, FACE_R], 3: [FACE_R, -FACE_R] };
+  const exhaustBlock = (spot, index) => {
+    const edge = backCorner[index];
+    const lines = [single(`SideVent${index + 1}`, `Vent${index + 1}`), single(`ExhaustFan${index + 1}`, `Fan${index + 1}`)];
+    if (!edge) return block(`Exhaust${index + 1}`, spot, sideAlign[index], lines);
+    const outside = at([...edge, VENT_Z])[0] + (index === 2 ? -10 : 10);
+    return { ...block(`Exhaust${index + 1}`, [...edge, VENT_Z], sideAlign[index], lines), anchor: [outside, at([...edge, VENT_Z])[1]] };
+  };
   return [
-    block("Holder", [-10, 100, 0], "end", [single("Holder", "Holder")]),
-    block("OutsideRing", [10, 100, 0], "start", [single("OutsideRing", "Ring")]),
-    block("Cups", [92, -64, 0], "start", CUP_OUTER_R.map((_, i) => ({ keys: [`Cup${i + 1}.Master`, `Cup${i + 1}.Slave`], prefix: `Cup${i + 1}` }))),
+    block("Holder", [-10, 100, 0], "end", [single("Holder", "Holder"), single("Holder.Gripper", "Grip")]),
+    block("OutsideRing", [10, 100, 0], "start", [single("OutsideRing", "Ring"), single("OutsideRing.Lift", "Lift")]),
+    block("Cups", [92, -64, 0], "start", CUP_OUTER_R.flatMap((_, i) => [{ keys: [`Cup${i + 1}.Master`, `Cup${i + 1}.Slave`], prefix: `Cup${i + 1}` }, single(`Cup${i + 1}.Drain`, `D${i + 1}`)])),
     ...CORNERS.map((_, i) => block(`Arm${i + 1}`, armPost(i), armAlign[i], armLines(i), [armAlign[i] === "end" ? -8 : 8, 0])),
     ...fixedSpot.map((spot, i) => block(`FixedNozzle${i + 1}`, spot, sideAlign[i], [single(`FixedNozzle${i + 1}`, `FN${i + 1}`)])),
-    ...exhaustSpot.map((spot, i) => block(`ExhaustFan${i + 1}`, spot, sideAlign[i], [single(`ExhaustFan${i + 1}`, `Fan${i + 1}`)])),
+    block("Shutter", [GATE.x + GATE.w + 8, GATE.y, GATE_Z + GATE_H + 12], "start", [single("Shutter", "Door")]),
+    block("Damper", [0, 0, DAMPER_Z - DAMPER.pipeR - 46], "middle", [single("Damper", "Damper")]),
+    ...exhaustSpot.map(exhaustBlock),
   ];
 }

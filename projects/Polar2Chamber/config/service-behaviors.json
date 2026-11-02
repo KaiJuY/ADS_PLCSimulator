@@ -152,7 +152,52 @@
       ]
     },
     "Cup[1].Lift.IncrementalJog": {
-      "beforeComplete": [ { "svid": 45, "value": { "addParam": "Position" } }, { "svid": 46, "value": { "addParam": "Position" } } ]
+      "beforeComplete": [ { "svid": 45, "value": { "addParam": "Position" } }, { "svid": 46, "value": { "addParam": "Position" } } ],
+      "sim": [
+        { "when": "enter", "target": "Cup1.Master", "action": "IncrementalJog", "value": { "param": "Position" } },
+        { "when": "enter", "target": "Cup1.Slave", "action": "IncrementalJog", "value": { "param": "Position" } },
+        { "when": "beforeComplete", "target": "Cup1.Master", "action": "StepDone" },
+        { "when": "beforeComplete", "target": "Cup1.Slave", "action": "StepDone" },
+        { "when": "leave", "target": "Cup1.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup1.Slave", "action": "Hold" }
+      ]
+    },
+    "Cup[1].Lift.JogPositive": {
+      "sim": [
+        { "when": "enter", "target": "Cup1.Master", "action": "JogPositive", "value": { "ecid": 270 } },
+        { "when": "enter", "target": "Cup1.Slave", "action": "JogPositive", "value": { "ecid": 270 } },
+        { "when": "leave", "target": "Cup1.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup1.Slave", "action": "Hold" }
+      ]
+    },
+    "Cup[1].Lift.JogNegative": {
+      "sim": [
+        { "when": "enter", "target": "Cup1.Master", "action": "JogNegative", "value": { "ecid": 270 } },
+        { "when": "enter", "target": "Cup1.Slave", "action": "JogNegative", "value": { "ecid": 270 } },
+        { "when": "leave", "target": "Cup1.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup1.Slave", "action": "Hold" }
+      ]
+    },
+    "Cup[1].Lift.DecoupleStop": {
+      "sim": [
+        { "when": "enter", "target": "Cup1.Master", "action": "Hold" },
+        { "when": "enter", "target": "Cup1.Slave", "action": "Hold" }
+      ]
+    },
+    "Cup[1].Drainer.Select1": {
+      "sim": [
+        { "when": "enter", "target": "Cup1.Drain", "action": "Select1" }
+      ]
+    },
+    "Cup[1].Drainer.Select2": {
+      "sim": [
+        { "when": "enter", "target": "Cup1.Drain", "action": "Select2" }
+      ]
+    },
+    "Cup[1].Drainer.Select3": {
+      "sim": [
+        { "when": "enter", "target": "Cup1.Drain", "action": "Select3" }
+      ]
     },
     "Cup[2].Lift.TopPos": {
       "beforeComplete": [ { "svid": 47, "value": { "ecid": 288 } }, { "svid": 48, "value": { "ecid": 288 } } ],
@@ -188,7 +233,52 @@
       ]
     },
     "Cup[2].Lift.IncrementalJog": {
-      "beforeComplete": [ { "svid": 47, "value": { "addParam": "Position" } }, { "svid": 48, "value": { "addParam": "Position" } } ]
+      "beforeComplete": [ { "svid": 47, "value": { "addParam": "Position" } }, { "svid": 48, "value": { "addParam": "Position" } } ],
+      "sim": [
+        { "when": "enter", "target": "Cup2.Master", "action": "IncrementalJog", "value": { "param": "Position" } },
+        { "when": "enter", "target": "Cup2.Slave", "action": "IncrementalJog", "value": { "param": "Position" } },
+        { "when": "beforeComplete", "target": "Cup2.Master", "action": "StepDone" },
+        { "when": "beforeComplete", "target": "Cup2.Slave", "action": "StepDone" },
+        { "when": "leave", "target": "Cup2.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup2.Slave", "action": "Hold" }
+      ]
+    },
+    "Cup[2].Lift.JogPositive": {
+      "sim": [
+        { "when": "enter", "target": "Cup2.Master", "action": "JogPositive", "value": { "ecid": 282 } },
+        { "when": "enter", "target": "Cup2.Slave", "action": "JogPositive", "value": { "ecid": 282 } },
+        { "when": "leave", "target": "Cup2.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup2.Slave", "action": "Hold" }
+      ]
+    },
+    "Cup[2].Lift.JogNegative": {
+      "sim": [
+        { "when": "enter", "target": "Cup2.Master", "action": "JogNegative", "value": { "ecid": 282 } },
+        { "when": "enter", "target": "Cup2.Slave", "action": "JogNegative", "value": { "ecid": 282 } },
+        { "when": "leave", "target": "Cup2.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup2.Slave", "action": "Hold" }
+      ]
+    },
+    "Cup[2].Lift.DecoupleStop": {
+      "sim": [
+        { "when": "enter", "target": "Cup2.Master", "action": "Hold" },
+        { "when": "enter", "target": "Cup2.Slave", "action": "Hold" }
+      ]
+    },
+    "Cup[2].Drainer.Select1": {
+      "sim": [
+        { "when": "enter", "target": "Cup2.Drain", "action": "Select1" }
+      ]
+    },
+    "Cup[2].Drainer.Select2": {
+      "sim": [
+        { "when": "enter", "target": "Cup2.Drain", "action": "Select2" }
+      ]
+    },
+    "Cup[2].Drainer.Select3": {
+      "sim": [
+        { "when": "enter", "target": "Cup2.Drain", "action": "Select3" }
+      ]
     },
     "Cup[3].Lift.TopPos": {
       "beforeComplete": [ { "svid": 49, "value": { "ecid": 300 } }, { "svid": 50, "value": { "ecid": 300 } } ],
@@ -224,7 +314,52 @@
       ]
     },
     "Cup[3].Lift.IncrementalJog": {
-      "beforeComplete": [ { "svid": 49, "value": { "addParam": "Position" } }, { "svid": 50, "value": { "addParam": "Position" } } ]
+      "beforeComplete": [ { "svid": 49, "value": { "addParam": "Position" } }, { "svid": 50, "value": { "addParam": "Position" } } ],
+      "sim": [
+        { "when": "enter", "target": "Cup3.Master", "action": "IncrementalJog", "value": { "param": "Position" } },
+        { "when": "enter", "target": "Cup3.Slave", "action": "IncrementalJog", "value": { "param": "Position" } },
+        { "when": "beforeComplete", "target": "Cup3.Master", "action": "StepDone" },
+        { "when": "beforeComplete", "target": "Cup3.Slave", "action": "StepDone" },
+        { "when": "leave", "target": "Cup3.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup3.Slave", "action": "Hold" }
+      ]
+    },
+    "Cup[3].Lift.JogPositive": {
+      "sim": [
+        { "when": "enter", "target": "Cup3.Master", "action": "JogPositive", "value": { "ecid": 294 } },
+        { "when": "enter", "target": "Cup3.Slave", "action": "JogPositive", "value": { "ecid": 294 } },
+        { "when": "leave", "target": "Cup3.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup3.Slave", "action": "Hold" }
+      ]
+    },
+    "Cup[3].Lift.JogNegative": {
+      "sim": [
+        { "when": "enter", "target": "Cup3.Master", "action": "JogNegative", "value": { "ecid": 294 } },
+        { "when": "enter", "target": "Cup3.Slave", "action": "JogNegative", "value": { "ecid": 294 } },
+        { "when": "leave", "target": "Cup3.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup3.Slave", "action": "Hold" }
+      ]
+    },
+    "Cup[3].Lift.DecoupleStop": {
+      "sim": [
+        { "when": "enter", "target": "Cup3.Master", "action": "Hold" },
+        { "when": "enter", "target": "Cup3.Slave", "action": "Hold" }
+      ]
+    },
+    "Cup[3].Drainer.Select1": {
+      "sim": [
+        { "when": "enter", "target": "Cup3.Drain", "action": "Select1" }
+      ]
+    },
+    "Cup[3].Drainer.Select2": {
+      "sim": [
+        { "when": "enter", "target": "Cup3.Drain", "action": "Select2" }
+      ]
+    },
+    "Cup[3].Drainer.Select3": {
+      "sim": [
+        { "when": "enter", "target": "Cup3.Drain", "action": "Select3" }
+      ]
     },
     "Cup[4].Lift.TopPos": {
       "beforeComplete": [ { "svid": 51, "value": { "ecid": 312 } }, { "svid": 52, "value": { "ecid": 312 } } ],
@@ -260,13 +395,58 @@
       ]
     },
     "Cup[4].Lift.IncrementalJog": {
-      "beforeComplete": [ { "svid": 51, "value": { "addParam": "Position" } }, { "svid": 52, "value": { "addParam": "Position" } } ]
+      "beforeComplete": [ { "svid": 51, "value": { "addParam": "Position" } }, { "svid": 52, "value": { "addParam": "Position" } } ],
+      "sim": [
+        { "when": "enter", "target": "Cup4.Master", "action": "IncrementalJog", "value": { "param": "Position" } },
+        { "when": "enter", "target": "Cup4.Slave", "action": "IncrementalJog", "value": { "param": "Position" } },
+        { "when": "beforeComplete", "target": "Cup4.Master", "action": "StepDone" },
+        { "when": "beforeComplete", "target": "Cup4.Slave", "action": "StepDone" },
+        { "when": "leave", "target": "Cup4.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup4.Slave", "action": "Hold" }
+      ]
+    },
+    "Cup[4].Lift.JogPositive": {
+      "sim": [
+        { "when": "enter", "target": "Cup4.Master", "action": "JogPositive", "value": { "ecid": 306 } },
+        { "when": "enter", "target": "Cup4.Slave", "action": "JogPositive", "value": { "ecid": 306 } },
+        { "when": "leave", "target": "Cup4.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup4.Slave", "action": "Hold" }
+      ]
+    },
+    "Cup[4].Lift.JogNegative": {
+      "sim": [
+        { "when": "enter", "target": "Cup4.Master", "action": "JogNegative", "value": { "ecid": 306 } },
+        { "when": "enter", "target": "Cup4.Slave", "action": "JogNegative", "value": { "ecid": 306 } },
+        { "when": "leave", "target": "Cup4.Master", "action": "Hold" },
+        { "when": "leave", "target": "Cup4.Slave", "action": "Hold" }
+      ]
+    },
+    "Cup[4].Lift.DecoupleStop": {
+      "sim": [
+        { "when": "enter", "target": "Cup4.Master", "action": "Hold" },
+        { "when": "enter", "target": "Cup4.Slave", "action": "Hold" }
+      ]
+    },
+    "Cup[4].Drainer.Select1": {
+      "sim": [
+        { "when": "enter", "target": "Cup4.Drain", "action": "Select1" }
+      ]
+    },
+    "Cup[4].Drainer.Select2": {
+      "sim": [
+        { "when": "enter", "target": "Cup4.Drain", "action": "Select2" }
+      ]
+    },
+    "Cup[4].Drainer.Select3": {
+      "sim": [
+        { "when": "enter", "target": "Cup4.Drain", "action": "Select3" }
+      ]
     },
     "Arm[1].Lift.TopPos": {"onEnter": [{"svid": 4, "value": {"ecid": 6}}], "beforeComplete": [{"svid": 2, "value": {"ecid": 12}}], "onLeave": [{"svid": 4, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Lift", "action": "Top", "value": {"ecid": 12}}, {"when": "beforeComplete", "target": "Arm1.Lift", "action": "Top", "value": {"ecid": 12}}, {"when": "leave", "target": "Arm1.Lift", "action": "Hold"}]},
     "Arm[1].Lift.DownPos": {"onEnter": [{"svid": 4, "value": {"ecid": 6}}], "beforeComplete": [{"svid": 2, "value": {"ecid": 13}}], "onLeave": [{"svid": 4, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Lift", "action": "Down", "value": {"ecid": 13}}, {"when": "beforeComplete", "target": "Arm1.Lift", "action": "Down", "value": {"ecid": 13}}, {"when": "leave", "target": "Arm1.Lift", "action": "Hold"}]},
-    "Arm[1].Rotate.JogPositive": {"onEnter": [{"svid": 5, "value": {"ecid": 16}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}]},
-    "Arm[1].Rotate.JogNegative": {"onEnter": [{"svid": 5, "value": {"ecid": 16, "negate": true}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}]},
-    "Arm[1].Rotate.IncrementalJog": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"addParam": "Position"}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}]},
+    "Arm[1].Rotate.JogPositive": {"onEnter": [{"svid": 5, "value": {"ecid": 16}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Rotate", "action": "JogPositive", "value": {"ecid": 16}}, {"when": "leave", "target": "Arm1.Rotate", "action": "Hold"}]},
+    "Arm[1].Rotate.JogNegative": {"onEnter": [{"svid": 5, "value": {"ecid": 16, "negate": true}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Rotate", "action": "JogNegative", "value": {"ecid": 16}}, {"when": "leave", "target": "Arm1.Rotate", "action": "Hold"}]},
+    "Arm[1].Rotate.IncrementalJog": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"addParam": "Position"}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Rotate", "action": "IncrementalJog", "value": {"param": "Position"}}, {"when": "beforeComplete", "target": "Arm1.Rotate", "action": "StepDone"}, {"when": "leave", "target": "Arm1.Rotate", "action": "Hold"}]},
     "Arm[1].Rotate.NegLimitPos": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"ecid": 21}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Rotate", "action": "NegLimit", "value": {"ecid": 21}}, {"when": "beforeComplete", "target": "Arm1.Rotate", "action": "NegLimit", "value": {"ecid": 21}}, {"when": "leave", "target": "Arm1.Rotate", "action": "Hold"}]},
     "Arm[1].Rotate.PosLimitPos": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"ecid": 20}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Rotate", "action": "PosLimit", "value": {"ecid": 20}}, {"when": "beforeComplete", "target": "Arm1.Rotate", "action": "PosLimit", "value": {"ecid": 20}}, {"when": "leave", "target": "Arm1.Rotate", "action": "Hold"}]},
     "Arm[1].Rotate.NozzlePortPos": {"onEnter": [{"svid": 5, "value": {"ecid": 15}}], "beforeComplete": [{"svid": 3, "value": {"ecid": 22}}], "onLeave": [{"svid": 5, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Rotate", "action": "NozzlePort", "value": {"ecid": 22}}, {"when": "beforeComplete", "target": "Arm1.Rotate", "action": "NozzlePort", "value": {"ecid": 22}}, {"when": "leave", "target": "Arm1.Rotate", "action": "Hold"}]},
@@ -279,11 +459,14 @@
     "Arm[1].NozzlePort.Nozzle[1].Supply": {"onEnter": [{"svid": 12, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 12, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Port1", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm1.Port1", "action": "Off"}]},
     "Arm[1].NozzlePort.Nozzle[2].Supply": {"onEnter": [{"svid": 13, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 13, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Port2", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm1.Port2", "action": "Off"}]},
     "Arm[1].NozzlePort.Nozzle[3].Supply": {"onEnter": [{"svid": 14, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 14, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm1.Port3", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm1.Port3", "action": "Off"}]},
+    "Arm[1].NozzlePort.DrainSelect1": {"sim": [{ "when": "enter", "target": "Arm1.PortDrain", "action": "Select1" }]},
+    "Arm[1].NozzlePort.DrainSelect2": {"sim": [{ "when": "enter", "target": "Arm1.PortDrain", "action": "Select2" }]},
+    "Arm[1].NozzlePort.DrainSelect3": {"sim": [{ "when": "enter", "target": "Arm1.PortDrain", "action": "Select3" }]},
     "Arm[2].Lift.TopPos": {"onEnter": [{"svid": 17, "value": {"ecid": 84}}], "beforeComplete": [{"svid": 15, "value": {"ecid": 90}}], "onLeave": [{"svid": 17, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Lift", "action": "Top", "value": {"ecid": 90}}, {"when": "beforeComplete", "target": "Arm2.Lift", "action": "Top", "value": {"ecid": 90}}, {"when": "leave", "target": "Arm2.Lift", "action": "Hold"}]},
     "Arm[2].Lift.DownPos": {"onEnter": [{"svid": 17, "value": {"ecid": 84}}], "beforeComplete": [{"svid": 15, "value": {"ecid": 91}}], "onLeave": [{"svid": 17, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Lift", "action": "Down", "value": {"ecid": 91}}, {"when": "beforeComplete", "target": "Arm2.Lift", "action": "Down", "value": {"ecid": 91}}, {"when": "leave", "target": "Arm2.Lift", "action": "Hold"}]},
-    "Arm[2].Rotate.JogPositive": {"onEnter": [{"svid": 18, "value": {"ecid": 94}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}]},
-    "Arm[2].Rotate.JogNegative": {"onEnter": [{"svid": 18, "value": {"ecid": 94, "negate": true}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}]},
-    "Arm[2].Rotate.IncrementalJog": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"addParam": "Position"}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}]},
+    "Arm[2].Rotate.JogPositive": {"onEnter": [{"svid": 18, "value": {"ecid": 94}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Rotate", "action": "JogPositive", "value": {"ecid": 94}}, {"when": "leave", "target": "Arm2.Rotate", "action": "Hold"}]},
+    "Arm[2].Rotate.JogNegative": {"onEnter": [{"svid": 18, "value": {"ecid": 94, "negate": true}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Rotate", "action": "JogNegative", "value": {"ecid": 94}}, {"when": "leave", "target": "Arm2.Rotate", "action": "Hold"}]},
+    "Arm[2].Rotate.IncrementalJog": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"addParam": "Position"}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Rotate", "action": "IncrementalJog", "value": {"param": "Position"}}, {"when": "beforeComplete", "target": "Arm2.Rotate", "action": "StepDone"}, {"when": "leave", "target": "Arm2.Rotate", "action": "Hold"}]},
     "Arm[2].Rotate.NegLimitPos": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"ecid": 99}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Rotate", "action": "NegLimit", "value": {"ecid": 99}}, {"when": "beforeComplete", "target": "Arm2.Rotate", "action": "NegLimit", "value": {"ecid": 99}}, {"when": "leave", "target": "Arm2.Rotate", "action": "Hold"}]},
     "Arm[2].Rotate.PosLimitPos": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"ecid": 98}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Rotate", "action": "PosLimit", "value": {"ecid": 98}}, {"when": "beforeComplete", "target": "Arm2.Rotate", "action": "PosLimit", "value": {"ecid": 98}}, {"when": "leave", "target": "Arm2.Rotate", "action": "Hold"}]},
     "Arm[2].Rotate.NozzlePortPos": {"onEnter": [{"svid": 18, "value": {"ecid": 93}}], "beforeComplete": [{"svid": 16, "value": {"ecid": 100}}], "onLeave": [{"svid": 18, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Rotate", "action": "NozzlePort", "value": {"ecid": 100}}, {"when": "beforeComplete", "target": "Arm2.Rotate", "action": "NozzlePort", "value": {"ecid": 100}}, {"when": "leave", "target": "Arm2.Rotate", "action": "Hold"}]},
@@ -296,11 +479,14 @@
     "Arm[2].NozzlePort.Nozzle[1].Supply": {"onEnter": [{"svid": 25, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 25, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Port1", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm2.Port1", "action": "Off"}]},
     "Arm[2].NozzlePort.Nozzle[2].Supply": {"onEnter": [{"svid": 26, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 26, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Port2", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm2.Port2", "action": "Off"}]},
     "Arm[2].NozzlePort.Nozzle[3].Supply": {"onEnter": [{"svid": 27, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 27, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm2.Port3", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm2.Port3", "action": "Off"}]},
+    "Arm[2].NozzlePort.DrainSelect1": {"sim": [{ "when": "enter", "target": "Arm2.PortDrain", "action": "Select1" }]},
+    "Arm[2].NozzlePort.DrainSelect2": {"sim": [{ "when": "enter", "target": "Arm2.PortDrain", "action": "Select2" }]},
+    "Arm[2].NozzlePort.DrainSelect3": {"sim": [{ "when": "enter", "target": "Arm2.PortDrain", "action": "Select3" }]},
     "Arm[3].Lift.TopPos": {"onEnter": [{"svid": 30, "value": {"ecid": 162}}], "beforeComplete": [{"svid": 28, "value": {"ecid": 168}}], "onLeave": [{"svid": 30, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Lift", "action": "Top", "value": {"ecid": 168}}, {"when": "beforeComplete", "target": "Arm3.Lift", "action": "Top", "value": {"ecid": 168}}, {"when": "leave", "target": "Arm3.Lift", "action": "Hold"}]},
     "Arm[3].Lift.DownPos": {"onEnter": [{"svid": 30, "value": {"ecid": 162}}], "beforeComplete": [{"svid": 28, "value": {"ecid": 169}}], "onLeave": [{"svid": 30, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Lift", "action": "Down", "value": {"ecid": 169}}, {"when": "beforeComplete", "target": "Arm3.Lift", "action": "Down", "value": {"ecid": 169}}, {"when": "leave", "target": "Arm3.Lift", "action": "Hold"}]},
-    "Arm[3].Rotate.JogPositive": {"onEnter": [{"svid": 31, "value": {"ecid": 172}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}]},
-    "Arm[3].Rotate.JogNegative": {"onEnter": [{"svid": 31, "value": {"ecid": 172, "negate": true}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}]},
-    "Arm[3].Rotate.IncrementalJog": {"onEnter": [{"svid": 31, "value": {"ecid": 171}}], "beforeComplete": [{"svid": 29, "value": {"addParam": "Position"}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}]},
+    "Arm[3].Rotate.JogPositive": {"onEnter": [{"svid": 31, "value": {"ecid": 172}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Rotate", "action": "JogPositive", "value": {"ecid": 172}}, {"when": "leave", "target": "Arm3.Rotate", "action": "Hold"}]},
+    "Arm[3].Rotate.JogNegative": {"onEnter": [{"svid": 31, "value": {"ecid": 172, "negate": true}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Rotate", "action": "JogNegative", "value": {"ecid": 172}}, {"when": "leave", "target": "Arm3.Rotate", "action": "Hold"}]},
+    "Arm[3].Rotate.IncrementalJog": {"onEnter": [{"svid": 31, "value": {"ecid": 171}}], "beforeComplete": [{"svid": 29, "value": {"addParam": "Position"}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Rotate", "action": "IncrementalJog", "value": {"param": "Position"}}, {"when": "beforeComplete", "target": "Arm3.Rotate", "action": "StepDone"}, {"when": "leave", "target": "Arm3.Rotate", "action": "Hold"}]},
     "Arm[3].Rotate.NegLimitPos": {"onEnter": [{"svid": 31, "value": {"ecid": 171}}], "beforeComplete": [{"svid": 29, "value": {"ecid": 177}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Rotate", "action": "NegLimit", "value": {"ecid": 177}}, {"when": "beforeComplete", "target": "Arm3.Rotate", "action": "NegLimit", "value": {"ecid": 177}}, {"when": "leave", "target": "Arm3.Rotate", "action": "Hold"}]},
     "Arm[3].Rotate.PosLimitPos": {"onEnter": [{"svid": 31, "value": {"ecid": 171}}], "beforeComplete": [{"svid": 29, "value": {"ecid": 176}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Rotate", "action": "PosLimit", "value": {"ecid": 176}}, {"when": "beforeComplete", "target": "Arm3.Rotate", "action": "PosLimit", "value": {"ecid": 176}}, {"when": "leave", "target": "Arm3.Rotate", "action": "Hold"}]},
     "Arm[3].Rotate.Noz1CenterPos": {"onEnter": [{"svid": 31, "value": {"ecid": 171}}], "beforeComplete": [{"svid": 29, "value": {"ecid": 179}}], "onLeave": [{"svid": 31, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Rotate", "action": "Noz1Center", "value": {"ecid": 179}}, {"when": "beforeComplete", "target": "Arm3.Rotate", "action": "Noz1Center", "value": {"ecid": 179}}, {"when": "leave", "target": "Arm3.Rotate", "action": "Hold"}]},
@@ -309,9 +495,9 @@
     "Arm[3].Nozzle[2].ChemicalSupply": {"onEnter": [{"svid": 35, "value": {"param": "Setpoint"}, "dryRunZero": true}], "onLeave": [{"svid": 35, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm3.Nozzle2", "action": "On", "value": {"param": "Setpoint"}, "dryRunAction": "Off"}, {"when": "leave", "target": "Arm3.Nozzle2", "action": "Off"}]},
     "Arm[4].Lift.TopPos": {"onEnter": [{"svid": 40, "value": {"ecid": 224}}], "beforeComplete": [{"svid": 38, "value": {"ecid": 230}}], "onLeave": [{"svid": 40, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm4.Lift", "action": "Top", "value": {"ecid": 230}}, {"when": "beforeComplete", "target": "Arm4.Lift", "action": "Top", "value": {"ecid": 230}}, {"when": "leave", "target": "Arm4.Lift", "action": "Hold"}]},
     "Arm[4].Lift.DownPos": {"onEnter": [{"svid": 40, "value": {"ecid": 224}}], "beforeComplete": [{"svid": 38, "value": {"ecid": 231}}], "onLeave": [{"svid": 40, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm4.Lift", "action": "Down", "value": {"ecid": 231}}, {"when": "beforeComplete", "target": "Arm4.Lift", "action": "Down", "value": {"ecid": 231}}, {"when": "leave", "target": "Arm4.Lift", "action": "Hold"}]},
-    "Arm[4].Rotate.JogPositive": {"onEnter": [{"svid": 41, "value": {"ecid": 234}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}]},
-    "Arm[4].Rotate.JogNegative": {"onEnter": [{"svid": 41, "value": {"ecid": 234, "negate": true}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}]},
-    "Arm[4].Rotate.IncrementalJog": {"onEnter": [{"svid": 41, "value": {"ecid": 233}}], "beforeComplete": [{"svid": 39, "value": {"addParam": "Position"}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}]},
+    "Arm[4].Rotate.JogPositive": {"onEnter": [{"svid": 41, "value": {"ecid": 234}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm4.Rotate", "action": "JogPositive", "value": {"ecid": 234}}, {"when": "leave", "target": "Arm4.Rotate", "action": "Hold"}]},
+    "Arm[4].Rotate.JogNegative": {"onEnter": [{"svid": 41, "value": {"ecid": 234, "negate": true}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm4.Rotate", "action": "JogNegative", "value": {"ecid": 234}}, {"when": "leave", "target": "Arm4.Rotate", "action": "Hold"}]},
+    "Arm[4].Rotate.IncrementalJog": {"onEnter": [{"svid": 41, "value": {"ecid": 233}}], "beforeComplete": [{"svid": 39, "value": {"addParam": "Position"}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm4.Rotate", "action": "IncrementalJog", "value": {"param": "Position"}}, {"when": "beforeComplete", "target": "Arm4.Rotate", "action": "StepDone"}, {"when": "leave", "target": "Arm4.Rotate", "action": "Hold"}]},
     "Arm[4].Rotate.NegLimitPos": {"onEnter": [{"svid": 41, "value": {"ecid": 233}}], "beforeComplete": [{"svid": 39, "value": {"ecid": 239}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm4.Rotate", "action": "NegLimit", "value": {"ecid": 239}}, {"when": "beforeComplete", "target": "Arm4.Rotate", "action": "NegLimit", "value": {"ecid": 239}}, {"when": "leave", "target": "Arm4.Rotate", "action": "Hold"}]},
     "Arm[4].Rotate.PosLimitPos": {"onEnter": [{"svid": 41, "value": {"ecid": 233}}], "beforeComplete": [{"svid": 39, "value": {"ecid": 238}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm4.Rotate", "action": "PosLimit", "value": {"ecid": 238}}, {"when": "beforeComplete", "target": "Arm4.Rotate", "action": "PosLimit", "value": {"ecid": 238}}, {"when": "leave", "target": "Arm4.Rotate", "action": "Hold"}]},
     "Arm[4].Rotate.Noz1CenterPos": {"onEnter": [{"svid": 41, "value": {"ecid": 233}}], "beforeComplete": [{"svid": 39, "value": {"ecid": 241}}], "onLeave": [{"svid": 41, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "Arm4.Rotate", "action": "Noz1Center", "value": {"ecid": 241}}, {"when": "beforeComplete", "target": "Arm4.Rotate", "action": "Noz1Center", "value": {"ecid": 241}}, {"when": "leave", "target": "Arm4.Rotate", "action": "Hold"}]},
@@ -323,6 +509,125 @@
     "Exhaust.Fan[1].SupplyFlowPID": {"onEnter": [{"svid": 59, "value": {"ecid": 365}}], "onLeave": [{"svid": 59, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "ExhaustFan1", "action": "On", "value": {"ecid": 365}}, {"when": "leave", "target": "ExhaustFan1", "action": "Off"}]},
     "Exhaust.Fan[2].SupplyFlowPID": {"onEnter": [{"svid": 60, "value": {"ecid": 369}}], "onLeave": [{"svid": 60, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "ExhaustFan2", "action": "On", "value": {"ecid": 369}}, {"when": "leave", "target": "ExhaustFan2", "action": "Off"}]},
     "Exhaust.Fan[3].SupplyFlowPID": {"onEnter": [{"svid": 61, "value": {"ecid": 373}}], "onLeave": [{"svid": 61, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "ExhaustFan3", "action": "On", "value": {"ecid": 373}}, {"when": "leave", "target": "ExhaustFan3", "action": "Off"}]},
-    "Exhaust.Fan[4].SupplyFlowPID": {"onEnter": [{"svid": 62, "value": {"ecid": 377}}], "onLeave": [{"svid": 62, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "ExhaustFan4", "action": "On", "value": {"ecid": 377}}, {"when": "leave", "target": "ExhaustFan4", "action": "Off"}]}
+    "Exhaust.Fan[4].SupplyFlowPID": {"onEnter": [{"svid": 62, "value": {"ecid": 377}}], "onLeave": [{"svid": 62, "value": {"constant": 0}}], "sim": [{"when": "enter", "target": "ExhaustFan4", "action": "On", "value": {"ecid": 377}}, {"when": "leave", "target": "ExhaustFan4", "action": "Off"}]},
+    "Holder.Rotate.OPR": {
+      "sim": [
+        { "when": "enter", "target": "Holder", "action": "Home" },
+        { "when": "beforeComplete", "target": "Holder", "action": "Home" },
+        { "when": "leave", "target": "Holder", "action": "Hold" }
+      ]
+    },
+    "Holder.Gripper.Open": {
+      "sim": [
+        { "when": "enter", "target": "Holder.Gripper", "action": "Open" },
+        { "when": "beforeComplete", "target": "Holder.Gripper", "action": "Open" },
+        { "when": "leave", "target": "Holder.Gripper", "action": "Hold" }
+      ]
+    },
+    "Holder.Gripper.Close": {
+      "sim": [
+        { "when": "enter", "target": "Holder.Gripper", "action": "Close" },
+        { "when": "beforeComplete", "target": "Holder.Gripper", "action": "Close" },
+        { "when": "leave", "target": "Holder.Gripper", "action": "Hold" }
+      ]
+    },
+    "OutsideRing.Lift.TopPos": {
+      "sim": [
+        { "when": "enter", "target": "OutsideRing.Lift", "action": "Top" },
+        { "when": "beforeComplete", "target": "OutsideRing.Lift", "action": "Top" },
+        { "when": "leave", "target": "OutsideRing.Lift", "action": "Hold" }
+      ]
+    },
+    "OutsideRing.Lift.DownPos": {
+      "sim": [
+        { "when": "enter", "target": "OutsideRing.Lift", "action": "Down" },
+        { "when": "beforeComplete", "target": "OutsideRing.Lift", "action": "Down" },
+        { "when": "leave", "target": "OutsideRing.Lift", "action": "Hold" }
+      ]
+    },
+    "Shutter.Open": {
+      "sim": [
+        { "when": "enter", "target": "Shutter", "action": "Open" },
+        { "when": "beforeComplete", "target": "Shutter", "action": "Open" },
+        { "when": "leave", "target": "Shutter", "action": "Hold" }
+      ]
+    },
+    "Shutter.Close": {
+      "sim": [
+        { "when": "enter", "target": "Shutter", "action": "Close" },
+        { "when": "beforeComplete", "target": "Shutter", "action": "Close" },
+        { "when": "leave", "target": "Shutter", "action": "Hold" }
+      ]
+    },
+    "SideVent[1].Open": {
+      "sim": [
+        { "when": "enter", "target": "SideVent1", "action": "Open" },
+        { "when": "beforeComplete", "target": "SideVent1", "action": "Open" },
+        { "when": "leave", "target": "SideVent1", "action": "Hold" }
+      ]
+    },
+    "SideVent[1].Close": {
+      "sim": [
+        { "when": "enter", "target": "SideVent1", "action": "Close" },
+        { "when": "beforeComplete", "target": "SideVent1", "action": "Close" },
+        { "when": "leave", "target": "SideVent1", "action": "Hold" }
+      ]
+    },
+    "SideVent[2].Open": {
+      "sim": [
+        { "when": "enter", "target": "SideVent2", "action": "Open" },
+        { "when": "beforeComplete", "target": "SideVent2", "action": "Open" },
+        { "when": "leave", "target": "SideVent2", "action": "Hold" }
+      ]
+    },
+    "SideVent[2].Close": {
+      "sim": [
+        { "when": "enter", "target": "SideVent2", "action": "Close" },
+        { "when": "beforeComplete", "target": "SideVent2", "action": "Close" },
+        { "when": "leave", "target": "SideVent2", "action": "Hold" }
+      ]
+    },
+    "SideVent[3].Open": {
+      "sim": [
+        { "when": "enter", "target": "SideVent3", "action": "Open" },
+        { "when": "beforeComplete", "target": "SideVent3", "action": "Open" },
+        { "when": "leave", "target": "SideVent3", "action": "Hold" }
+      ]
+    },
+    "SideVent[3].Close": {
+      "sim": [
+        { "when": "enter", "target": "SideVent3", "action": "Close" },
+        { "when": "beforeComplete", "target": "SideVent3", "action": "Close" },
+        { "when": "leave", "target": "SideVent3", "action": "Hold" }
+      ]
+    },
+    "SideVent[4].Open": {
+      "sim": [
+        { "when": "enter", "target": "SideVent4", "action": "Open" },
+        { "when": "beforeComplete", "target": "SideVent4", "action": "Open" },
+        { "when": "leave", "target": "SideVent4", "action": "Hold" }
+      ]
+    },
+    "SideVent[4].Close": {
+      "sim": [
+        { "when": "enter", "target": "SideVent4", "action": "Close" },
+        { "when": "beforeComplete", "target": "SideVent4", "action": "Close" },
+        { "when": "leave", "target": "SideVent4", "action": "Hold" }
+      ]
+    },
+    "Exhaust.Damper.AEX": {
+      "sim": [
+        { "when": "enter", "target": "Damper", "action": "AEX" },
+        { "when": "beforeComplete", "target": "Damper", "action": "AEX" },
+        { "when": "leave", "target": "Damper", "action": "Hold" }
+      ]
+    },
+    "Exhaust.Damper.SEX": {
+      "sim": [
+        { "when": "enter", "target": "Damper", "action": "SEX" },
+        { "when": "beforeComplete", "target": "Damper", "action": "SEX" },
+        { "when": "leave", "target": "Damper", "action": "Hold" }
+      ]
+    }
   }
 }
