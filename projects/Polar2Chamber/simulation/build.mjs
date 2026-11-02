@@ -5,12 +5,12 @@ import * as k from "./kit/iso-kit.mjs";
 import * as g from "./parts.mjs";
 
 const {
-  P, WIDTH, HEIGHT, PLATE, PLATE_H, WALL, SHELL_H, WALL_OPACITY, FFU, FFU_T, FFU_DOTS, FFU_OPACITY, SLOT, GATE, GATE_Z, GATE_H,
+  P, WIDTH, HEIGHT, PLATE, PLATE_H, PLATE_OPACITY, WALL, SHELL_H, WALL_OPACITY, SLOT, GATE, GATE_Z, GATE_H,
   HOUSING_R, HOUSING_H, CHUCK_R, CHUCK_TOP, CUP_RIM, CUP_INITIAL, PIVOT_R, PIVOT_H, NOZZLE_COUNT, ARM_Z,
-  ARM_LIFT_INITIAL, ARM_ROTATE_INITIAL, ARM_ROTATE_DEG, ARM_ROTATE_NEEDS, PORT_COUNT, PORT_R, PORT_H, PORT_FLOOR, PORT_RIM_R, PORT_JET_H,
-  EXHAUST_ANGLE_DEG, EXHAUST_FROM_R, EXHAUST_TO_R, EXHAUST_Z, EXHAUST_PIPE_R, EXHAUST_FLOW_LEN, EXHAUST_FLOW_SPREAD,
-  at, S, L, D, depth, tubeSvg, nozzlePoints, portCentre, jetColumn, armGeometry, cupParts, outsideRingParts, ringTicksSvg, holderSvg,
-  armBodySvg, armJetSvg, fixedNozzleParts,
+  ARM_LIFT_INITIAL, ARM_ROTATE_INITIAL, ARM_ROTATE_DEG, ARM_ROTATE_NEEDS, PORT_COUNT, PORT_FLOOR, PORT_JET_H,
+  GRIPPER_INITIAL, SHUTTER_Z, SHUTTER_INITIAL, DAMPER_INITIAL, TARGETS,
+  at, S, L, D, depth, armGeometry, cupParts, outsideRingParts, ringTicksSvg, holderSvg, portCentre, nozzlePoints, jetColumn,
+  armBodySvg, armJetSvg, fixedNozzleParts, baseSvg, ventSvg, fanSvg, damperSvg, shutterSvg, portCupSvg,
 } = g;
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -42,7 +42,7 @@ function plateSvg() {
     + L(k.planOutline(k.insetPlan(PLATE, 5), 0, P), { tone: "lo" });
   const screws = k.corners(PLATE, 10);
   const dots = D(screws.map(([x, y]) => at([x, y, 0])), { size: 0.5 });
-  return group("Platform", `${halo}${slab}${L(screws.map(([x, y]) => k.ring(x, y, 2.2, 0, P, 16)).join(""), { tone: "lo" })}${dots}`);
+  return group("Platform", `${halo}${slab}${L(screws.map(([x, y]) => k.ring(x, y, 2.2, 0, P, 16)).join(""), { tone: "lo" })}${dots}`, ` style="opacity:${PLATE_OPACITY}"`);
 }
 
 const wallPlans = {
@@ -59,18 +59,8 @@ function slotAndGateSvg() {
   const y = PLATE.y + PLATE.d + 0.05;
   const slot = [[SLOT.x0, SLOT.z0], [SLOT.x1, SLOT.z0], [SLOT.x1, SLOT.z1], [SLOT.x0, SLOT.z1]].map(([x, z]) => at([x, y, z]));
   const frame = `<path d="${k.pathOf(slot, true)}" style="fill:var(--anatomy-shade-0);stroke:var(--anatomy-lo);stroke-width:var(--anatomy-weight)"/>`;
-  const gate = S(k.slabOf(GATE, GATE_Z, GATE_H, P, 2, 0.4), { tone: "hi", crease: "lo" })
-    + L(k.sideSeam(GATE, GATE_Z + GATE_H - 5, P, 2), { tone: "lo" })
-    + D([[GATE.x + 4, GATE.y + GATE.d], [GATE.x + GATE.w - 4, GATE.y + GATE.d]].map(([x, yy]) => at([x, yy, GATE_Z + GATE_H - 8])), { size: 0.45 });
-  return `${frame}${group("Gate", gate)}`;
-}
-
-function ffuSvg() {
-  const slab = S(k.slabOf(FFU, SHELL_H, FFU_T, P, 4, 0.6), { tone: "mid" })
-    + L(k.planOutline(k.insetPlan(FFU, 6), SHELL_H + FFU_T, P, 4), { tone: "lo" });
-  const span = (FFU_DOTS.columns - 1) * FFU_DOTS.gap;
-  const grille = D(k.dotGrid(FFU.x + (FFU.w - span) / 2, FFU.y + (FFU.d - span) / 2, FFU_DOTS.columns, FFU_DOTS.columns, FFU_DOTS.gap, SHELL_H + FFU_T, P), { size: 0.5, tone: "hi" });
-  return group("FFU", slab + grille, ` style="opacity:${FFU_OPACITY}"`);
+  const rails = [GATE.x - 4, GATE.x + GATE.w + 1.6].map((x) => S(k.slabOf({ x, y: GATE.y, w: 2.4, d: GATE.d, r: 0.5 }, GATE_Z - 2, 2 * GATE_H, P, 2, 0.3), { tone: "mid", crease: "lo" })).join("");
+  return `${frame}${rails}${group("Shutter", shutterSvg(SHUTTER_Z[SHUTTER_INITIAL]))}`;
 }
 
 function motorHousingSvg() {
@@ -94,31 +84,11 @@ function pivotSvg(index) {
 
 function portSvg(index) {
   const count = PORT_COUNT[index];
-  if (!count) return "";
-  const [cx, cy] = portCentre(index);
-  const points = nozzlePoints(index, ARM_ROTATE_DEG.NozzlePort).slice(0, count);
-  const base = S(k.cylinder(cx, cy, PORT_R, 0, PORT_H, P, 40, 0.4), { tone: "mid", crease: "lo" })
-    + L(k.ring(cx, cy, PORT_RIM_R, PORT_H, P, 40), { tone: "lo" })
-    + L(k.ring(cx, cy, PORT_RIM_R - 3, PORT_FLOOR + 0.5, P, 32), { tone: "faint" });
-  const jets = points.map((point, nozzle) => group(`Arm${index + 1}-Port${nozzle + 1}-jet`, jetColumn(point, PORT_FLOOR + PORT_JET_H, PORT_FLOOR), ` class="liquid"${shownIf(showActive)}`)).join("");
-  return group(`Arm${index + 1}-PortBase`, base) + jets;
+  const jets = nozzlePoints(index, ARM_ROTATE_DEG.NozzlePort).slice(0, count).map((point, nozzle) => group(`Arm${index + 1}-Port${nozzle + 1}-jet`, jetColumn(point, PORT_FLOOR + PORT_JET_H, PORT_FLOOR), ` class="liquid"${shownIf(showActive)}`)).join("");
+  return group(`Arm${index + 1}-PortCup`, portCupSvg(index)) + jets;
 }
 
-function exhaustSvg(index) {
-  const angle = (EXHAUST_ANGLE_DEG[index] * Math.PI) / 180;
-  const [dx, dy] = [Math.round(Math.cos(angle)), Math.round(Math.sin(angle))];
-  const axis = dx ? "x" : "y";
-  const from = [dx * EXHAUST_FROM_R, dy * EXHAUST_FROM_R, EXHAUST_Z];
-  const to = [dx * EXHAUST_TO_R, dy * EXHAUST_TO_R, EXHAUST_Z];
-  const rings = L(k.sideRing(to, EXHAUST_PIPE_R, axis, P, 28) + k.sideRing(to, EXHAUST_PIPE_R - 2.2, axis, P, 28), { tone: "mid" });
-  const flow = [-1, 0, 1].map((offset) => {
-    const lateral = axis === "x" ? [0, offset * EXHAUST_FLOW_SPREAD] : [offset * EXHAUST_FLOW_SPREAD, 0];
-    const start = [to[0] + dx * 3 + lateral[0], to[1] + dy * 3 + lateral[1], EXHAUST_Z];
-    const end = [to[0] + dx * (3 + EXHAUST_FLOW_LEN) + lateral[0], to[1] + dy * (3 + EXHAUST_FLOW_LEN) + lateral[1], EXHAUST_Z];
-    return L(k.pathOf([at(start), at(end)]), { tone: "blue", flow: true });
-  }).join("");
-  return group(`ExhaustFan${index + 1}`, tubeSvg(from, to, EXHAUST_PIPE_R) + rings + group(`ExhaustFan${index + 1}-flow`, flow, shownIf(showActive)));
-}
+const fanAndVent = (index) => group(`Fan${index + 1}`, fanSvg(index, 0)) + group(`SideVent${index + 1}`, ventSvg(index, 0));
 
 const armsByDepth = [0, 1, 2, 3].sort((a, b) => depth([...armGeometry(a).post, 0]) - depth([...armGeometry(b).post, 0]));
 
@@ -139,8 +109,8 @@ function armSvg(index, pose) {
   return group(`Arm${index + 1}-post`, pivotSvg(index)) + jets + group(`Arm${index + 1}`, armBodySvg(index, rotateDeg, liftZ));
 }
 
-function fixedSvg(index, rim) {
-  const parts = fixedNozzleParts(index, rim, rim);
+function fixedSvg(index) {
+  const parts = fixedNozzleParts(index);
   return group(`FixedNozzle${index + 1}-base`, parts.base) + group(`FixedNozzle${index + 1}-jet`, parts.jet, ` class="liquid"${shownIf(showActive)}`);
 }
 
@@ -150,29 +120,31 @@ function build() {
   const cups = cupRim.map((rim, index) => cupParts(index, rim, rim));
   const ring = outsideRingParts();
   const all = [0, 1, 2, 3];
+  const clamp = GRIPPER_INITIAL === "Close" ? 1 : 0;
   const body = [
+    group("Base", baseSvg(), ` style="opacity:${WALL_OPACITY}"`),
+    ...[2, 3].map(fanAndVent),
     plateSvg(),
     wallsSvg(),
-    ...[2, 3].map(exhaustSvg),
+    ...[0, 1].map(fanAndVent),
+    group("Damper", damperSvg(DAMPER_INITIAL === "SEX" ? 1 : 0)),
     ...all.map(portSvg),
     motorHousingSvg(),
     ...[3, 2, 1, 0].map((index) => group(`Cup${index + 1}-back`, cups[index].back)),
     group("OutsideRing-back", ring.back),
     chuckSvg(),
-    group("Holder", holderSvg(0)),
+    group("Holder", holderSvg(0, clamp)),
     group("OutsideRing-front", ring.front + group("OutsideRing-ticks", ringTicksSvg(0))),
     ...all.map((index) => group(`Cup${index + 1}-front`, cups[index].front)),
-    ...all.map((index) => fixedSvg(index, cupRim[3])),
+    ...all.map(fixedSvg),
     ...armsByDepth.map((index) => armSvg(index, pose)),
     slotAndGateSvg(),
-    ...[0, 1].map(exhaustSvg),
-    ffuSvg(),
     group("Labels", ""),
   ];
   return k.figureSvg({
     width: WIDTH,
     height: HEIGHT,
-    label: "Polar2 single-wafer wet-clean chamber: a spin chuck with a wafer, four nested splash-guard cups with conical lips, four swing dispense arms with nozzle heads, nozzle ports, fixed nozzles on the outer cup, four exhaust ducts, a wafer slot with its gate and a filter unit on top.",
+    label: "Polar2 single-wafer wet-clean chamber: a spin chuck with a vacuum pad, edge clamps and a wafer, four nested splash-guard cups with conical lips, four swing dispense arms with nozzle heads and nozzle port cups, fixed nozzles on the walls, a base box with four louvered side vents, fans and a two-way exhaust damper, a wafer slot with its shutter.",
     body,
   });
 }
@@ -203,11 +175,35 @@ const page = k.plateHtml({
   keys: [
     { mark: "lit", label: "Wafer on the spin chuck" },
     { mark: "raised", label: "Cup1 (inner) to Cup4 (outer): wall and conical lip" },
-    { mark: "blue", label: "Liquid and exhaust flow, shown only while active" },
+    { mark: "blue", label: "Liquid, exhaust flow and spin-off splash, shown only while active" },
   ],
-  caption: "The page only displays: every motion is a Polar2 service sending sim commands over /live (Holder, OutsideRing, Cup Master/Slave, Arm Lift/Rotate, Nozzle, Port, FixedNozzle, ExhaustFan).",
+  caption: "The page only displays: every motion is a Polar2 service sending sim commands over /live (Holder and Gripper, OutsideRing and Lift, Cup Master/Slave and Drain, Arm Lift/Rotate/Nozzle/Port, FixedNozzle, Shutter, SideVent, ExhaustFan, Damper).",
   body: `<style>${PAGE_EXTRA_CSS}</style><div class="iso-stage">${build()}</div><pre class="sim-errors" id="errors"></pre>`,
 });
 
-writeFileSync(outFile, k.pageHtml({ title: "Polar2 Simulation", theme, body: page, script, width: 760 }));
-console.log("wrote", outFile);
+function simMismatches() {
+  const path = process.env.POLAR2_SIM_CONFIG || join(HERE, "..", "config", "service-behaviors.json");
+  const text = readFileSync(path, "utf8");
+  const services = JSON.parse(text.startsWith(String.fromCharCode(0xfeff)) ? text.slice(1) : text).services ?? {};
+  const known = new Map(TARGETS.map((entry) => [entry.key.toLowerCase(), new Set(entry.actions.map((action) => action.toLowerCase()))]));
+  const found = [];
+  for (const [service, definition] of Object.entries(services)) {
+    for (const rule of definition.sim ?? []) {
+      for (const action of [rule.action, rule.dryRunAction].filter(Boolean)) {
+        if (!known.get(String(rule.target).toLowerCase())?.has(String(action).toLowerCase())) found.push(`sim mismatch: ${service} ${rule.target} ${action}`);
+      }
+    }
+  }
+  return found;
+}
+
+const mismatches = simMismatches();
+if (mismatches.length) {
+  console.error(mismatches.join("\n"));
+  process.exitCode = 1;
+} else {
+  const html = k.pageHtml({ title: "Polar2 Simulation", theme, body: page, script, width: 760 });
+  // A classic script keeps the top-level functions and let bindings reachable from the page self-test.
+  writeFileSync(outFile, html.replace('</main><script type="module">', "</main><script>"));
+  console.log("wrote", outFile);
+}
