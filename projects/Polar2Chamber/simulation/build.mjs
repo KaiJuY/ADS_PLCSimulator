@@ -8,7 +8,8 @@ const {
   P, WIDTH, HEIGHT, PLATE, PLATE_H, PLATE_OPACITY, WALL, SHELL_H, WALL_OPACITY, SLOT, GATE, GATE_Z, GATE_H,
   HOUSING_R, HOUSING_H, CHUCK_R, CHUCK_TOP, CUP_RIM, CUP_INITIAL, PIVOT_R, PIVOT_H, NOZZLE_COUNT, ARM_Z,
   ARM_LIFT_INITIAL, ARM_ROTATE_INITIAL, ARM_ROTATE_DEG, ARM_ROTATE_NEEDS, PORT_COUNT, PORT_FLOOR, PORT_JET_H,
-  GRIPPER_INITIAL, SHUTTER_Z, SHUTTER_INITIAL, DAMPER_INITIAL, TARGETS,
+  GRIPPER_INITIAL, GRIPPER_GOAL, SHUTTER_Z, SHUTTER_INITIAL, VENT_INITIAL, VENT_GOAL, DAMPER_INITIAL, DAMPER_GOAL,
+  RING_LIFT, RING_LIFT_INITIAL, ringLiftTransform, TARGETS,
   at, S, L, D, depth, armGeometry, cupParts, outsideRingParts, ringTicksSvg, holderSvg, nozzlePoints, jetColumn,
   armBodySvg, armJetSvg, fixedNozzleParts, baseSvg, ventSvg, fanSvg, damperSvg, shutterSvg, portCupSvg, exhaustFlowSvg,
 } = g;
@@ -27,6 +28,7 @@ const inlined = (source) => source
   .replace(/^export /gm, "")
   .replace(/<\/(body|html)/gi, "<\\/$1");
 const script = [
+  "\"use strict\";",
   inlined(read("kit", "iso-kit.mjs")),
   `const k = { ${Object.keys(k).join(", ")} };`,
   inlined(read("parts.mjs")),
@@ -88,7 +90,7 @@ function portSvg(index) {
   return group(`Arm${index + 1}-PortCup`, portCupSvg(index)) + jets;
 }
 
-const fanAndVent = (index) => group(`Fan${index + 1}`, fanSvg(index, 0)) + group(`SideVent${index + 1}`, ventSvg(index, 0))
+const fanAndVent = (index) => group(`Fan${index + 1}`, fanSvg(index, 0)) + group(`SideVent${index + 1}`, ventSvg(index, VENT_GOAL[VENT_INITIAL]))
   + group(`Exhaust${index + 1}-flow`, exhaustFlowSvg(index), shownIf(showActive));
 
 const armsByDepth = [0, 1, 2, 3].sort((a, b) => depth([...armGeometry(a).post, 0]) - depth([...armGeometry(b).post, 0]));
@@ -121,22 +123,23 @@ function build() {
   const cups = cupRim.map((rim, index) => cupParts(index, rim, rim));
   const ring = outsideRingParts();
   const all = [0, 1, 2, 3];
-  const clamp = GRIPPER_INITIAL === "Close" ? 1 : 0;
+  const clamp = GRIPPER_GOAL[GRIPPER_INITIAL];
+  const ringShift = ` transform="${ringLiftTransform(RING_LIFT[RING_LIFT_INITIAL])}"`;
   const body = [
     group("Base", baseSvg(), ` style="opacity:${WALL_OPACITY}"`),
     ...[2, 3].map(fanAndVent),
     plateSvg(),
     wallsSvg(),
     ...[0, 1].map(fanAndVent),
-    group("Damper", damperSvg(DAMPER_INITIAL === "SEX" ? 1 : 0)),
+    group("Damper", damperSvg(DAMPER_GOAL[DAMPER_INITIAL])),
     ...all.map(portSvg),
     motorHousingSvg(),
     ...[3, 2, 1, 0].map((index) => group(`Cup${index + 1}-back`, cups[index].back)),
-    group("OutsideRing-back", ring.back),
+    group("OutsideRing-back", ring.back, ringShift),
     chuckSvg(),
     group("Holder", holderSvg(0, clamp)),
     group("Splash", "", ' class="splash"'),
-    group("OutsideRing-front", ring.front + group("OutsideRing-ticks", ringTicksSvg(0))),
+    group("OutsideRing-front", ring.front + group("OutsideRing-ticks", ringTicksSvg(0)), ringShift),
     ...all.map((index) => group(`Cup${index + 1}-front`, cups[index].front)),
     ...all.map(fixedSvg),
     ...armsByDepth.map((index) => armSvg(index, pose)),

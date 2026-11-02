@@ -189,6 +189,7 @@ node build.mjs
 ### 已知限制
 
 - 換瀏覽器或清除資料後，Jog 之後的位置回到初始位置；Jog 進行中重新整理，頁面顯示上次存的值而不動。
+- 瀏覽器存的 Jog 位置在 Host 重啟後仍在，所以重啟後在 Jog 進行中或 Jog 之後重新整理，頁面可能顯示上一次執行的位置，直到 target 收到定位類 action 為止（重新整理與新的一次執行都是先收到 `project` 再收到 `simState`，頁面分不出兩者）。
 - `/live` 佇列滿時 Host 丟最舊的訊息，遺失的 `Hold` 會讓存值停在更早的位置。
 - IncrementalJog 被 Stop 或 Abort（沒有 `StepDone`）後，下一次同方向的 IncrementalJog 先走完上次的目標；Unhold 後剩下的距離以完整的 `durationMs` 走完，畫面速度變慢。
 - 任一風扇 On 時頁面每幀重畫（DryRun 也一樣）；頁面不可見時不畫。

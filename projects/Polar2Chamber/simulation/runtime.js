@@ -15,10 +15,6 @@ function valueAt(t, now) {
   return t.from + (t.to - t.from) * ease((now - t.start) / t.dur);
 }
 
-const GRIPPER_GOAL = { Open: 0, Close: 1 };
-const VENT_GOAL = { Open: 1, Close: 0 };
-const DAMPER_GOAL = { AEX: 0, SEX: 1 };
-
 function freshState() {
   const spin = () => ({ dir: 0, angle: 0, since: 0, rpm: 0, home: null });
   return {
@@ -350,8 +346,7 @@ function drawSplash(now) {
 }
 
 function drawRingLift(now) {
-  const rise = at([0, 0, valueAt(state.ringLift, now)])[1] - at([0, 0, 0])[1];
-  const transform = `translate(0 ${rise.toFixed(2)})`;
+  const transform = ringLiftTransform(valueAt(state.ringLift, now));
   for (const id of ["OutsideRing-back", "OutsideRing-front"]) {
     if (drawn.get(id) === transform) continue;
     drawn.set(id, transform);
