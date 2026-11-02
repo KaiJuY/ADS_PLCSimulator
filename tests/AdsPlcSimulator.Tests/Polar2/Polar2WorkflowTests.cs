@@ -348,6 +348,32 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
         void Supply(string key, string target) =>
             result[key] = [new("enter", target, "On", null, "Setpoint", "Off"), new("leave", target, "Off", null, null, null)];
 
+        void Jog(string key, string[] targets, string action, long ecid) =>
+            result[key] =
+            [
+                .. targets.Select(target => new ExpectedSim("enter", target, action, ecid, null, null)),
+                .. targets.Select(target => new ExpectedSim("leave", target, "Hold", null, null, null)),
+            ];
+
+        void Step(string key, string[] targets) =>
+            result[key] =
+            [
+                .. targets.Select(target => new ExpectedSim("enter", target, "IncrementalJog", null, "Position", null)),
+                .. targets.Select(target => new ExpectedSim("beforeComplete", target, "StepDone", null, null, null)),
+                .. targets.Select(target => new ExpectedSim("leave", target, "Hold", null, null, null)),
+            ];
+
+        void Switch(string key, string target, string action) =>
+            result[key] =
+            [
+                new("enter", target, action, null, null, null),
+                new("beforeComplete", target, action, null, null, null),
+                new("leave", target, "Hold", null, null, null),
+            ];
+
+        void Once(string key, string[] targets, string action) =>
+            result[key] = [.. targets.Select(target => new ExpectedSim("enter", target, action, null, null, null))];
+
         Rotation("Holder.Rotate.MoveVelocityCW", "Holder", "CW");
         Rotation("Holder.Rotate.MoveVelocityCCW", "Holder", "CCW");
         Rotation("Holder.Rotate.MoveModulo", "Holder", "CW");
@@ -396,6 +422,49 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
                 [new("enter", $"ExhaustFan{index}", "On", ecid, null, null), new("leave", $"ExhaustFan{index}", "Off", null, null, null)];
         }
 
+        var armJogEcids = new Dictionary<int, long> { [1] = 16, [2] = 94, [3] = 172, [4] = 234 };
+        foreach ((int arm, long ecid) in armJogEcids)
+        {
+            string[] target = [$"Arm{arm}.Rotate"];
+            Jog($"Arm[{arm}].Rotate.JogPositive", target, "JogPositive", ecid);
+            Jog($"Arm[{arm}].Rotate.JogNegative", target, "JogNegative", ecid);
+            Step($"Arm[{arm}].Rotate.IncrementalJog", target);
+        }
+
+        var cupJogEcids = new Dictionary<int, long> { [1] = 270, [2] = 282, [3] = 294, [4] = 306 };
+        foreach ((int cup, long ecid) in cupJogEcids)
+        {
+            string[] targets = [$"Cup{cup}.Master", $"Cup{cup}.Slave"];
+            Jog($"Cup[{cup}].Lift.JogPositive", targets, "JogPositive", ecid);
+            Jog($"Cup[{cup}].Lift.JogNegative", targets, "JogNegative", ecid);
+            Step($"Cup[{cup}].Lift.IncrementalJog", targets);
+            Once($"Cup[{cup}].Lift.DecoupleStop", targets, "Hold");
+            foreach (int select in new[] { 1, 2, 3 })
+                Once($"Cup[{cup}].Drainer.Select{select}", [$"Cup{cup}.Drain"], $"Select{select}");
+        }
+
+        foreach (int arm in new[] { 1, 2 })
+        {
+            foreach (int select in new[] { 1, 2, 3 })
+                Once($"Arm[{arm}].NozzlePort.DrainSelect{select}", [$"Arm{arm}.PortDrain"], $"Select{select}");
+        }
+
+        result["Holder.Rotate.OPR"] =
+            [new("enter", "Holder", "Home", null, null, null), new("beforeComplete", "Holder", "Home", null, null, null), new("leave", "Holder", "Hold", null, null, null)];
+        Switch("Holder.Gripper.Open", "Holder.Gripper", "Open");
+        Switch("Holder.Gripper.Close", "Holder.Gripper", "Close");
+        Switch("OutsideRing.Lift.TopPos", "OutsideRing.Lift", "Top");
+        Switch("OutsideRing.Lift.DownPos", "OutsideRing.Lift", "Down");
+        Switch("Shutter.Open", "Shutter", "Open");
+        Switch("Shutter.Close", "Shutter", "Close");
+        Switch("Exhaust.Damper.AEX", "Damper", "AEX");
+        Switch("Exhaust.Damper.SEX", "Damper", "SEX");
+        foreach (int vent in new[] { 1, 2, 3, 4 })
+        {
+            Switch($"SideVent[{vent}].Open", $"SideVent{vent}", "Open");
+            Switch($"SideVent[{vent}].Close", $"SideVent{vent}", "Close");
+        }
+
         return result;
     }
 
@@ -416,7 +485,7 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
     [Trait("AC", "1")]
     [Trait("AC", "6")]
     [Trait("AC", "7")]
-    public void The_service_behaviors_file_gives_sim_actions_to_exactly_the_67_services_of_the_spec_and_loads()
+    public void The_service_behaviors_file_gives_sim_actions_to_exactly_the_130_services_of_the_spec_and_loads()
     {
         string configFolder = Path.Combine(TestPaths.Polar2Project, "config");
         using JsonDocument file = JsonDocument.Parse(File.ReadAllText(Path.Combine(configFolder, "service-behaviors.json")));
@@ -425,7 +494,7 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
 
         string[] withSim = services.EnumerateObject().Where(service => service.Value.TryGetProperty("sim", out _)).Select(service => service.Name).Order().ToArray();
 
-        Assert.Equal(67, expected.Count);
+        Assert.Equal(130, expected.Count);
         Assert.Equal(expected.Keys.Order(), withSim);
         foreach ((string key, ExpectedSim[] sims) in expected)
             Assert.Equal(sims, ReadSims(services.GetProperty(key).GetProperty("sim")));
