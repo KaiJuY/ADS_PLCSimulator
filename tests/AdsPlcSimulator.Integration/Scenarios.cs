@@ -81,6 +81,11 @@ internal static partial class Scenarios
     private static readonly Endpoint MoveModulo = Endpoint.Service(1, "Holder.Rotate.MoveModulo");
     private static readonly Endpoint Cup1Top = Endpoint.Service(1, "Cup[1].Lift.TopPos");
     private static readonly Endpoint Cup1Jog = Endpoint.Service(1, "Cup[1].Lift.IncrementalJog");
+    private static readonly Endpoint Arm1JogPositive = Endpoint.Service(1, "Arm[1].Rotate.JogPositive");
+    private static readonly Endpoint SideVent1Open = Endpoint.Service(1, "SideVent[1].Open");
+    private static readonly Endpoint DamperSex = Endpoint.Service(1, "Exhaust.Damper.SEX");
+    private static readonly Endpoint GripperClose = Endpoint.Service(1, "Holder.Gripper.Close");
+    private static readonly Endpoint HolderOpr = Endpoint.Service(1, "Holder.Rotate.OPR");
 
     public static IReadOnlyList<Scenario> All { get; } =
     [
@@ -120,6 +125,10 @@ internal static partial class Scenarios
         new("S37", "CupChamberClean FixedAtTop writes the cup height", CupCleanAsync),
         new("S38", "Cup1 TopPos held mid-move, then unheld to Complete", Cup1TopHoldAsync),
         new("S39", "Cup1 TopPos aborted mid-move", Cup1TopAbortAsync),
+        new("S40", "Arm1 JogPositive runs until Stop", Arm1JogPositiveAsync),
+        new("S41", "Shutter Open and Close complete", ShutterCycleAsync),
+        new("S42", "SideVent1 Open and Damper SEX complete", SideVentDamperAsync),
+        new("S43", "Gripper Close and Holder OPR complete", GripperOprAsync),
         new("S15", "Module Stop ignores later service commands", ModuleStopAsync),
     ];
 
