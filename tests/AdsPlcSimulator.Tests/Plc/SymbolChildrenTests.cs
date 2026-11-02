@@ -191,6 +191,7 @@ public class SymbolChildrenTests
     [InlineData("GVL_Test.c", 1, 51, "longer than 50")]
     [InlineData("GVL_Test.m[1].x", null, null, "")]
     [InlineData("GVL_Test.c[99999999999]", null, null, "")]
+    [InlineData("GVL_Test.w[9]", null, null, "outside")]
     public void Invalid_requests_fail_with_message(string path, int? from, int? to, string messagePart)
     {
         bool ok = Table().TryGetChildren(path, from, to, out IReadOnlyList<SymbolChild> children, out string? error);

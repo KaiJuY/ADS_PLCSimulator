@@ -114,6 +114,8 @@ public sealed class SymbolTable
             parent = ResolveSegments(path, segments.GetRange(0, segments.Count - 1));
             prefixMode = parent.Type.Unaliased is ArrayType parentArray && lastIndices.Count < parentArray.Dimensions.Count;
             prefix = lastIndices;
+            if (prefixMode)
+                CheckPrefix((ArrayType)parent.Type.Unaliased, prefix);
         }
 
         if (!prefixMode)
@@ -152,17 +154,9 @@ public sealed class SymbolTable
     {
         int level = prefix.Count;
         ArrayDimension dimension = array.Dimensions[level];
-        if (from.HasValue != to.HasValue)
-            throw new SymbolResolutionException("from and to must be given together.");
-
-        string prefixPath = level == 0 ? baseRef.Path : $"{baseRef.Path}[{string.Join(",", prefix)}]";
+        (int first, int last) = PageBounds(dimension, from, to);
         if (!from.HasValue && dimension.Length > ChildPageSize)
-            return ListRanges(prefixPath, dimension);
-
-        int first = from ?? dimension.LowerBound;
-        int last = to ?? dimension.UpperBound;
-        if (first < dimension.LowerBound || first > last || last > dimension.UpperBound || (long)last - first + 1 > ChildPageSize)
-            throw new SymbolResolutionException($"Range {first}..{last} is outside {dimension} or longer than {ChildPageSize}.");
+            return ListRanges(level == 0 ? baseRef.Path : $"{baseRef.Path}[{string.Join(",", prefix)}]", dimension);
 
         bool isLastDimension = level + 1 == array.Dimensions.Count;
         var items = new List<SymbolChild>();
@@ -175,6 +169,29 @@ public sealed class SymbolTable
         }
 
         return items;
+    }
+
+    private static (int First, int Last) PageBounds(ArrayDimension dimension, int? from, int? to)
+    {
+        if (from.HasValue != to.HasValue)
+            throw new SymbolResolutionException("from and to must be given together.");
+
+        int first = from ?? dimension.LowerBound;
+        int last = to ?? dimension.UpperBound;
+        bool inside = first >= dimension.LowerBound && first <= last && last <= dimension.UpperBound;
+        if (from.HasValue && !(inside && (long)last - first + 1 <= ChildPageSize))
+            throw new SymbolResolutionException($"Range {first}..{last} is outside {dimension} or longer than {ChildPageSize}.");
+        return (first, last);
+    }
+
+    private static void CheckPrefix(ArrayType array, IReadOnlyList<int> prefix)
+    {
+        for (int level = 0; level < prefix.Count; level++)
+        {
+            ArrayDimension dimension = array.Dimensions[level];
+            if (prefix[level] < dimension.LowerBound || prefix[level] > dimension.UpperBound)
+                throw new SymbolResolutionException($"Index {prefix[level]} is outside [{dimension}] of {array.Name}.");
+        }
     }
 
     private static List<SymbolChild> ListRanges(string path, ArrayDimension dimension)
