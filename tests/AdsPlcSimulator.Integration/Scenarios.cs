@@ -156,7 +156,7 @@ internal static partial class Scenarios
     private static ISymbol? Find(ISymbolLoader loader, string path) =>
         loader.Symbols.TryGetInstance(path, out ISymbol? symbol) ? symbol : null;
 
-    // Identity: projects/Polar2Chamber/plc/ServiceIdentity/F_InitializePolarIIChamberServiceStatus.TcPOU line 179 (Shutter_Open, NaturalCompletion); 3301 from E_PolarIIChamber_ServiceId.
+    // Identity: projects/Polar2Chamber/plc/ServiceIdentity/F_InitializePolarIIChamberServiceStatus.TcPOU (Shutter_Open, NaturalCompletion); 3301 from E_PolarIIChamber_ServiceId.
     private static Task<Checks> InitialStatesAsync(PlcSession session)
     {
         var checks = new Checks();

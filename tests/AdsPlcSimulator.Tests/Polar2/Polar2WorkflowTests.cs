@@ -203,7 +203,7 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
 
     [Fact]
     [Trait("AC", "2")]
-    public void Service_ids_match_the_pre_rename_golden_list()
+    public void Service_ids_match_golden_list()
     {
         string identityFile = File.ReadAllText(Path.Combine(TestPaths.Polar2Project, "plc", "ServiceIdentity", "F_InitializePolarIIChamberServiceStatus.TcPOU"));
         ServiceIdentityTable table = ServiceIdentityTable.Parse(identityFile, name => _program.Symbols.TryGetEnumValue(name, out long value) ? value : null);
@@ -212,7 +212,7 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
         Assert.Equal(166, golden.Length);
         foreach (string line in golden)
         {
-            string[] columns = line.Split('	');
+            string[] columns = line.Split('\t');
             Assert.True(table.Find(columns[0]) is not null, $"{columns[0]} has no identity");
             Assert.Equal(uint.Parse(columns[1]), table.Find(columns[0])!.ServiceId);
         }

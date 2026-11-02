@@ -210,7 +210,7 @@ node build.mjs
 3. 從 `RobustSolutionFramework/` 用原樣複製（`cp`，不轉碼、不改換行）所有 `.TcDUT`，保留子資料夾；再複製 `GVLs/Param_Config.TcGVL`，不複製 `.TcPOU`。
 4. 如果 Polar2 的 DUT 也有變，用同樣方式重新複製 `plc/Polar2/`。新版 ScienTech-Polar2 的 DUT 在 `POUs/10_Chamber/DUTs/**`，複製時要對到 `plc/Polar2/DUTs/External/**` 的同名檔案。
    新版 enum 還沒有 3007 的期間，要補上 `Holder_VacuumEstablish := 3007`。
-5. 重新取得 `.tmc` 與 `F_InitializePolarIIChamberServiceStatus.TcPOU`，更新上表的 SHA-256 與修改時間，並更新 `plc/ServiceIdentity/` 的檔案。重新取得 identity 檔後，要再做一次 enum 改名和 `Holder.VacuumEstablish` 那一行，然後執行 `Service_ids_match_the_pre_rename_golden_list`。
+5. 重新取得 `.tmc` 與 `F_InitializePolarIIChamberServiceStatus.TcPOU`，更新上表的 SHA-256 與修改時間，並更新 `plc/ServiceIdentity/` 的檔案。重新取得 identity 檔後，要再做一次 enum 改名和 `Holder.VacuumEstablish` 那一行，然後執行 `Service_ids_match_golden_list`。
 6. 更新本檔的 commit SHA，執行 `dotnet test`。`Polar2LayoutTests` 失敗表示版面和新 `.tmc` 不同，要更新測試的預期值。
 7. 用手動比對下列 4 個 function block 在新舊版本的差異，因為模擬器以 C# 重現它們的交握行為：`FB_PackMLBase`、`FB_ServiceCoordinator`、`FB_ModuleBase`、`FB_ServiceBase`。
 
