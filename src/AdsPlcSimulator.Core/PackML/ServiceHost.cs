@@ -1,3 +1,4 @@
+using AdsPlcSimulator.Core.Flow;
 using AdsPlcSimulator.Core.PackML.Alarm;
 using AdsPlcSimulator.Core.PackML.Behavior;
 using AdsPlcSimulator.Core.PackML.ConfigParam;
@@ -24,6 +25,9 @@ public sealed partial class ServiceHost
 
     private const uint AliveTimeoutErrorId = 940;
 
+    // BeforeComplete arrives at once (0 ms); Leave passes null because it has no length.
+    private const int SnapDurationMs = 0;
+
     private static long s_generationCounter;
 
     private readonly Lock _lock = new();
@@ -39,6 +43,7 @@ public sealed partial class ServiceHost
     private readonly Dictionary<string, ModuleUnit> _moduleByService = new(StringComparer.OrdinalIgnoreCase);
     private bool _retired;
     private ProcessImage? _image;
+    private ISimulationSink _simulation = NoSimulationSink.Instance;
 
     /// <param name="utcNow">The clock of alarm DateTime; null = DateTimeOffset.UtcNow.</param>
     /// <param name="alive">Heartbeat and Service Alive timeouts; null = AliveSettings.Default.</param>
@@ -84,13 +89,15 @@ public sealed partial class ServiceHost
     public void Initialize(ProcessImage image, ConfiguredAlarmTable configuredAlarms) =>
         Initialize(image, configuredAlarms, ServiceBehaviorTable.Empty);
 
+    /// <param name="simulation">Receives the sim actions of the behaviors; null = they are not sent.</param>
     /// <exception cref="ServiceHostException">A configured alarm source or a behavior path cannot be resolved.</exception>
-    public void Initialize(ProcessImage image, ConfiguredAlarmTable configuredAlarms, ServiceBehaviorTable behaviors)
+    public void Initialize(ProcessImage image, ConfiguredAlarmTable configuredAlarms, ServiceBehaviorTable behaviors, ISimulationSink? simulation = null)
     {
         lock (_lock)
         {
             if (_retired)
                 return;
+            _simulation = simulation ?? NoSimulationSink.Instance;
             foreach (ModuleUnit module in _modules)
                 InitializeModule(image, module, configuredAlarms.For(module.Path), behaviors.For(module.Path));
             _image = image;
@@ -412,9 +419,12 @@ public sealed partial class ServiceHost
             return service.TakeCompletion();
 
         bool done = IsExecuteDone(service, image, now);
-        if (done)
-            service.Rules.WriteBeforeComplete(image, service.EntryDryRun);
-        return done;
+        if (!done)
+            return false;
+
+        service.Rules.WriteBeforeComplete(image, service.EntryDryRun);
+        service.Rules.Simulate(SimMoment.BeforeComplete, image, service.EntryDryRun, SnapDurationMs, _simulation);
+        return true;
     }
 
     private bool IsExecuteDone(ServiceUnit service, ProcessImage image, TimeSpan now)
@@ -492,7 +502,7 @@ public sealed partial class ServiceHost
             StartRun(service, image, now, dryRun);
     }
 
-    private static void ContinueExecute(ServiceUnit service, ProcessImage image, object? token, TimeSpan now)
+    private void ContinueExecute(ServiceUnit service, ProcessImage image, object? token, TimeSpan now)
     {
         service.EntryToken = token;
         if (token is not null)
@@ -500,15 +510,27 @@ public sealed partial class ServiceHost
 
         service.Rules.WriteOnEnter(image, service.EntryDryRun);
         service.Process?.Resume(image, now);
+        service.Rules.Simulate(SimMoment.Enter, image, service.EntryDryRun, NaturalRunLengthMs(service), _simulation);
     }
 
-    private static void StartRun(ServiceUnit service, ProcessImage image, TimeSpan now, bool dryRun)
+    private void StartRun(ServiceUnit service, ProcessImage image, TimeSpan now, bool dryRun)
     {
         service.EntryDuration = service.Rules.ReadDuration(image);
         service.Rules.WriteOnEnter(image, dryRun);
         if (service.ConfigParams is null)
             service.Process = service.Rules.StartProcess(image, now, dryRun);
+        service.Rules.Simulate(SimMoment.Enter, image, dryRun, NaturalRunLengthMs(service), _simulation);
     }
+
+    private int? NaturalRunLengthMs(ServiceUnit service)
+    {
+        if (!HasNaturalLength(service))
+            return null;
+        return (int)(service.EntryDuration ?? _defaultDelay).TotalMilliseconds;
+    }
+
+    private static bool HasNaturalLength(ServiceUnit service) =>
+        service.Behavior == CompletionBehavior.NaturalCompletion && service.Process is null && service.ConfigParams is null;
 
     // The table covers only the Mode for a service without an entry, and only the Mode for an overridden service (a workflow owns its run).
     private static EntryCheck CheckEntry(ModuleUnit owner, ServiceUnit service, bool overridden, ProcessImage image, out bool dryRun)
@@ -528,7 +550,7 @@ public sealed partial class ServiceHost
             service.ExecuteAbortPending = true;
     }
 
-    private static void LeaveExecute(ServiceUnit service, ProcessImage image)
+    private void LeaveExecute(ServiceUnit service, ProcessImage image)
     {
         service.ExecuteAbortPending = false;
         if (service.ExecuteRejected || service.EntryToken is not null)
@@ -536,6 +558,7 @@ public sealed partial class ServiceHost
 
         service.Process?.Leave(image);
         service.Rules.WriteOnLeave(image, service.EntryDryRun);
+        service.Rules.Simulate(SimMoment.Leave, image, service.EntryDryRun, null, _simulation);
     }
 
     private readonly record struct RawInput(long RequestId, PackMLInput PackML);
@@ -814,5 +837,14 @@ public sealed partial class ServiceHost
             return Enumerable.Range(bounds.LowerBound, bounds.Length).Select(index =>
                 new SymbolRef($"{node.Path}[{index}]", array.ElementType, node.Offset + array.OffsetOf([index])));
         }
+    }
+}
+
+internal sealed class NoSimulationSink : ISimulationSink
+{
+    public static readonly NoSimulationSink Instance = new();
+
+    public void Invoke(string target, string action, object? value, int? durationMs = null)
+    {
     }
 }

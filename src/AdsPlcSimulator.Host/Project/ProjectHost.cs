@@ -179,6 +179,7 @@ public sealed class ProjectHost : IAsyncDisposable
             }
 
             _logger.LogInformation("Project {Project} running on AMS port {Port}, symbol version {Version}.", name, Port, version);
+            _liveHub.PublishProject(name, true);
             return new RunResult(RunOutcome.Started, null);
         }
         finally
@@ -242,6 +243,7 @@ public sealed class ProjectHost : IAsyncDisposable
 
         await DisposeSessionBoundedAsync(session);
         _liveHub.ClearSimulationState();
+        _liveHub.PublishProject(null, false);
     }
 
     private async Task StopCoreAsync()
@@ -257,6 +259,7 @@ public sealed class ProjectHost : IAsyncDisposable
 
         await DisposeSessionBoundedAsync(session);
         _liveHub.ClearSimulationState();
+        _liveHub.PublishProject(null, false);
 
         if (released)
             _logger.LogInformation("Project {Project} stopped; AMS port {Port} released.", session.Name, Port);

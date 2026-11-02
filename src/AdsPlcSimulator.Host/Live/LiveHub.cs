@@ -33,7 +33,11 @@ public sealed class LiveHub : IFlowMonitor, ISimulationSink
         _logger = logger;
     }
 
-    public sealed record SimulationCommand(string Target, string Action, object? Value);
+    private volatile ProjectState _project = new(null, false);
+
+    public sealed record SimulationCommand(string Target, string Action, object? Value, int? DurationMs = null);
+
+    private sealed record ProjectState(string? Name, bool Running);
 
     public void Publish(FlowEvent flowEvent)
     {
@@ -44,11 +48,21 @@ public sealed class LiveHub : IFlowMonitor, ISimulationSink
         Broadcast(new { type = "flow", @event = flowEvent });
     }
 
-    public void Invoke(string target, string action, object? value)
+    /// <summary>Hold is broadcast but not kept in simState.</summary>
+    public void Invoke(string target, string action, object? value, int? durationMs = null)
     {
-        var command = new SimulationCommand(target, action, value);
-        _simulationState[target] = command;
+        var command = new SimulationCommand(target, action, value, durationMs);
+        if (!string.Equals(action, "Hold", StringComparison.OrdinalIgnoreCase))
+            _simulationState[target] = command;
         Broadcast(new { type = "sim", command });
+    }
+
+    /// <summary>Tells the pages which project runs, then repeats simState: the scan may have sent commands before the project was published.</summary>
+    public void PublishProject(string? name, bool running)
+    {
+        _project = new ProjectState(name, running);
+        Broadcast(ProjectMessage());
+        Broadcast(SimStateMessage());
     }
 
     public void ClearSimulationState() => _simulationState.Clear();
@@ -62,7 +76,8 @@ public sealed class LiveHub : IFlowMonitor, ISimulationSink
         var outbox = Channel.CreateBounded<string>(new BoundedChannelOptions(OutboxCapacity) { FullMode = BoundedChannelFullMode.DropOldest });
         var clientId = Guid.NewGuid();
         _clients[clientId] = outbox;
-        outbox.Writer.TryWrite(Serialize(new { type = "simState", commands = _simulationState.Values }));
+        outbox.Writer.TryWrite(Serialize(ProjectMessage()));
+        outbox.Writer.TryWrite(Serialize(SimStateMessage()));
 
         using var closed = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
         Task receiving = DrainUntilClosedAsync(socket, closed);
@@ -81,6 +96,14 @@ public sealed class LiveHub : IFlowMonitor, ISimulationSink
             await receiving;
         }
     }
+
+    private object ProjectMessage()
+    {
+        ProjectState project = _project;
+        return new { type = "project", name = project.Name, running = project.Running };
+    }
+
+    private object SimStateMessage() => new { type = "simState", commands = _simulationState.Values };
 
     private void Broadcast(object message)
     {

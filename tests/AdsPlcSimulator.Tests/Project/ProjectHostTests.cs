@@ -272,6 +272,29 @@ public sealed class ProjectHostTests : IAsyncLifetime
     }
 
     [Fact]
+    [Trait("AC", "10")]
+    public async Task Run_publishes_the_running_project_and_Stop_publishes_that_none_runs()
+    {
+        ProjectHost host = NewHost();
+        var socket = new AdsPlcSimulator.Tests.Live.RecordingSocket();
+        using var close = new CancellationTokenSource();
+        Task serving = _root.Hub.ServeAsync(socket, close.Token);
+        await TestWait.WaitUntilAsync(() => socket.Sent.Count >= 2, "the replay on connect");
+
+        await host.RunAsync("Alpha");
+        await TestWait.WaitUntilAsync(() => socket.Sent.Count >= 4, "the project message of Run");
+        await host.StopAsync();
+        await TestWait.WaitUntilAsync(() => socket.Sent.Count >= 6, "the project message of Stop");
+        await close.CancelAsync();
+        await serving;
+
+        string[] sent = socket.Sent.ToArray();
+        Assert.Equal("{\"type\":\"project\",\"name\":null,\"running\":false}", sent[0]);
+        Assert.Equal("{\"type\":\"project\",\"name\":\"Alpha\",\"running\":true}", sent[2]);
+        Assert.Equal("{\"type\":\"project\",\"name\":null,\"running\":false}", sent[4]);
+    }
+
+    [Fact]
     [Trait("AC", "6")]
     public async Task Stop_clears_the_simulation_state_and_closes_the_live_channel_of_the_session()
     {

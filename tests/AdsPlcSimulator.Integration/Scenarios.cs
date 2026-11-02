@@ -118,6 +118,8 @@ internal static partial class Scenarios
         new("S35", "SingleProcess refuses ArmIndex 5", SingleProcessCheckAsync),
         new("S36", "SingleProcess repeats a cycle", SingleProcessCycleAsync),
         new("S37", "CupChamberClean FixedAtTop writes the cup height", CupCleanAsync),
+        new("S38", "Cup1 TopPos held mid-move, then unheld to Complete", Cup1TopHoldAsync),
+        new("S39", "Cup1 TopPos aborted mid-move", Cup1TopAbortAsync),
         new("S15", "Module Stop ignores later service commands", ModuleStopAsync),
     ];
 
