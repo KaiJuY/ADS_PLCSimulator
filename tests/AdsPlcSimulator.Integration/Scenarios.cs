@@ -32,7 +32,7 @@ internal static partial class Scenarios
     private const short Integer32 = 2;
     private const uint ConfigEcid = 318;
     private const uint UnknownEcid = 4294967000;
-    private const int ConfigParamScanLength = 500;
+    private const int ConfigParamScanLength = 450;
     private const string SetConfigParam = Module1 + ".ServiceParam.Chamber.SetConfig";
     private const string ArmTestParam = Module1 + ".ServiceParam.Chamber.ArmTest";
     private const string ArmAlignTestParam = Module1 + ".ServiceParam.Chamber.ArmAlignTest";
@@ -132,7 +132,7 @@ internal static partial class Scenarios
         new("S15", "Module Stop ignores later service commands", ModuleStopAsync),
     ];
 
-    // Expected sizes are the MaxConfigParamPerModule = 500 layout; see projects/Polar2Chamber/README.md. M1 and M6 share one layout.
+    // Expected sizes are the MaxConfigParamPerModule = 450 layout; see projects/Polar2Chamber/README.md. M1 and M6 share one layout.
     private static Task<Checks> SymbolLayoutAsync(PlcSession session)
     {
         var checks = new Checks();
@@ -146,9 +146,9 @@ internal static partial class Scenarios
             return Task.FromResult(checks);
         }
 
-        checks.Equal("Chamber_Control size", 12966720, gvl.ByteSize);
-        checks.Equal("M1 size", 2161120, module.ByteSize);
-        checks.Equal("Shutter.Open offset from M1", 1974172L, (long)((IProcessImageAddress)open).IndexOffset - ((IProcessImageAddress)module).IndexOffset);
+        checks.Equal("Chamber_Control size", 12964944, gvl.ByteSize);
+        checks.Equal("M1 size", 2160824, module.ByteSize);
+        checks.Equal("Shutter.Open offset from M1", 1973880L, (long)((IProcessImageAddress)open).IndexOffset - ((IProcessImageAddress)module).IndexOffset);
         checks.Equal("Shutter.Open size", 11684, open.ByteSize);
         return Task.FromResult(checks);
     }
@@ -156,7 +156,7 @@ internal static partial class Scenarios
     private static ISymbol? Find(ISymbolLoader loader, string path) =>
         loader.Symbols.TryGetInstance(path, out ISymbol? symbol) ? symbol : null;
 
-    // Identity: projects/Polar2Chamber/plc/ServiceIdentity/F_InitializePolarIIChamberServiceStatus.TcPOU line 178 (ShutterOpen, NaturalCompletion); 3301 from E_PolarIIChamberServiceId.
+    // Identity: projects/Polar2Chamber/plc/ServiceIdentity/F_InitializePolarIIChamberServiceStatus.TcPOU line 179 (Shutter_Open, NaturalCompletion); 3301 from E_PolarIIChamber_ServiceId.
     private static Task<Checks> InitialStatesAsync(PlcSession session)
     {
         var checks = new Checks();
