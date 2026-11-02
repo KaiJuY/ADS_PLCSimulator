@@ -30,7 +30,7 @@
 
   <section id="stoppedNotice" hidden>No project is running. Select a project and press Run.</section>
 
-  <main class="layout">
+  <main id="layout" class="layout">
     <aside class="palette">
       <input id="paletteSearch" type="search" placeholder="Search nodes…">
       <div id="paletteList"></div>
@@ -44,22 +44,29 @@
       <div class="canvas-help">Drag background to pan · wheel to zoom · Del removes selection · Ctrl+C / Ctrl+V copies a node · Ctrl+S saves</div>
     </section>
 
+    <div id="sidebarResize" class="sidebar-resize" title="Drag to resize"></div>
     <aside class="sidebar">
       <section>
         <h2>Problems <span id="problemCount" class="count">0</span></h2>
         <ul id="problemList" class="problems"></ul>
       </section>
-      <section>
-        <h2>PLC Variable</h2>
-        <form id="variableForm" class="variable" autocomplete="off">
-          <input id="variablePath" class="symbol" list="symbolOptions" placeholder="GVL.Variable.Member" required>
-          <div class="variable-current"><span id="variableType"></span> <span id="variableValue"></span></div>
-          <div class="variable-write">
-            <input id="variableInput" placeholder="TRUE, 5, 12.5, enum value…" required>
-            <button type="submit" class="primary">Write</button>
-          </div>
-          <div id="variableError" class="variable-error"></div>
-        </form>
+      <section class="tabbed">
+        <div class="tabs" role="tablist">
+          <button id="variableTab" type="button" role="tab" class="tab active" aria-selected="true">PLC Variable</button>
+          <button id="nodeTab" type="button" role="tab" class="tab" aria-selected="false">Node</button>
+        </div>
+        <div id="variablePane" class="tab-pane">
+          <form id="variableForm" class="variable" autocomplete="off">
+            <input id="variablePath" class="symbol" list="symbolOptions" placeholder="GVL.Variable.Member" required>
+            <div class="variable-current"><span id="variableType"></span> <span id="variableValue"></span></div>
+            <div class="variable-write">
+              <input id="variableInput" placeholder="TRUE, 5, 12.5, enum value…" required>
+              <button type="submit" class="primary">Write</button>
+            </div>
+            <div id="variableError" class="variable-error"></div>
+          </form>
+        </div>
+        <div id="nodePane" class="tab-pane" hidden><div id="nodeDetail"></div></div>
       </section>
       <section class="grow">
         <h2>Runtime <button id="clearLog" type="button" class="link">clear</button></h2>

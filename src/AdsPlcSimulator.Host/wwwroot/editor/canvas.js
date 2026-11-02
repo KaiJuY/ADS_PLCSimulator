@@ -4,6 +4,8 @@ import { addLink } from './model.js';
 import { renderAll, placeGroupElement, drawWires, portCenter, wirePath } from './render.js';
 import { showQuickAdd, hideQuickAdd } from './palette.js';
 import { applyView, screenToWorld, isBackground } from './view.js';
+import { renderDetail } from './detail.js';
+import { showTab } from './tabs.js';
 
 function startDrag(event, onMove, onEnd) {
   const move = (moveEvent) => onMove(moveEvent);
@@ -72,6 +74,8 @@ function select(selection) {
     element.classList.toggle('selected', selection?.kind === kind && selection.id === element.dataset.id);
   }
   for (const path of els.wires.querySelectorAll('.wire.selected')) path.classList.remove('selected');
+  renderDetail();
+  if (selection?.kind === 'node') showTab('node');
 }
 
 function startGroupDrag(event, groupId) {

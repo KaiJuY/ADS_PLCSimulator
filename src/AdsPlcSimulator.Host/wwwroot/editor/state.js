@@ -14,6 +14,8 @@ export const MAX_LOG_ENTRIES = 300;
 export const NEW_NODE_WIDTH = 220;
 export const NEW_GROUP_SIZE = { width: 420, height: 260 };
 export const MIN_GROUP_SIZE = { width: 160, height: 80 };
+export const SIDEBAR_WIDTH = { min: 300, max: 600, fallback: 300 };
+export const SIDEBAR_WIDTH_KEY = 'adsplc-editor:sidebarWidth';
 
 export const state = {
   catalog: new Map(),
@@ -52,6 +54,13 @@ export const els = {
   variableValue: $('variableValue'),
   variableInput: $('variableInput'),
   variableError: $('variableError'),
+  layout: $('layout'),
+  sidebarResize: $('sidebarResize'),
+  variableTab: $('variableTab'),
+  nodeTab: $('nodeTab'),
+  variablePane: $('variablePane'),
+  nodePane: $('nodePane'),
+  nodeDetail: $('nodeDetail'),
 };
 
 export function setDirty(dirty) {

@@ -10,6 +10,9 @@ import { renderPalette } from './palette.js';
 import { connectLive } from './live.js';
 import './variable.js';
 import './canvas.js';
+import './tabs.js';
+import './sidebar.js';
+import './detail.js';
 
 async function refreshWorkflowList(selectName) {
   const workflows = await api('/api/workflows');
@@ -79,11 +82,12 @@ async function saveWorkflow() {
 window.addEventListener('keydown', (event) => {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
     event.preventDefault();
-    saveWorkflow();
+    if (!els.symbolDialog?.open) saveWorkflow();
     return;
   }
   const typing = ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName);
   if (typing) return;
+  if (event.target.closest?.('.sidebar, dialog')) return;
   if (event.key === 'Delete' || event.key === 'Backspace') deleteSelection();
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'c') copySelection();
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'v') paste(state.pointer);
