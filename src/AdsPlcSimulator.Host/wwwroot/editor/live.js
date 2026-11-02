@@ -1,6 +1,7 @@
 import { state, els, MAX_LOG_ENTRIES, setDirty } from './state.js';
 import { renderAll, decorateNode } from './render.js';
 import { readVariable, formatValue } from './variable.js';
+import { refreshDetailLive } from './detail.js';
 
 function applyFlowEvent(event) {
   appendRunLog(event);
@@ -11,6 +12,7 @@ function applyFlowEvent(event) {
     case 'RunStarted':
       for (const [, entry] of state.live) if (entry.status === 'failed') entry.status = 'done';
       for (const element of els.layer.querySelectorAll('.node')) decorateNode(element, element.dataset.id);
+      refreshDetailLive();
       return;
     case 'NodeStarted':
       live.status = 'running';
@@ -28,6 +30,7 @@ function applyFlowEvent(event) {
       return;
   }
   state.live.set(event.nodeId, live);
+  refreshDetailLive(event.nodeId);
 
   const element = els.layer.querySelector(`.node[data-id="${CSS.escape(event.nodeId)}"]`);
   if (!element) return;
