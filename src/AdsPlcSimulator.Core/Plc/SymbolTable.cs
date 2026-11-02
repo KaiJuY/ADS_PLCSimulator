@@ -45,7 +45,7 @@ public sealed class SymbolTable
 
     public int ImageSize { get; }
 
-    /// <summary>Value of a declared enum member, e.g. "E_PolarIIChamberServiceId.ShutterOpen"; case-insensitive.</summary>
+    /// <summary>Value of a declared enum member, e.g. "E_PolarIIChamber_ServiceId.Shutter_Open"; case-insensitive.</summary>
     public bool TryGetEnumValue(string qualifiedName, out long value) => _enumValues.TryGetValue(qualifiedName, out value);
 
     /// <summary>Value of a VAR_GLOBAL CONSTANT, e.g. "Param_Config.ModuleHeartbeat_Timeout"; case-insensitive.

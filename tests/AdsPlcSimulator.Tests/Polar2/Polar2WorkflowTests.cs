@@ -39,6 +39,9 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
     [GeneratedRegex(@"ServiceStatus\.(?<rel>[\w.\[\]]+?)(?:\.CompletionBehavior\s*:=|\s*,)")]
     private static partial Regex IdentityPathPattern();
 
+    [GeneratedRegex(@"(\w+)\s*:=\s*(\d+)")]
+    private static partial Regex EnumMemberPattern();
+
     private static WorkflowDocument LoadDocument(string name) =>
         WorkflowDocument.Parse(File.ReadAllText(Path.Combine(TestPaths.Polar2Project, "workflows", name + ".flow.json")));
 
@@ -120,27 +123,27 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
 
     [Fact]
     [Trait("AC", "2")]
-    public async Task Polar2_host_binds_145_services_per_module()
+    public async Task Polar2_host_binds_146_services_per_module()
     {
         Load("host", HostDocument());
         await WaitUntilAsync(() => _runtime.Registry.FindByService(Ctrl("Shutter.Open")) is not null, "the host to register");
 
         IReadOnlyList<string> bound = _runtime.Registry.FindByService(Ctrl("Shutter.Open"))!.BoundServices;
 
-        Assert.Equal(6 * 145, bound.Count);
+        Assert.Equal(6 * 146, bound.Count);
         for (int module = 1; module <= 6; module++)
-            Assert.Equal(145, bound.Count(path => path.StartsWith($"{Root}[{module}].ServiceCtrl.", StringComparison.OrdinalIgnoreCase)));
+            Assert.Equal(146, bound.Count(path => path.StartsWith($"{Root}[{module}].ServiceCtrl.", StringComparison.OrdinalIgnoreCase)));
     }
 
     [Fact]
     [Trait("AC", "2")]
-    public async Task Polar2_initialize_writes_identity_of_all_165_slots()
+    public async Task Polar2_initialize_writes_identity_of_all_166_slots()
     {
         string identityFile = File.ReadAllText(Path.Combine(TestPaths.Polar2Project, "plc", "ServiceIdentity", "F_InitializePolarIIChamberServiceStatus.TcPOU"));
         ServiceIdentityTable table = ServiceIdentityTable.Parse(identityFile, name => _program.Symbols.TryGetEnumValue(name, out long value) ? value : null);
         List<string> slots = IdentityPathPattern().Matches(identityFile).Select(match => match.Groups["rel"].Value).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-        Assert.Equal(165, slots.Count);
-        Assert.Equal(145, slots.Count(slot => table.Find(slot)!.ServiceId != 0));
+        Assert.Equal(166, slots.Count);
+        Assert.Equal(146, slots.Count(slot => table.Find(slot)!.ServiceId != 0));
 
         Load("host", HostDocument());
         await WaitUntilAsync(() => ReadNumber($"{Root}[6].ModuleStatus.PackMLOut.eStateCurrent") == (long)PackMLState.Execute, "the last module to initialize");
@@ -155,10 +158,65 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
             }
         }
 
-        Assert.True(_program.Symbols.TryGetEnumValue("E_PolarIIChamberServiceId.ShutterOpen", out long shutterOpen));
+        Assert.True(_program.Symbols.TryGetEnumValue("E_PolarIIChamber_ServiceId.Shutter_Open", out long shutterOpen));
+        Assert.False(_program.Symbols.TryGetEnumValue("E_PolarIIChamberServiceId.ShutterOpen", out _));
         Assert.Equal(shutterOpen, ReadNumber($"{Status("Shutter.Open")}.ServiceId"));
         Assert.Equal(0, ReadNumber($"{Root}[1].ServiceStatus.Arm[3].Rotate.NozzlePortPos.ServiceId"));
         Assert.Equal((long)CompletionBehavior.NaturalCompletion, ReadNumber($"{Root}[1].ServiceStatus.Arm[3].Rotate.NozzlePortPos.CompletionBehavior"));
+    }
+
+    [Fact]
+    [Trait("AC", "1")]
+    public async Task Holder_vacuum_establish_has_service_id_3007_and_completes()
+    {
+        await StartPlcAsync();
+        await WaitUntilAsync(() => ReadNumber($"{Root}[6].ModuleStatus.PackMLOut.eStateCurrent") == (long)PackMLState.Execute, "the last module to initialize");
+
+        Assert.True(_program.Symbols.TryGetEnumValue("E_PolarIIChamber_ServiceId.Holder_VacuumEstablish", out long serviceId));
+        Assert.Equal(3007, serviceId);
+        for (int module = 1; module <= 6; module++)
+        {
+            Assert.Equal(3007, ReadNumber($"{Root}[{module}].ServiceStatus.Holder.VacuumEstablish.ServiceId"));
+            Assert.Equal((long)CompletionBehavior.NaturalCompletion, ReadNumber($"{Root}[{module}].ServiceStatus.Holder.VacuumEstablish.CompletionBehavior"));
+        }
+
+        await CommandAsync("Holder.VacuumEstablish", PackMLCommand.Start, PackMLState.Complete);
+    }
+
+    [Fact]
+    [Trait("AC", "2")]
+    public void Service_id_enum_values_are_unique()
+    {
+        string enumFile = File.ReadAllText(Path.Combine(TestPaths.Polar2Project, "plc", "Polar2", "DUTs", "External", "Enums", "E_PolarIIChamber_ServiceId.TcDUT"));
+        List<(string Name, long Value)> members = EnumMemberPattern().Matches(enumFile)
+            .Select(match => (match.Groups[1].Value, long.Parse(match.Groups[2].Value)))
+            .ToList();
+
+        Assert.Equal(146, members.Count);
+        Assert.Equal(146, members.Select(member => member.Value).Distinct().Count());
+        Assert.Equal(146, members.Select(member => member.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        foreach ((string name, long value) in members)
+        {
+            Assert.True(_program.Symbols.TryGetEnumValue($"E_PolarIIChamber_ServiceId.{name}", out long resolved), name);
+            Assert.Equal(value, resolved);
+        }
+    }
+
+    [Fact]
+    [Trait("AC", "2")]
+    public void Service_ids_match_golden_list()
+    {
+        string identityFile = File.ReadAllText(Path.Combine(TestPaths.Polar2Project, "plc", "ServiceIdentity", "F_InitializePolarIIChamberServiceStatus.TcPOU"));
+        ServiceIdentityTable table = ServiceIdentityTable.Parse(identityFile, name => _program.Symbols.TryGetEnumValue(name, out long value) ? value : null);
+        string[] golden = File.ReadAllLines(Path.Combine(TestPaths.SolutionRoot, "tests", "AdsPlcSimulator.Tests", "Polar2", "ServiceIds.golden.tsv"));
+
+        Assert.Equal(166, golden.Length);
+        foreach (string line in golden)
+        {
+            string[] columns = line.Split('\t');
+            Assert.True(table.Find(columns[0]) is not null, $"{columns[0]} has no identity");
+            Assert.Equal(uint.Parse(columns[1]), table.Find(columns[0])!.ServiceId);
+        }
     }
 
     [Fact]

@@ -5,6 +5,7 @@
 STRUCT
 	Gripper : ST_PolarIIChamber_OpenCloseServiceStatus;
 	Rotate : ST_PolarIIChamber_HolderRotateServiceStatus;
+	VacuumEstablish : ST_ServiceStatus;
 END_STRUCT
 END_TYPE
 ]]></Declaration>
