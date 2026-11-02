@@ -149,15 +149,50 @@ Polar2 的規則：
 
 ## Simulation 頁
 
-Run 之後，開啟 `http://localhost:5259/simulation/`（Host 的 HTTP 位址）可以看到 Polar2 的 isometric 機構動畫：Holder、OutsideRing、4 支 Arm、4 層 Cup、送液與排風，依上面的 `sim` 指令動作。頁面只顯示，不能操作；Stop 專案後顯示「Polar2 未執行」。
+Run 之後，開啟 `http://localhost:5259/simulation/`（Host 的 HTTP 位址）可以看到 Polar2 的 isometric 機構動畫：Holder（含夾爪與真空吸盤）、OutsideRing（含升降）、4 支 Arm、4 層 Cup 與 Port 杯、牆上的 4 個 Fixed Nozzle、Shutter（門）、箱體的 4 個 SideVent 與風扇、Damper，依 `sim` 指令動作。頁面只顯示，不能操作；Stop 專案後顯示「Polar2 未執行」。
 
-頁面放在 `simulation/`：`build.mjs` 產生 `index.html`，`kit/iso-kit.mjs` 是繪圖工具，`Chamber.png` 是配置依據的手繪圖。改了 `build.mjs` 之後，在 `projects/Polar2Chamber/simulation/` 執行：
+頁面放在 `simulation/`：`build.mjs` 產生 `index.html`，`kit/iso-kit.mjs` 是繪圖工具，`Chamber.png` 是配置依據的手繪圖。改了 `parts.mjs`、`runtime.js` 或 `build.mjs` 之後，在 `projects/Polar2Chamber/simulation/` 執行：
 
 ```
 node build.mjs
 ```
 
-會重新產生 `index.html`（要一起 commit，Host 直接提供這個檔案）。
+會重新產生 `index.html`（要一起 commit，Host 直接提供這個檔案）。`build.mjs` 在寫出前會檢查 `config/service-behaviors.json` 每個 service 的每筆 `sim`（含 `dryRunAction`）：`target` 與 `action` 必須在 `parts.mjs` 的 `TARGETS` 裡（不分大小寫）。有不符時每筆輸出一行 `sim mismatch: <service> <target> <action>`，exit code 為 1，不寫 `index.html`。環境變數 `POLAR2_SIM_CONFIG` 有值時改讀該路徑的檔案。
+
+### 外形與新增的 target（#24）
+
+箱體在平台下方，4 面各有一個百葉 SideVent 與一個風扇（面 1 為 +x，2 為 +y，3 為 −x，4 為 −y）。箱體底下是 Damper：翻板在 AEX（酸排）與 SEX（溶劑排）兩支管之間。外罩牆、箱體牆與平台都是半透明，所以背面的 SideVent 3、4 與箱體內的風扇看得到。Shutter 是 +y 面的門，Fixed Nozzle 在外罩牆內側，4 支 Arm 的停放點都有 Port 杯。
+
+| target | action | 說明 |
+|---|---|---|
+| `Holder` | `CW`、`CCW`、`Stop`、`Home`、`Hold` | `Home`（OPR）以最短路徑轉到最近的 360° 倍數；`Hold` 停在當下角度 |
+| `Holder.Gripper` | `Open`、`Close`、`Hold` | 6 個夾爪頭轉向或轉離晶圓邊緣 |
+| `OutsideRing.Lift` | `Top`、`Down`、`Hold` | 升降量只是示意（8 mm），不依 ECID |
+| `Shutter` | `Open`、`Close`、`Hold` | 門上下移動 |
+| `SideVent{n}`（n = 1–4） | `Open`、`Close`、`Hold` | 百葉開度 0 或 75° |
+| `Damper` | `AEX`、`SEX`、`Hold` | 翻板位置 |
+| `Cup{n}.Drain`、`Arm{n}.PortDrain`（n = 1、2） | `Select1`、`Select2`、`Select3` | 只顯示標籤 `Drain K`，不畫管路；沒有 `leave`，標籤保留到下一個 `SelectK` |
+| `Arm{n}.Rotate`、`Cup{n}.Master`、`Cup{n}.Slave` | 既有，加 `JogPositive`、`JogNegative`、`IncrementalJog`、`StepDone` | 見下 |
+| `ExhaustFan{n}` | `On`、`Off` | 風扇轉動；每個 SideVent 的風扇都以每秒 360° 轉 |
+
+### 排氣流線與甩液
+
+- 排氣流線：`ExhaustFan{n}` 是 On，而且 `SideVent{n}` 開度超過一半時，SideVent n 外側顯示 3 條流動的藍色虛線。
+- 甩液：Holder 在轉（`CW`、`CCW`），而且任一 `Arm{n}.Nozzle{m}` 或 `FixedNozzle{n}` 是 On 時，晶圓邊緣向外畫液滴線段（Port 不算，DryRun 的送液類 `dryRunAction` 是 `Off`，所以不會甩液）。液滴數看 Holder 的 RPM（`value`）：低於 300 為 8 個、300 到 1000 或沒有數值為 16 個、高於 1000 為 32 個。液滴飛到第一層升起的 Cup（`Top` 附近）的內壁為止；沒有 Cup 升起時畫到 Cup4 外壁。液滴位置由時間算出，不用亂數。
+
+### Jog 與重新整理
+
+- `JogPositive`、`JogNegative`：從目前值等速移動，Arm 每秒 10°（範圍 −48° 到 35°），Cup 每秒 6 mm（範圍 Down 到 Top）；到邊界停住，直到收到 `Hold`。標籤顯示 `value`，單位為 RPM 或 mm/s（Jog 速度的 ECID 單位）。
+- `IncrementalJog`：依 `value` 的正負走一步（Arm 5°、Cup 4 mm），`value` 為 0 不動。完成前的 `StepDone` 讓畫面對齊這一步的目標，不依賴頁面與 Host 的計時剛好相同。Hold 再 Unhold 時沿用同一個目標，不會多走一步。
+- 頁面不知道 Jog 停在哪裡，所以收到 `Hold`（上一個 action 是 Jog 類）時，把凍結後的值存進瀏覽器的 `localStorage`（key 為 `polar2-sim:<專案名稱>:<target>`）。重新整理後的 `simState` 重播 Jog 類 action 時，頁面不移動，直接讀這個值；沒有存值就留在初始位置。target 收到 Jog 類以外的 action（例如 `Top`、`NozzlePort`）時刪除存值。
+
+### 已知限制
+
+- 換瀏覽器或清除資料後，Jog 之後的位置回到初始位置；Jog 進行中重新整理，頁面顯示上次存的值而不動。
+- `/live` 佇列滿時 Host 丟最舊的訊息，遺失的 `Hold` 會讓存值停在更早的位置。
+- IncrementalJog 被 Stop 或 Abort（沒有 `StepDone`）後，下一次同方向的 IncrementalJog 先走完上次的目標；Unhold 後剩下的距離以完整的 `durationMs` 走完，畫面速度變慢。
+- 任一風扇 On 時頁面每幀重畫（DryRun 也一樣）；頁面不可見時不畫。
+- Hold 或 Abort 後重新整理，定位類零件顯示目標位置。
 
 ## Framework 升級時重新複製
 
