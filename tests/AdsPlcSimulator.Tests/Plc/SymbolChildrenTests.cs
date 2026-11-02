@@ -227,6 +227,7 @@ public class SymbolChildrenTests
     [InlineData("GVL_Test.stRecipe.nope", null, null, "nope")]
     [InlineData("GVL_Test.stRecipe", 1, 2, "")]
     [InlineData("GVL_Test", 1, 2, "only valid for an array")]
+    [InlineData("GVL_Test.stRecipe", 1, null, "only valid for an array")]
     [InlineData("GVL_Test.c", 1, null, "together")]
     [InlineData("GVL_Test.c", 101, 121, "outside")]
     [InlineData("GVL_Test.c", 0, 10, "outside")]
