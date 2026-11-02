@@ -126,6 +126,7 @@ public sealed class ProjectEndpointsTests : IAsyncLifetime
     {
         Assert.Equal(409, Describe(SimulatorEndpoints.Workflows(_host)).Status);
         Assert.Equal(409, Describe(SimulatorEndpoints.Symbols(_host, null, null)).Status);
+        Assert.Equal(409, Describe(SimulatorEndpoints.SymbolChildren(_host, null, null, null)).Status);
         Assert.Equal(409, Describe(SimulatorEndpoints.ReadSymbol(_host, "a.nAlpha")).Status);
         Assert.Equal(409, Describe(SimulatorEndpoints.ReadWorkflow(_host, "wf")).Status);
     }
@@ -153,6 +154,25 @@ public sealed class ProjectEndpointsTests : IAsyncLifetime
         Assert.Equal("[]", Describe(SimulatorEndpoints.Symbols(_host, "nothing-like-this", 5)).Body);
         Assert.Equal(2, JsonDocument.Parse(Describe(SimulatorEndpoints.Symbols(_host, "a.", null)).Body).RootElement.GetArrayLength());
         Assert.Equal(1, JsonDocument.Parse(Describe(SimulatorEndpoints.Symbols(_host, "a.", 1)).Body).RootElement.GetArrayLength());
+    }
+
+    [Fact]
+    [Trait("AC", "7")]
+    public async Task SymbolChildren_while_running_returns_levels_and_404()
+    {
+        await RunAlphaAsync();
+
+        Assert.Contains("\"Name\":\"a\"", Describe(SimulatorEndpoints.SymbolChildren(_host, null, null, null)).Body);
+        (int? scopeStatus, string scopeBody) = Describe(SimulatorEndpoints.SymbolChildren(_host, "a", null, null));
+        Assert.Equal(200, scopeStatus);
+        Assert.Contains("\"Name\":\"nAlpha\"", scopeBody);
+        Assert.Contains("\"Name\":\"stP\"", scopeBody);
+        Assert.Contains("\"IsScalar\":true", scopeBody);
+        Assert.Contains("\"From\":null", scopeBody);
+        Assert.Contains("\"Name\":\"n\"", Describe(SimulatorEndpoints.SymbolChildren(_host, "a.stP", null, null)).Body);
+        (int? missingStatus, string missingBody) = Describe(SimulatorEndpoints.SymbolChildren(_host, "a.nope", null, null));
+        Assert.Equal(404, missingStatus);
+        Assert.Contains("\"error\"", missingBody);
     }
 
     [Fact]
@@ -259,7 +279,7 @@ public sealed class ProjectEndpointsTests : IAsyncLifetime
             .ToArray();
         string[] expected =
         [
-            "/api/nodes", "/api/symbols", "/api/symbols/value", "/api/workflows", "/api/workflows/{name}",
+            "/api/nodes", "/api/symbols", "/api/symbols/children", "/api/symbols/value", "/api/workflows", "/api/workflows/{name}",
             "/api/project", "/api/project/run", "/api/project/stop", "/live",
         ];
         Assert.All(expected, route => Assert.Contains(route, routes));
