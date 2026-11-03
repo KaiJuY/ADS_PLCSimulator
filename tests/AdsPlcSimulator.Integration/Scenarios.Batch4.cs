@@ -11,7 +11,7 @@ internal static partial class Scenarios
     private const uint FixNozzle1FlowSvid = 54;
     private const uint Cup2MasterSvid = 47;
     private const uint Cup2SlaveSvid = 48;
-    private const uint Cup2TopEcid = 288;
+    private const uint Cup2TopEcid = 2107;
     private const ushort AutoMode = 3;
     private const ushort Clockwise = 1;
     private const ushort CounterClockwise = 2;
