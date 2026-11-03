@@ -21,7 +21,7 @@ Polar2 Chamber 的 PLC 宣告檔。模擬器載入這個專案，就有和真 PL
 
 | 檔案 | 在本 repo | SHA-256 | 修改時間 |
 |---|---|---|---|
-| `POUs/F_InitializePolarIIChamberServiceStatus.TcPOU` | `plc/ServiceIdentity/`（已複製後修改：145 處 enum 改名、加 `Holder.VacuumEstablish` 一行；TSMC repo 中是 untracked） | `6f290791e8af800a9e15f3f0e234ca87f12ec85fd65f1ca5209a41e1d8222a5e`（修改前原始檔的值，和 repo 內的檔案不同） | 2026-10-24 13:35 +0800 |
+| `POUs/F_InitializePolarIIChamberServiceStatus.TcPOU` | `plc/ServiceIdentity/`（已複製後修改：145 處 enum 改名、加 `Holder.VacuumEstablish` 一行，這一行的 CompletionBehavior 是 `ExecuteUntilExternalStop`；TSMC repo 中是 untracked） | `6f290791e8af800a9e15f3f0e234ca87f12ec85fd65f1ca5209a41e1d8222a5e`（修改前原始檔的值，和 repo 內的檔案不同） | 2026-10-24 13:35 +0800 |
 | `Polar_II_ChamberDemo.tmc` | 不複製（TSMC 的 `.gitignore:20` 忽略 `*.tmc`） | `a07033683a3ee2772ce81485ba26211012d0a21aad045d765b282e428784cf49` | 2026-10-24 11:31 +0800 |
 
 `Polar2LayoutTests` 的預期值取自這個 `.tmc`（`BitOffs`、`BitSize` 除以 8），再依 `MaxConfigParamPerModule` 調整。`plc/Framework/GVLs/Param_Config.TcGVL` 與 `b71a0c4` 相同。450 的值是用模擬器的 loader 算出來的，不是來自 `.tmc`；`[1].ServiceParam` 的 450 值包含新增的 `Holder.VacuumEstablish`。調整後的位移（byte，offset / size）：
@@ -210,7 +210,7 @@ node build.mjs
 3. 從 `RobustSolutionFramework/` 用原樣複製（`cp`，不轉碼、不改換行）所有 `.TcDUT`，保留子資料夾；再複製 `GVLs/Param_Config.TcGVL`，不複製 `.TcPOU`。
 4. 如果 Polar2 的 DUT 也有變，用同樣方式重新複製 `plc/Polar2/`。新版 ScienTech-Polar2 的 DUT 在 `POUs/10_Chamber/DUTs/**`，複製時要對到 `plc/Polar2/DUTs/External/**` 的同名檔案。
    新版 enum 還沒有 3007 的期間，要補上 `Holder_VacuumEstablish := 3007`。
-5. 重新取得 `.tmc` 與 `F_InitializePolarIIChamberServiceStatus.TcPOU`，更新上表的 SHA-256 與修改時間，並更新 `plc/ServiceIdentity/` 的檔案。重新取得 identity 檔後，要再做一次 enum 改名和 `Holder.VacuumEstablish` 那一行，然後執行 `Service_ids_match_golden_list`。
+5. 重新取得 `.tmc` 與 `F_InitializePolarIIChamberServiceStatus.TcPOU`，更新上表的 SHA-256 與修改時間，並更新 `plc/ServiceIdentity/` 的檔案。重新取得 identity 檔後，要再做一次 enum 改名和 `Holder.VacuumEstablish` 那一行（這一行的 CompletionBehavior 用 `ExecuteUntilExternalStop`，不要讓重新取得的檔案帶回 `NaturalCompletion`），然後執行 `Service_ids_match_golden_list`。
 6. 更新本檔的 commit SHA，執行 `dotnet test`。`Polar2LayoutTests` 失敗表示版面和新 `.tmc` 不同，要更新測試的預期值。
 7. 用手動比對下列 4 個 function block 在新舊版本的差異，因為模擬器以 C# 重現它們的交握行為：`FB_PackMLBase`、`FB_ServiceCoordinator`、`FB_ModuleBase`、`FB_ServiceBase`。
 

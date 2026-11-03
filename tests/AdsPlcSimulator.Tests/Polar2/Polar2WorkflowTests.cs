@@ -167,7 +167,7 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
 
     [Fact]
     [Trait("AC", "1")]
-    public async Task Holder_vacuum_establish_has_service_id_3007_and_completes()
+    public async Task Holder_vacuum_establish_has_service_id_3007_and_runs_until_stop()
     {
         await StartPlcAsync();
         await WaitUntilAsync(() => ReadNumber($"{Root}[6].ModuleStatus.PackMLOut.eStateCurrent") == (long)PackMLState.Execute, "the last module to initialize");
@@ -177,10 +177,28 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
         for (int module = 1; module <= 6; module++)
         {
             Assert.Equal(3007, ReadNumber($"{Root}[{module}].ServiceStatus.Holder.VacuumEstablish.ServiceId"));
-            Assert.Equal((long)CompletionBehavior.NaturalCompletion, ReadNumber($"{Root}[{module}].ServiceStatus.Holder.VacuumEstablish.CompletionBehavior"));
+            Assert.Equal((long)CompletionBehavior.ExecuteUntilExternalStop, ReadNumber($"{Root}[{module}].ServiceStatus.Holder.VacuumEstablish.CompletionBehavior"));
         }
 
-        await CommandAsync("Holder.VacuumEstablish", PackMLCommand.Start, PackMLState.Complete);
+        await CommandAsync("Holder.VacuumEstablish", PackMLCommand.Start, PackMLState.Execute);
+        await Task.Delay(300);
+        Assert.Equal(PackMLState.Execute, State("Holder.VacuumEstablish"));
+        await CommandAsync("Holder.VacuumEstablish", PackMLCommand.Stop, PackMLState.Stopped);
+    }
+
+    [Fact]
+    [Trait("AC", "6")]
+    public async Task Holder_vacuum_establish_alive_timeout_aborts_with_alarm_940()
+    {
+        await StartPlcAsync();
+        await WaitUntilAsync(() => ReadNumber($"{Root}[6].ModuleStatus.PackMLOut.eStateCurrent") == (long)PackMLState.Execute, "the last module to initialize");
+        Write($"{Ctrl("Holder.VacuumEstablish")}.AliveTimeout", 500L);
+
+        await CommandAsync("Holder.VacuumEstablish", PackMLCommand.Start, PackMLState.Execute);
+        await WaitForStateAsync("Holder.VacuumEstablish", PackMLState.Aborted);
+
+        Assert.Equal(940, ReadNumber($"{Status("Holder.VacuumEstablish")}.ErrorList[1].MainErrorId"));
+        Assert.Equal(500, ReadNumber($"{Status("Holder.VacuumEstablish")}.ErrorList[1].SourceErrorId"));
     }
 
     [Fact]
