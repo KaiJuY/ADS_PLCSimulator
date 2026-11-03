@@ -161,7 +161,7 @@ F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Holder.Rotate.OPR, Se
 F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Holder.Rotate.MoveVelocityCW, ServiceId := E_PolarIIChamber_ServiceId.Holder_Rotate_MoveVelocityCW, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
 F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Holder.Rotate.MoveVelocityCCW, ServiceId := E_PolarIIChamber_ServiceId.Holder_Rotate_MoveVelocityCCW, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
 F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Holder.Rotate.MoveModulo, ServiceId := E_PolarIIChamber_ServiceId.Holder_Rotate_MoveModulo, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
-F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Holder.VacuumEstablish, ServiceId := E_PolarIIChamber_ServiceId.Holder_VacuumEstablish, CompletionBehavior := E_ServiceCompletionBehavior.NaturalCompletion);
+F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.Holder.VacuumEstablish, ServiceId := E_PolarIIChamber_ServiceId.Holder_VacuumEstablish, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);
 
 // FixedNozzle
 F_SetPolarIIChamberServiceIdentity(Status := ServiceStatus.FixedNozzle[1].ChemicalSupply, ServiceId := E_PolarIIChamber_ServiceId.FixedNoz1_ChemicalSupply, CompletionBehavior := E_ServiceCompletionBehavior.ExecuteUntilExternalStop);

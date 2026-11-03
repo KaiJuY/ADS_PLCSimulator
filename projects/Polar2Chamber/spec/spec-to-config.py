@@ -8,10 +8,9 @@ import zipfile
 from typing import NamedTuple
 
 SVID_SHEET = "ModuleVariableList_SVID"
-ECID_SHEET = "ModuleConfigParamList_ECID"
 QUANTITY_SHEET = "Object Quantity"
 
-# Source: note on the "Nozzle1 Flow Offset" row of the ECID sheet (Arm1,2 have 3 nozzles; Arm3 has 2; Arm4 has 1).
+# Source: note on the "Nozzle1 Flow Offset" row of the 20261027 spec ECID sheet (Arm1,2 have 3 nozzles; Arm3 has 2; Arm4 has 1).
 ARM_NOZZLES = {1: 3, 2: 3, 3: 2, 4: 1}
 
 TYPE_MAP = {"Integer_32bit": "DINT", "Float_32bit": "REAL", "Boolean": "BOOL", "String(80)": "STRING"}
@@ -202,14 +201,29 @@ def build_list(sheet_name, rows, quantities):
     return entries
 
 
-def generate(xlsx_path):
+def read_plc_ecids(plc_path):
+    try:
+        with open(plc_path, encoding="utf-8") as f:
+            plc = json.load(f)
+    except (OSError, json.JSONDecodeError) as e:
+        raise SpecError(f"{plc_path}: {e}") from e
+    modules = plc.get("modules") if isinstance(plc, dict) else None
+    first = modules[0] if isinstance(modules, list) and modules and isinstance(modules[0], dict) else {}
+    ecids = first.get("configParamList")
+    if not isinstance(ecids, list):
+        raise SpecError(f"{plc_path}: modules[0].configParamList not found")
+    return ecids
+
+
+def generate(xlsx_path, plc_path):
+    ecids = read_plc_ecids(plc_path)
     with zipfile.ZipFile(xlsx_path) as zf:
         paths = sheet_paths(zf)
-        for required in (QUANTITY_SHEET, SVID_SHEET, ECID_SHEET):
+        for required in (QUANTITY_SHEET, SVID_SHEET):
             if required not in paths:
                 raise SpecError(f"sheet '{required}' not found")
         shared = read_shared_strings(zf)
-        sheets = {name: read_sheet(zf, paths[name], shared) for name in (QUANTITY_SHEET, SVID_SHEET, ECID_SHEET)}
+        sheets = {name: read_sheet(zf, paths[name], shared) for name in (QUANTITY_SHEET, SVID_SHEET)}
     quantities = read_quantities(sheets[QUANTITY_SHEET])
     return {
         "schemaVersion": 4,
@@ -219,22 +233,22 @@ def generate(xlsx_path):
             "slot": 1,
             "id": 1,
             "variableList": build_list(SVID_SHEET, sheets[SVID_SHEET], quantities),
-            "configParamList": build_list(ECID_SHEET, sheets[ECID_SHEET], quantities),
+            "configParamList": ecids,
         }],
     }
 
 
 def main(argv):
-    if len(argv) != 3:
-        print('usage: python spec-to-config.py "<spec.xlsx>" "<module-config.json>"', file=sys.stderr)
+    if len(argv) != 4:
+        print('usage: python spec-to-config.py "<spec.xlsx>" "<plc-module-config.json>" "<module-config.json>"', file=sys.stderr)
         return 2
     try:
-        config = generate(argv[1])
+        config = generate(argv[1], argv[2])
     except SpecError as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
     text = json.dumps(config, indent=2, ensure_ascii=False) + "\n"
-    with open(argv[2], "w", encoding="utf-8", newline="\n") as f:
+    with open(argv[3], "w", encoding="utf-8", newline="\n") as f:
         f.write(text)
     module = config["modules"][0]
     print(f"SVID {len(module['variableList'])}, ECID {len(module['configParamList'])}")

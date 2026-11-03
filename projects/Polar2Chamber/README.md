@@ -2,7 +2,7 @@
 
 Polar2 Chamber 的 PLC 宣告檔。模擬器載入這個專案，就有和真 PLC 相同的 `GVL_Module.Chamber_Control`（6 個 module，共 12964944 bytes）。本專案的 `plc/` 從下列來源複製，和來源的差異如下：
 
-- `MaxConfigParamPerModule` 是新版 Framework 的 450（不再修改）。真 PLC 854 仍是 300（規格書的 ECID 有 438 筆，300 放不下），所以 offset 和真 PLC 不同；
+- `MaxConfigParamPerModule` 是新版 Framework 的 450（不再修改）。真 PLC 854 仍是 300（PLC 的 ECID 檔有 390 筆，300 放不下），所以 offset 和真 PLC 不同；
 - Service ID enum 多了 `Holder_VacuumEstablish := 3007`，檔案留在 `DUTs/External/Enums/`；
 - `E_PolarIIChamberTargetMode` 是本地修改（`56a6436`）；
 - Framework 的 `E_Cylinder_2P2SErrorID`、`E_CylinderErrorReaction` 是舊版（新版已改名或搬位置）；
@@ -21,7 +21,7 @@ Polar2 Chamber 的 PLC 宣告檔。模擬器載入這個專案，就有和真 PL
 
 | 檔案 | 在本 repo | SHA-256 | 修改時間 |
 |---|---|---|---|
-| `POUs/F_InitializePolarIIChamberServiceStatus.TcPOU` | `plc/ServiceIdentity/`（已複製後修改：145 處 enum 改名、加 `Holder.VacuumEstablish` 一行；TSMC repo 中是 untracked） | `6f290791e8af800a9e15f3f0e234ca87f12ec85fd65f1ca5209a41e1d8222a5e`（修改前原始檔的值，和 repo 內的檔案不同） | 2026-10-24 13:35 +0800 |
+| `POUs/F_InitializePolarIIChamberServiceStatus.TcPOU` | `plc/ServiceIdentity/`（已複製後修改：145 處 enum 改名、加 `Holder.VacuumEstablish` 一行，這一行的 CompletionBehavior 是 `ExecuteUntilExternalStop`；TSMC repo 中是 untracked） | `6f290791e8af800a9e15f3f0e234ca87f12ec85fd65f1ca5209a41e1d8222a5e`（修改前原始檔的值，和 repo 內的檔案不同） | 2026-10-24 13:35 +0800 |
 | `Polar_II_ChamberDemo.tmc` | 不複製（TSMC 的 `.gitignore:20` 忽略 `*.tmc`） | `a07033683a3ee2772ce81485ba26211012d0a21aad045d765b282e428784cf49` | 2026-10-24 11:31 +0800 |
 
 `Polar2LayoutTests` 的預期值取自這個 `.tmc`（`BitOffs`、`BitSize` 除以 8），再依 `MaxConfigParamPerModule` 調整。`plc/Framework/GVLs/Param_Config.TcGVL` 與 `b71a0c4` 相同。450 的值是用模擬器的 loader 算出來的，不是來自 `.tmc`；`[1].ServiceParam` 的 450 值包含新增的 `Holder.VacuumEstablish`。調整後的位移（byte，offset / size）：
@@ -39,25 +39,33 @@ Polar2 Chamber 的 PLC 宣告檔。模擬器載入這個專案，就有和真 PL
 
 ### 規格書
 
-`spec/Polar 二代機 測試 Chamber 規格_20261007.xlsx` 是原檔的副本，原樣複製，不改內容。Service、SVID、ALID、DVID、ECID 的內容以它為準。
+`spec/Polar 二代機 測試 Chamber 規格_20261027.xlsx` 是原檔的副本，原樣複製，不改內容。Service、SVID、ALID、DVID 的內容以它為準。它的 ECID 工作表沒有 ECID 編號，所以 ECID 不從它產生，改用下面的 PLC ECID 檔。
 
 | 原檔位置 | SHA-256 | 修改時間 |
 |---|---|---|
-| `C:\Users\AllenY\Desktop\WorkSpace\Scientech\Polar 二代機 測試 Chamber 規格_20261007.xlsx` | `14bcc55783b6e07bc94f04c123420ee2677eefba68471cad0aa4c09cab7faf79` | 2026-10-29 08:21 +0800 |
+| `C:\Users\AllenY\Desktop\WorkSpace\Scientech\Polar 二代機 測試 Chamber 規格_20261027.xlsx` | `ebab7d0ab59e2bd28999b7a00346cbec08b3c9ae65b7d6c92d0d4799330f7446` | 2026-11-03 14:37 +0800 |
 
-工作表：`Service`（70 列）、`Object Quantity`、`Recipe Map`、`ModuleConfigParamList_ECID`（198 列）、`ModuleVariableList_SVID`（22 列）、`ModuleAlarmList_ALID`（68 列）、`ModuleDataList_DVID`（2 列）、`Material Context`、`Nozzle_Cup_Drainer Table`、`Verification Data`。規格書更新時，重新複製並更新上表。
+工作表（資料列數，不含標題列）：`Service`（75 列）、`Object Quantity`（6 列）、`Recipe Map`（70 列）、`ModuleConfigParamList_ECID`（175 列，只用來對照，不參與產生）、`ModuleVariableList_SVID`（22 列）、`ModuleAlarmList_ALID`（68 列）、`ModuleDataList_DVID`（2 列）、`Nozzle_Cup_Drainer Table`、`Verification Data`、`Material Context(Obsolete)`。規格書更新時，重新複製並更新上表。
+
+`spec/plc-module-config.json` 是真 PLC 專案的 ECID 檔的副本，原樣複製（`.gitattributes` 設 `-text`，換行字元不被轉換，保持 CRLF）。ECID 的編號、名稱、單位、型別、上下限以它為準。
+
+| 原檔位置 | 來源 repo 與 commit | SHA-256 | 大小 |
+|---|---|---|---|
+| `C:\Users\AllenY\Desktop\WorkSpace\Git\ScienTech-Polar2\config\module-config.json` | ScienTech-Polar2，commit `0318fe6` | `02c3753b2794d2907fabb0c0f776ef48a06d6f064e5e140eac86282808342458` | 77776 bytes |
+
+PLC 的 ECID 檔更新時：重新複製到 `spec/plc-module-config.json`，更新上表的 commit、SHA-256 與大小，再執行下面的指令重新產生 `config/module-config.json`，並更新測試用的 `tests/AdsPlcSimulator.Tests/Polar2/EcidMap.golden.tsv`、`EcidOccurrences.golden.tsv` 與 `config/service-behaviors.json` 裡用到的 ECID 編號。
 
 ### 設定檔 `config/module-config.json`
 
-SVID（`ModuleVariableList_SVID`）與 ECID（`ModuleConfigParamList_ECID`）的內容由腳本從規格書產生，格式與真 PLC 的 framework 設定檔相同（`schemaVersion` 4）。目前是 slot 1 的 Polar2：64 個 SVID、438 個 ECID。ID 暫定，依輸出順序從 1 編號；規格書加入或刪除列時會位移。
+SVID（`ModuleVariableList_SVID`）由腳本從規格書產生；ECID 由腳本從 `spec/plc-module-config.json` 的 `modules[0].configParamList` 原樣複製（同樣的項目、順序、欄位）。格式與真 PLC 的 framework 設定檔相同（`schemaVersion` 4）。目前是 slot 1 的 Polar2：64 個 SVID、390 個 ECID。ECID 的 id 是 PLC 的 id（`E_PolarIIChamber_ConfigParamId`，例如 1001、3001），不是輸出順序；`ModuleConfigParamList[i]` 的 i 是它在清單中的位置。
 
 ```
-python projects/Polar2Chamber/spec/spec-to-config.py "projects/Polar2Chamber/spec/Polar 二代機 測試 Chamber 規格_20261007.xlsx" projects/Polar2Chamber/config/module-config.json
+python projects/Polar2Chamber/spec/spec-to-config.py "projects/Polar2Chamber/spec/Polar 二代機 測試 Chamber 規格_20261027.xlsx" projects/Polar2Chamber/spec/plc-module-config.json projects/Polar2Chamber/config/module-config.json
 ```
 
-腳本只用 Python 3 標準函式庫。遇到不支援的型別、非 ASCII 名稱、名稱縮寫後仍超過 30 byte、重複名稱時，印出原因並以 exit code 1 結束，不寫輸出檔。名稱超過 30 byte 時依固定順序縮寫（例如 `Position` → `Pos`），並在該筆加 `comment` 記錄原名稱。輸出檔為 UTF-8、LF。
+腳本只用 Python 3 標準函式庫。遇到不支援的型別、非 ASCII 名稱、名稱縮寫後仍超過 30 byte、重複名稱（SVID），或 PLC 檔沒有 `modules[0].configParamList` 時，印出原因並以 exit code 1 結束，不寫輸出檔。SVID 名稱超過 30 byte 時依固定順序縮寫（例如 `Position` → `Pos`），並在該筆加 `comment` 記錄原名稱。輸出檔為 UTF-8、LF。輸出必須與 `config/module-config.json` 逐 byte 相同。
 
-ECID 可以手動加 `lowerLimit`、`upperLimit`（JSON 數字），規則照 framework 的 `FB_ModuleConfigurationManager`：
+ECID 的 `lowerLimit`、`upperLimit`（JSON 數字）來自 PLC 檔，規則照 framework 的 `FB_ModuleConfigurationManager`：
 
 - 兩個要一起寫，只寫一個會讓 Run 失敗。
 - 只有 `configParamList` 可以寫；`variableList`（SVID）寫了會讓 Run 失敗。
@@ -65,7 +73,7 @@ ECID 可以手動加 `lowerLimit`、`upperLimit`（JSON 數字），規則照 fr
 - 必須 `lowerLimit <= upperLimit`，且在型別範圍內：DINT 為 -2147483648 到 2147483647，REAL 為 ±3.402823466E38。
 - 數值型 ECID（DINT、REAL）發布時 `HasLimits` 為 TRUE；沒寫上下限就發布型別完整範圍。BOOL 與 STRING 發布 `HasLimits` 為 FALSE。
 
-目前腳本產生的設定檔沒有上下限。用腳本重新產生 `config/module-config.json` 會覆蓋整個檔案，手動加的 `lowerLimit`、`upperLimit` 會消失；重新產生後要再加一次。
+PLC 檔的每個數值型 ECID 都有上下限。SetConfig 的值超出上下限時，service 以 MainErrorId 926 Abort，Value 不變。不要手動改 `config/module-config.json`：下次產生會覆蓋。
 
 ### 設定檔 `config/service-behaviors.json`
 
@@ -75,28 +83,28 @@ Polar2 的規則：
 
 - Mode 0（Disable）：只有 `Chamber.SetMode` 能執行。這是例外，記在 #10 的規格待確認清單。
 - Mode 1（Manual）：`Chamber.SingleProcess`、`Chamber.EMGS` 不能執行。
-- Mode 2（DryRun）、3（Auto）：全部允許。
+- Mode 2（DryRun）、3（Auto）：全部允許。`Chamber.SetMode` 不能寫入 2、3：先 `SetMode` 1 回到 Manual，再用 `Chamber.Initial` 的 `SwitchModeAfterFinish`（1 = DryRun、2 = Auto）切換，Initial 等 5000 ms 後才寫入 SVID 1。
 - `Chamber.ArmAlignTest`、`Chamber.ArmTest`：`ArmIndex` 1..4、`NozzleIndex` 1..3；`Chamber.FlowCalibration`：`ArmIndex` 1..4、`ArmNozzleIndex` 1..3。
 - `Chamber.ArmAlignTest`、`Chamber.FlowCalibration` 以 `TestTime` 為執行時間（為 0 時 MainErrorId 1）；`Chamber.ArmTest` 沒有 TestTime，用 `service.host` 的 `defaultDelayMs`。
-- `Holder.Rotate.MoveVelocityCW` 進入 Execute 時把 SVID 53 寫成 ECID 318，`MoveVelocityCCW` 寫成負值；任何離開 Execute（Complete、Stop、Abort、Hold、Suspend）時寫回 0；Unhold、Unsuspend 回到 Execute 時再寫一次。
-- `Holder.Rotate.MoveModulo`：`Position`（LREAL）須在 0..360（含兩端），超出時 MainErrorId 1、`SourceErrorId` = `Position` 的整數部分（負值為 `unchecked` 的 UDINT；NaN、∞ 為 4294967295）、訊息 `Position out of range (0~360).`。進入 Execute 時 SVID 53 寫成 ECID 318，離開 Execute 寫回 0（5000 ms 後 Complete）。
-- `OutsideRing.Rotate.MoveVelocityCW` 進入 Execute 時把 SVID 58 寫成 ECID 361，`MoveVelocityCCW` 寫成負值；離開 Execute 時寫回 0（同上，任何離開都寫）。
-- `Cup[1..4].Lift.TopPos`、`MiddlePos`、`DownPos`：在 Complete 之前（5000 ms 到時）把該 Cup 的 Master、Slave 高度 SVID 寫成對應的 ECID（Top／Down／Middle Pos）。Cup1 是 SVID 45／46、ECID 276／277／278，Cup2 是 47／48、288／289／290，Cup3 是 49／50、300／301／302，Cup4 是 51／52、312／313／314。
+- `Holder.Rotate.MoveVelocityCW` 進入 Execute 時把 SVID 53 寫成 ECID 3001，`MoveVelocityCCW` 寫成負值；任何離開 Execute（Complete、Stop、Abort、Hold、Suspend）時寫回 0；Unhold、Unsuspend 回到 Execute 時再寫一次。
+- `Holder.Rotate.MoveModulo`：`Position`（LREAL）須在 0..360（含兩端），超出時 MainErrorId 1、`SourceErrorId` = `Position` 的整數部分（負值為 `unchecked` 的 UDINT；NaN、∞ 為 4294967295）、訊息 `Position out of range (0~360).`。進入 Execute 時 SVID 53 寫成 ECID 3001，離開 Execute 寫回 0（5000 ms 後 Complete）。
+- `OutsideRing.Rotate.MoveVelocityCW` 進入 Execute 時把 SVID 58 寫成 ECID 3202，`MoveVelocityCCW` 寫成負值；離開 Execute 時寫回 0（同上，任何離開都寫）。
+- `Cup[1..4].Lift.TopPos`、`MiddlePos`、`DownPos`：在 Complete 之前（5000 ms 到時）把該 Cup 的 Master、Slave 高度 SVID 寫成對應的 ECID（Top／Down／Middle Pos）。Cup1 是 SVID 45／46、ECID 2007／2008／2009（`Cup1_TopPosition`／`Cup1_DownPosition`／`Cup1_MiddlePosition`），Cup2 是 47／48、2107／2108／2109，Cup3 是 49／50、2207／2208／2209，Cup4 是 51／52、2307／2308／2309。
 - `Cup[1..4].Lift.IncrementalJog`：在 Complete 之前，Master、Slave 高度 SVID 各自加上 `Position`（mm，可為負）；不檢查上下限。Execute 中被 Stop 或 Abort 時高度不變。
 - DryRun（Mode 2）不影響以上各項（沒有標 `dryRunZero`）。
 - 第 3 批（#18，62 項，共 86 項）：
-  - `Arm[1..4].Lift.TopPos`、`DownPos`：進入 Execute 時 `Armn Lift Speed` 寫成 ECID `Armn Lift Speed (Normal)`，Complete 之前（5000 ms 到時）`Armn Lift Position` 寫成 ECID `Lift Top Pos`／`Down Pos`，離開 Execute 時速度寫回 0。
-  - `Arm[1..4].Rotate.NegLimitPos`、`PosLimitPos`、`NozzlePortPos`、`Noz1CenterPos`、`Noz2CenterPos`、`Noz3CenterPos`：同上，速度是 `Armn Rotate Speed (Normal)`，位置是 `Armn Rotate Position` 寫成對應的 `Rotate Neg Limit Pos`、`Pos Limit Pos`、`Nozzle Port Pos`、`Noz1/2/3 Center Pos`（各 Arm 只有 PLC 綁定的 service 在表中：Arm1、Arm2 各 17 項，Arm3 11 項，Arm4 9 項）。
+  - `Arm[1..4].Lift.TopPos`、`DownPos`：進入 Execute 時 `Armn Lift Speed` 寫成 ECID `Armn_LiftNormalSpeed`（Arm1 是 1001，Arm2 是 1101，依此類推），Complete 之前（5000 ms 到時）`Armn Lift Position` 寫成 ECID `Armn_LiftTopPosition`／`Armn_LiftDownPosition`（Arm1 是 1006／1007），離開 Execute 時速度寫回 0。
+  - `Arm[1..4].Rotate.NegLimitPos`、`PosLimitPos`、`NozzlePortPos`、`Noz1CenterPos`、`Noz2CenterPos`、`Noz3CenterPos`：同上，速度是 `Armn_RotateNormalSpeed`（Arm1 是 1009），位置是 `Armn Rotate Position` 寫成對應的 `Armn_RotateNegLimitPos`、`Armn_RotatePosLimitPos`、`Armn_RotateNozzlePortPosition`、`Armn_RotateNoz1CenterPos`／`Noz2CenterPos`／`Noz3CenterPos`（Arm1 是 1014 到 1019）（各 Arm 只有 PLC 綁定的 service 在表中：Arm1、Arm2 各 17 項，Arm3 11 項，Arm4 9 項）。
   - `Arm[1..4].Rotate.IncrementalJog`：速度同上；Complete 之前 `Armn Rotate Position` 加上 `Position`（deg，可為負）。
-  - `Arm[1..4].Rotate.JogPositive`、`JogNegative`：進入 Execute 時 `Armn Rotate Speed` 寫成 ECID `Armn Rotate Speed (Jog)`（Negative 為負值），離開 Execute 寫回 0；ExecuteUntilExternalStop，沒有位置變化。
+  - `Arm[1..4].Rotate.JogPositive`、`JogNegative`：進入 Execute 時 `Armn Rotate Speed` 寫成 ECID `Armn_RotateJogSpeed`（Arm1 是 1010，Arm2 是 1110，Arm3 是 1210，Arm4 是 1310）（Negative 為負值），離開 Execute 寫回 0；ExecuteUntilExternalStop，沒有位置變化。
   - `Arm[n].Nozzle[k].ChemicalSupply`、`Arm[n].NozzlePort.Nozzle[k].Supply`、`FixedNozzle[1..4].ChemicalSupply`：進入 Execute 時對應的 Flow/Pressure SVID 寫成 `ServiceParam` 的 `Setpoint`，離開 Execute 寫回 0。DryRun（Mode 2）時寫 0（`dryRunZero`），因為 DryRun 不出化學藥劑。
-  - `Exhaust.Fan[1..4].SupplyFlowPID`：進入 Execute 時 `ExhaustFann Pressure` 寫成 ECID `ExhaustFann Target Pressure`，離開 Execute 寫回 0。排氣不出化學藥劑，DryRun 不歸零。
+  - `Exhaust.Fan[1..4].SupplyFlowPID`：進入 Execute 時 `ExhaustFann Pressure` 寫成 ECID `ExhaustFann_TargetPressure`（Fan1 是 3401，Fan2 是 3411，Fan3 是 3421，Fan4 是 3431），離開 Execute 寫回 0。排氣不出化學藥劑，DryRun 不歸零。
   - 不在表中（沒有 SVID 可寫，或留待後批）：`Arm[n].Rotate.MoveRecipe`、`Arm[n].NozzlePort.DrainSelect*`、`Exhaust.Damper.*`、`SideVent[n].*`。FFU（SVID 63、64）在 PLC 沒有 service，記在 #10。
 - 第 4 批（#19，2 項，共 88 項）：`Chamber.SingleProcess`、`Chamber.CupChamberClean` 用 `process` 段模擬步驟執行（`process` 與 `duration` 不能並存）。
   - 檢查（進入 Execute 時，Mode 之後；MainErrorId 1）：`ProcessStepCount` 須在 1..50（`SourceErrorId` = 該值，訊息 `ProcessStepCount out of range (1~50).`）；再從第 1 步到第 `ProcessStepCount` 步，依序檢查 `ArmIndex` 1..4、`RecipeIndex` 1..`RecipeCount`、`ArmNozzleIndex`（Arm1、Arm2 為 1..3，Arm3 為 1..2，Arm4 為 1..1）、`ProcessTime` 大於 0、`RotateDirection` 1..2、`RotateSpeed` 大於 0、`CupDrainIndex` 1..3、`CycleControl` 0..2、`CycleCount` 大於 0（只在 `CycleControl` 為 Start 時）；`Chamber.CupChamberClean` 另檢查 `CleanSettings[i].TargetCupIndex` 1..4 與 `CleanType` 1..2。第一個不通過的回報：`SourceErrorId` = 該欄位值（NaN、∞ 為 4294967295），訊息如 `ProcessSteps[3].ArmIndex out of range (1~4).`、`ProcessSteps[2].ProcessTime must be greater than 0.`。循環配對：End 前沒有 Start 時 `SourceErrorId` = 該步編號，訊息 `ProcessSteps[2].CycleControl End without Start.`；Start 沒有 End 時 `SourceErrorId` = 最內層未關閉的 Start 的步編號，訊息 `… Start without End.`。
   - 執行：進入 Execute 時複製步驟參數（Execute 中改參數不影響這次），從第 1 步開始；每步經過 `ProcessTime`（最短 1 ms）換下一步；Complete 的時間是所有步驟（含循環重複）的時間總和，不看 `defaultDelayMs`。`CycleControl` 為 Start（1）的步到 End（2）的步（含兩端）共執行 `CycleCount` 次（含第一次），可以巢狀。
   - 每步寫入的 SVID：53 = `RotateSpeed`（`RotateDirection` 為 CCW 時取負，四捨五入到整數）；Arm 的 Nozzle 流量 SVID 依 `ArmIndex`、`ArmNozzleIndex` 查表（Arm1 為 9／10／11，Arm2 為 22／23／24，Arm3 為 34／35，Arm4 為 43）= `ArmNozzleSetpoint`；54..57 = `FixedNozzleSetpoint[1..4]`。DryRun（Mode 2）時流量歸零（`dryRunZero`），轉速照寫。換步、結束、離開 Execute（Complete、Stop、Abort、Hold、Suspend）時這些 SVID 寫回 0；Unhold、Unsuspend 回到 Execute 時目前這步從頭開始（重新計時、重寫 SVID）。
-  - `Chamber.CupChamberClean` 另外：`CleanType` 為 1（FixedAtTop）時，`TargetCupIndex` 那個 Cup 的 Master、Slave 高度 SVID（45／46、47／48、49／50、51／52）寫成 Top Pos 的 ECID（276、288、300、312）；這兩個 SVID 不歸 0，值保留到下一次寫入或下一次 Run。`CleanType` 為 2（MoveUpDown）時不寫高度，SVID 保持原值（沒有 ramp）。
+  - `Chamber.CupChamberClean` 另外：`CleanType` 為 1（FixedAtTop）時，`TargetCupIndex` 那個 Cup 的 Master、Slave 高度 SVID（45／46、47／48、49／50、51／52）寫成 Top Pos 的 ECID（2007、2107、2207、2307）；這兩個 SVID 不歸 0，值保留到下一次寫入或下一次 Run。`CleanType` 為 2（MoveUpDown）時不寫高度，SVID 保持原值（沒有 ramp）。
   - 被 `trigger.onServiceExecute` 接管的 service 不執行步驟。`Chamber.EMGS`、`Chamber.MoveRecipe`、`Chamber.DoNozzleClean`、`Chamber.DoNozzlePreflush` 不在表中，維持預設行為。
   - 這些 SVID（53、Arm 的 Nozzle 流量、54..57）與其他 service 共用，沒有擁有者檢查（同上）。
 - 同一個 SVID 由多個 service 寫入（例 Arm1 的 `Arm1 Rotate Speed` 由 9 個 Rotate service 寫入）時沒有擁有者檢查：兩個 service 同時在 Execute 時，先離開的寫 0。模擬器不阻擋同一軸的 service 同時執行。
@@ -105,7 +113,7 @@ Polar2 的規則：
 
 注意：
 
-- Mode 改成 0 之後只有 `Chamber.SetMode` 能跑，手動測試完要用 SetMode 把 Mode 寫回。
+- Mode 改成 0 之後只有 `Chamber.SetMode` 能跑，手動測試完要用 SetMode 1 回到 Manual；要回 DryRun 或 Auto，再用 `Chamber.Initial` 切換。
 - Run 之後到 `Polar2_ModuleModeInit` 寫 `'1'` 之前，SVID 1 是初始值 `"0"`，Mode 是 Disable；`Polar2_ModuleModeInit` 載入失敗時一直如此。
 - `duration`、`beforeComplete` 只對 NaturalCompletion 的 service 有作用；寫在 ExecuteUntilExternalStop 的 service 上不會報錯，但沒有效果（Host 在 Run 時不讀 identity file，無法發現）。
 - 重新載入 `Polar2_ServiceHost` 時，Execute 中的 service 不經過離開 Execute，`onLeave` 不會寫，速度、流量、壓力 SVID（例 SVID 53、Arm 的 Rotate Speed、Nozzle Flow/Pressure、ExhaustFan Pressure）可能停在 Execute 時的值。
@@ -116,8 +124,8 @@ Polar2 的規則：
 "Arm[1].Rotate.Noz1CenterPos": {
   "onEnter": [...], "beforeComplete": [...], "onLeave": [...],
   "sim": [
-    { "when": "enter", "target": "Arm1.Rotate", "action": "Noz1Center", "value": { "ecid": 23 } },
-    { "when": "beforeComplete", "target": "Arm1.Rotate", "action": "Noz1Center", "value": { "ecid": 23 } },
+    { "when": "enter", "target": "Arm1.Rotate", "action": "Noz1Center", "value": { "ecid": 1017 } },
+    { "when": "beforeComplete", "target": "Arm1.Rotate", "action": "Noz1Center", "value": { "ecid": 1017 } },
     { "when": "leave", "target": "Arm1.Rotate", "action": "Hold" }
   ]
 }
@@ -143,8 +151,8 @@ Polar2 的規則：
 
 | target | action | service | 數值標籤（單位） |
 |---|---|---|---|
-| `Holder` | `CW`、`CCW`、`Stop` | `Holder.Rotate.MoveVelocityCW`（enter `CW`）、`MoveVelocityCCW`（enter `CCW`）、`MoveModulo`（enter `CW`）；leave `Stop` | ECID 318（RPM） |
-| `OutsideRing` | `CW`、`CCW`、`Stop` | `OutsideRing.Rotate.MoveVelocityCW`、`MoveVelocityCCW`；leave `Stop` | ECID 361（RPM） |
+| `Holder` | `CW`、`CCW`、`Stop` | `Holder.Rotate.MoveVelocityCW`（enter `CW`）、`MoveVelocityCCW`（enter `CCW`）、`MoveModulo`（enter `CW`）；leave `Stop` | ECID 3001（RPM） |
+| `OutsideRing` | `CW`、`CCW`、`Stop` | `OutsideRing.Rotate.MoveVelocityCW`、`MoveVelocityCCW`；leave `Stop` | ECID 3202（RPM） |
 | `Cup{n}.Master`、`Cup{n}.Slave`（n = 1–4） | `Top`、`Middle`、`Down`、`Hold` | `Cup[n].Lift.TopPos`、`MiddlePos`、`DownPos`：enter、beforeComplete 送定位名稱，leave `Hold` | 該 service `beforeComplete` 寫入的 ECID（mm） |
 | `Arm{n}.Lift` | `Top`、`Down`、`Hold` | `Arm[n].Lift.TopPos`、`DownPos`：同上 | 同上（mm） |
 | `Arm{n}.Rotate` | `NegLimit`、`PosLimit`、`NozzlePort`、`Noz1Center`、`Noz2Center`、`Noz3Center`、`Hold` | `Arm[n].Rotate.<名稱>Pos`（Arm1、Arm2 各 6 個，Arm3 4 個，Arm4 3 個）：同上 | 同上（deg） |
@@ -210,7 +218,7 @@ node build.mjs
 3. 從 `RobustSolutionFramework/` 用原樣複製（`cp`，不轉碼、不改換行）所有 `.TcDUT`，保留子資料夾；再複製 `GVLs/Param_Config.TcGVL`，不複製 `.TcPOU`。
 4. 如果 Polar2 的 DUT 也有變，用同樣方式重新複製 `plc/Polar2/`。新版 ScienTech-Polar2 的 DUT 在 `POUs/10_Chamber/DUTs/**`，複製時要對到 `plc/Polar2/DUTs/External/**` 的同名檔案。
    新版 enum 還沒有 3007 的期間，要補上 `Holder_VacuumEstablish := 3007`。
-5. 重新取得 `.tmc` 與 `F_InitializePolarIIChamberServiceStatus.TcPOU`，更新上表的 SHA-256 與修改時間，並更新 `plc/ServiceIdentity/` 的檔案。重新取得 identity 檔後，要再做一次 enum 改名和 `Holder.VacuumEstablish` 那一行，然後執行 `Service_ids_match_golden_list`。
+5. 重新取得 `.tmc` 與 `F_InitializePolarIIChamberServiceStatus.TcPOU`，更新上表的 SHA-256 與修改時間，並更新 `plc/ServiceIdentity/` 的檔案。重新取得 identity 檔後，要再做一次 enum 改名和 `Holder.VacuumEstablish` 那一行（這一行的 CompletionBehavior 用 `ExecuteUntilExternalStop`，不要讓重新取得的檔案帶回 `NaturalCompletion`），然後執行 `Service_ids_match_golden_list`。
 6. 更新本檔的 commit SHA，執行 `dotnet test`。`Polar2LayoutTests` 失敗表示版面和新 `.tmc` 不同，要更新測試的預期值。
 7. 用手動比對下列 4 個 function block 在新舊版本的差異，因為模擬器以 C# 重現它們的交握行為：`FB_PackMLBase`、`FB_ServiceCoordinator`、`FB_ModuleBase`、`FB_ServiceBase`。
 
@@ -279,7 +287,7 @@ Run 前若 `AlarmAckRequest.bChangeRequest` 還是 TRUE，新的 host 會把它�
 
 - `Polar2_ServiceHost`：執行 `GVL_Module.Chamber_Control` 底下所有 module 的 PackML 交握，ServiceId 與 CompletionBehavior 來自 `plc/ServiceIdentity/` 的 identity 檔。
 - `Polar2_ModuleModeInit`：啟動時把 slot 1 的 SVID 1（`Module Mode`）寫成 `'1'`。slot 1 的 identity（`ModuleId=1`、`Enabled=TRUE`、`ModuleType=Polar2`）與 SVID、ECID 內容由 `config/module-config.json` 在 Run 時發布；其餘 slot 保持 0、FALSE、空字串。
-- `Polar2_Chamber_SetMode`：Chamber.SetMode 進入 Execute 時，`TargetMode`（`E_PolarIIChamberTargetMode`：0=Disable、1=Manual、2=DryRun、3=Auto，與 SVID 1 的 Mode 相同）在 0 到 3 時先完成 service，再原值寫入 SVID 1（Complete 前被 Abort 時 SVID 不變）。超出範圍時 SVID 不變，改用 `action.addServiceError` 把 MainErrorId 1、SourceErrorId = `TargetMode`、訊息 `TargetMode out of range (0~3).` 加入 `ErrorList`，再用 `action.abortService` 中止 service。MainErrorId 1 是暫定值：規格書 ALID 沒有 SetMode 的項目。
+- `Polar2_Chamber_SetMode`：Chamber.SetMode 進入 Execute 時，`TargetMode` 只接受 1（Manual）和 2（Disable），這和 `E_PolarIIChamberTargetMode`（0=Disable、1=Manual、2=DryRun、3=Auto，與 SVID 1 的 Mode 相同）不同：1 寫入 SVID 1 為 `'1'`，2 寫入 `'0'`（`2 - TargetMode`），都是先完成 service 再寫入（Complete 前被 Abort 時 SVID 不變）。DryRun、Auto 不能用 SetMode 切換，要用 `Chamber.Initial`。其他值時 SVID 不變，改用 `action.addServiceError` 把 MainErrorId 1、SourceErrorId = `TargetMode`、訊息 `TargetMode must be 1 (Manual) or 2 (Disable).` 加入 `ErrorList`，再用 `action.abortService` 中止 service。MainErrorId 1 是暫定值：規格書 ALID 沒有 SetMode 的項目。
 - `Polar2_Chamber_Initial`：Chamber.Initial 進入 Execute 後等待 5000 ms 再完成；依 `SwitchModeAfterFinish` 把 SVID 1 寫成 `'2'`（1）或 `'3'`（2），其他值保持原值。
 
 `plc/` 資料夾以 `.gitattributes` 的 `-text` 規則逐位元組保存，不做換行轉換；複製後的檔案與來源的 SHA-256 相同，例外：Service ID enum（加了 `Holder_VacuumEstablish := 3007`）、`E_PolarIIChamberTargetMode`（本地修改）、identity 檔（見「來源」）。

@@ -9,10 +9,10 @@ internal static partial class Scenarios
     private const uint Arm1RotateSpeedSvid = 5;
     private const uint Arm1Noz1FlowSvid = 9;
     private const uint ExhaustFan1PressureSvid = 59;
-    private const uint Arm1RotateNormalSpeedEcid = 15;
-    private const uint Arm1RotateJogSpeedEcid = 16;
-    private const uint Arm1Noz1CenterEcid = 23;
-    private const uint ExhaustFan1TargetEcid = 365;
+    private const uint Arm1RotateNormalSpeedEcid = 1009;
+    private const uint Arm1RotateJogSpeedEcid = 1010;
+    private const uint Arm1Noz1CenterEcid = 1017;
+    private const uint ExhaustFan1TargetEcid = 3401;
     private const string Arm1Noz1Setpoint = Module1 + ".ServiceParam.Arm[1].Nozzle[1].ChemicalSupply.Setpoint";
 
     private static readonly Endpoint Arm1Noz1Center = Endpoint.Service(1, "Arm[1].Rotate.Noz1CenterPos");
@@ -81,13 +81,13 @@ internal static partial class Scenarios
         {
             session.Write(Arm1Noz1Setpoint, 12);
             await CheckSpeedAsync(checks, session, Arm1Noz1Supply, Arm1Noz1FlowSvid, VariableValue(entry), "12");
-            checks.True("SetMode 2 reaches Complete", await SetModeToAsync(session, 2));
+            checks.True("Mode 2 reached", await SwitchModeAsync(session, 2));
             await CheckSpeedAsync(checks, session, Arm1Noz1Supply, Arm1Noz1FlowSvid, VariableValue(entry), "0");
         }
         finally
         {
             session.Write(Arm1Noz1Setpoint, setpoint);
-            checks.True($"SetMode back to {mode}", await SetModeToAsync(session, mode));
+            checks.True($"Mode {mode} restored", await SwitchModeAsync(session, mode));
         }
 
         return checks;

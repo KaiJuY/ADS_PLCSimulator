@@ -11,7 +11,7 @@ internal static partial class Scenarios
     private const uint FixNozzle1FlowSvid = 54;
     private const uint Cup2MasterSvid = 47;
     private const uint Cup2SlaveSvid = 48;
-    private const uint Cup2TopEcid = 288;
+    private const uint Cup2TopEcid = 2107;
     private const ushort AutoMode = 3;
     private const ushort Clockwise = 1;
     private const ushort CounterClockwise = 2;
@@ -41,7 +41,7 @@ internal static partial class Scenarios
         var saved = new List<(string Path, object Value)>();
         try
         {
-            checks.True("SetMode 3 reaches Complete", await SetModeToAsync(session, AutoMode));
+            checks.True("Mode 3 reached", await SwitchModeAsync(session, AutoMode));
             Set(session, saved, $"{SingleProcessParam}.RecipeCount", (ushort)1);
             Set(session, saved, $"{SingleProcessParam}.ProcessStepCount", (ushort)2);
             SetStep(session, saved, SingleProcessParam, 1, 1, 10, Clockwise, 100, StepTime, 0, CycleNone, 0);
@@ -51,7 +51,7 @@ internal static partial class Scenarios
         finally
         {
             Restore(session, saved);
-            checks.True($"SetMode back to {mode}", await SetModeToAsync(session, mode));
+            checks.True($"Mode {mode} restored", await SwitchModeAsync(session, mode));
         }
 
         return checks;
@@ -93,7 +93,7 @@ internal static partial class Scenarios
         var saved = new List<(string Path, object Value)>();
         try
         {
-            checks.True("SetMode 3 reaches Complete", await SetModeToAsync(session, AutoMode));
+            checks.True("Mode 3 reached", await SwitchModeAsync(session, AutoMode));
             Set(session, saved, $"{SingleProcessParam}.RecipeCount", (ushort)1);
             Set(session, saved, $"{SingleProcessParam}.ProcessStepCount", (ushort)1);
             SetStep(session, saved, SingleProcessParam, 1, 1, 10, Clockwise, 100, StepTime, 0, CycleNone, 0);
@@ -103,7 +103,7 @@ internal static partial class Scenarios
         finally
         {
             Restore(session, saved);
-            checks.True($"SetMode back to {mode}", await SetModeToAsync(session, mode));
+            checks.True($"Mode {mode} restored", await SwitchModeAsync(session, mode));
         }
 
         return checks;
@@ -116,7 +116,7 @@ internal static partial class Scenarios
         var saved = new List<(string Path, object Value)>();
         try
         {
-            checks.True("SetMode 3 reaches Complete", await SetModeToAsync(session, AutoMode));
+            checks.True("Mode 3 reached", await SwitchModeAsync(session, AutoMode));
             Set(session, saved, $"{SingleProcessParam}.RecipeCount", (ushort)1);
             Set(session, saved, $"{SingleProcessParam}.ProcessStepCount", (ushort)3);
             SetStep(session, saved, SingleProcessParam, 1, 1, 0, Clockwise, 100, CycleStepTime, 0, CycleNone, 0);
@@ -127,7 +127,7 @@ internal static partial class Scenarios
         finally
         {
             Restore(session, saved);
-            checks.True($"SetMode back to {mode}", await SetModeToAsync(session, mode));
+            checks.True($"Mode {mode} restored", await SwitchModeAsync(session, mode));
         }
 
         return checks;

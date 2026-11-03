@@ -62,9 +62,9 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
     private static WorkflowDocument SetModeWithHoldBeforeComplete(string delayMs)
     {
         WorkflowDocument document = LoadDocument("Polar2_Chamber_SetMode");
-        document.Links.RemoveAll(link => link is { FromNode: "branch", FromPort: "true" });
+        document.Links.RemoveAll(link => link is { FromNode: "atMost2Branch", FromPort: "true" });
         document.Nodes.Add(new WorkflowNode { Id = "hold", Type = "flow.delay", Params = { ["ms"] = delayMs } });
-        document.Links.Add(new WorkflowLink("branch", "true", "hold", "exec"));
+        document.Links.Add(new WorkflowLink("atMost2Branch", "true", "hold", "exec"));
         document.Links.Add(new WorkflowLink("hold", "then", "complete", "exec"));
         return document;
     }
@@ -167,7 +167,7 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
 
     [Fact]
     [Trait("AC", "1")]
-    public async Task Holder_vacuum_establish_has_service_id_3007_and_completes()
+    public async Task Holder_vacuum_establish_has_service_id_3007_and_runs_until_stop()
     {
         await StartPlcAsync();
         await WaitUntilAsync(() => ReadNumber($"{Root}[6].ModuleStatus.PackMLOut.eStateCurrent") == (long)PackMLState.Execute, "the last module to initialize");
@@ -177,10 +177,28 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
         for (int module = 1; module <= 6; module++)
         {
             Assert.Equal(3007, ReadNumber($"{Root}[{module}].ServiceStatus.Holder.VacuumEstablish.ServiceId"));
-            Assert.Equal((long)CompletionBehavior.NaturalCompletion, ReadNumber($"{Root}[{module}].ServiceStatus.Holder.VacuumEstablish.CompletionBehavior"));
+            Assert.Equal((long)CompletionBehavior.ExecuteUntilExternalStop, ReadNumber($"{Root}[{module}].ServiceStatus.Holder.VacuumEstablish.CompletionBehavior"));
         }
 
-        await CommandAsync("Holder.VacuumEstablish", PackMLCommand.Start, PackMLState.Complete);
+        await CommandAsync("Holder.VacuumEstablish", PackMLCommand.Start, PackMLState.Execute);
+        await Task.Delay(300);
+        Assert.Equal(PackMLState.Execute, State("Holder.VacuumEstablish"));
+        await CommandAsync("Holder.VacuumEstablish", PackMLCommand.Stop, PackMLState.Stopped);
+    }
+
+    [Fact]
+    [Trait("AC", "6")]
+    public async Task Holder_vacuum_establish_alive_timeout_aborts_with_alarm_940()
+    {
+        await StartPlcAsync();
+        await WaitUntilAsync(() => ReadNumber($"{Root}[6].ModuleStatus.PackMLOut.eStateCurrent") == (long)PackMLState.Execute, "the last module to initialize");
+        Write($"{Ctrl("Holder.VacuumEstablish")}.AliveTimeout", 500L);
+
+        await CommandAsync("Holder.VacuumEstablish", PackMLCommand.Start, PackMLState.Execute);
+        await WaitForStateAsync("Holder.VacuumEstablish", PackMLState.Aborted);
+
+        Assert.Equal(940, ReadNumber($"{Status("Holder.VacuumEstablish")}.ErrorList[1].MainErrorId"));
+        Assert.Equal(500, ReadNumber($"{Status("Holder.VacuumEstablish")}.ErrorList[1].SourceErrorId"));
     }
 
     [Fact]
@@ -255,14 +273,13 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
 
     [Theory]
     [Trait("AC", "10")]
-    [InlineData(0, "0")]
     [InlineData(1, "1")]
-    [InlineData(2, "2")]
-    [InlineData(3, "3")]
+    [InlineData(2, "0")]
     public async Task SetMode_writes_target_mode_to_svid(long targetMode, string expected)
     {
         await StartPlcAsync();
         Load("setmode", LoadDocument("Polar2_Chamber_SetMode"));
+        Write(SvidValue, "2");
 
         Write($"{Module1}.ServiceParam.Chamber.SetMode.TargetMode", targetMode);
         await CommandAsync("Chamber.SetMode", PackMLCommand.Start, PackMLState.Complete);
@@ -272,40 +289,74 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
 
     [Fact]
     [Trait("AC", "5")]
-    public async Task SetConfig_writes_ECID_318_Value_and_completes()
+    public async Task SetConfig_writes_ECID_3001_Value_and_completes()
     {
         const int Integer32 = 2;
         await StartPlcAsync();
         string batch = $"{Module1}.ServiceParam.Chamber.SetConfig[1]";
-        Write($"{batch}.Id", 318L);
+        Write($"{batch}.Id", 3001L);
         Write($"{batch}.DataType", (long)Integer32);
         Write($"{batch}.Value", "30");
 
         await CommandAsync("Chamber.SetConfig", PackMLCommand.Start, PackMLState.Complete);
 
-        string descriptor = Enumerable.Range(1, 400)
-            .Select(index => $"{Module1}.ModuleConfigParamList[{index}]")
-            .First(path => ReadNumber($"{path}.Id") == 318);
-        Assert.Equal("30", Read($"{descriptor}.Value"));
+        Assert.Equal("30", Read($"{EcidDescriptor(3001)}.Value"));
     }
+
+    [Fact]
+    [Trait("AC", "1")]
+    public async Task SetConfig_out_of_range_on_ECID_3001_is_refused()
+    {
+        const int Integer32 = 2;
+        const long OutOfRange = 926;
+        await StartPlcAsync();
+        string batch = $"{Module1}.ServiceParam.Chamber.SetConfig[1]";
+        string descriptor = EcidDescriptor(3001);
+        Write($"{batch}.Id", 3001L);
+        Write($"{batch}.DataType", (long)Integer32);
+        string original = (string)Read($"{descriptor}.Value");
+
+        foreach (string refused in new[] { "5001", "-1" })
+        {
+            Write($"{batch}.Value", refused);
+            await CommandAsync("Chamber.SetConfig", PackMLCommand.Start, PackMLState.Aborted);
+
+            Assert.Equal(OutOfRange, ReadNumber($"{Status("Chamber.SetConfig")}.ErrorList[1].MainErrorId"));
+            Assert.Equal(original, Read($"{descriptor}.Value"));
+            await CommandAsync("Chamber.SetConfig", PackMLCommand.Clear, PackMLState.Stopped);
+            await CommandAsync("Chamber.SetConfig", PackMLCommand.Reset, PackMLState.Idle);
+        }
+
+        Write($"{batch}.Value", "5000");
+        await CommandAsync("Chamber.SetConfig", PackMLCommand.Start, PackMLState.Complete);
+
+        Assert.Equal("5000", Read($"{descriptor}.Value"));
+    }
+
+    private string EcidDescriptor(long id) => Enumerable.Range(1, 390)
+        .Select(index => $"{Module1}.ModuleConfigParamList[{index}]")
+        .First(path => ReadNumber($"{path}.Id") == id);
 
     [Theory]
     [Trait("AC", "10")]
+    [InlineData(0)]
+    [InlineData(3)]
     [InlineData(4)]
     [InlineData(65535)]
     public async Task SetMode_out_of_range_adds_error_and_aborts(long targetMode)
     {
         await StartPlcAsync();
         Load("setmode", LoadDocument("Polar2_Chamber_SetMode"));
+        Write(SvidValue, "2");
 
         Write($"{Module1}.ServiceParam.Chamber.SetMode.TargetMode", targetMode);
         await CommandAsync("Chamber.SetMode", PackMLCommand.Start, PackMLState.Aborted);
         await WaitForRunAsync("setmode", FlowEventKind.RunCompleted);
 
-        Assert.Equal("1", Read(SvidValue));
+        Assert.Equal("2", Read(SvidValue));
         Assert.Equal(1, ReadNumber($"{Status("Chamber.SetMode")}.ErrorList[1].MainErrorId"));
         Assert.Equal(targetMode, ReadNumber($"{Status("Chamber.SetMode")}.ErrorList[1].SourceErrorId"));
-        Assert.Equal("TargetMode out of range (0~3).", Read($"{Status("Chamber.SetMode")}.ErrorList[1].Message"));
+        Assert.Equal("TargetMode must be 1 (Manual) or 2 (Disable).", Read($"{Status("Chamber.SetMode")}.ErrorList[1].Message"));
         await WaitUntilAsync(() => ReadNumber($"{Module1}.ModuleAlarmList[1].MainErrorId") == 1, "the alarm in ModuleAlarmList");
         Assert.Equal(targetMode, ReadNumber($"{Module1}.ModuleAlarmList[1].SourceErrorId"));
         Assert.Equal(1, ReadNumber($"{Module1}.ModuleAlarmList[1].Active"));
@@ -480,7 +531,7 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
                 [new("enter", $"ExhaustFan{index}", "On", ecid, null, null), new("leave", $"ExhaustFan{index}", "Off", null, null, null)];
         }
 
-        var armJogEcids = new Dictionary<int, long> { [1] = 16, [2] = 94, [3] = 172, [4] = 234 };
+        var armJogEcids = new Dictionary<int, long> { [1] = 1010, [2] = 1110, [3] = 1210, [4] = 1310 };
         foreach ((int arm, long ecid) in armJogEcids)
         {
             string[] target = [$"Arm{arm}.Rotate"];
@@ -489,7 +540,7 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
             Step($"Arm[{arm}].Rotate.IncrementalJog", target);
         }
 
-        var cupJogEcids = new Dictionary<int, long> { [1] = 270, [2] = 282, [3] = 294, [4] = 306 };
+        var cupJogEcids = new Dictionary<int, long> { [1] = 2001, [2] = 2101, [3] = 2201, [4] = 2301 };
         foreach ((int cup, long ecid) in cupJogEcids)
         {
             string[] targets = [$"Cup{cup}.Master", $"Cup{cup}.Slave"];

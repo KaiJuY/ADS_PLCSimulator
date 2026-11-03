@@ -1,0 +1,3037 @@
+{
+  "schemaVersion": 4,
+  "modules": [
+    {
+      "enabled": true,
+      "moduleType": "PolarIIChamber",
+      "slot": 1,
+      "id": 1,
+      "configParamList": [
+        {
+          "id": 1,
+          "name": "DoorInterlockDisable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 2,
+          "name": "InitialTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3,
+          "name": "SingleProcessTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 4,
+          "name": "EmgsTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 5,
+          "name": "CupChamberCleanTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1001,
+          "name": "Arm1_LiftNormalSpeed",
+          "unit": "mm/s",
+          "dataType": "DINT",
+          "upperLimit": 500,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1002,
+          "name": "Arm1_LiftAcceleration",
+          "unit": "mm/s^2",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1003,
+          "name": "Arm1_LiftDeceleration",
+          "unit": "mm/s^2",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1004,
+          "name": "Arm1_LiftPositiveLimitPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1005,
+          "name": "Arm1_LiftNegativeLimitPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 0,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 1006,
+          "name": "Arm1_LiftTopPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 1007,
+          "name": "Arm1_LiftDownPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 1008,
+          "name": "Arm1_LiftTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1009,
+          "name": "Arm1_RotateNormalSpeed",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 3000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1010,
+          "name": "Arm1_RotateJogSpeed",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 300,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1011,
+          "name": "Arm1_RotateFeedrate",
+          "unit": "%",
+          "dataType": "REAL",
+          "upperLimit": 100,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1012,
+          "name": "Arm1_RotateAcceleration",
+          "unit": "deg/s^2",
+          "dataType": "DINT",
+          "upperLimit": 3600,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1013,
+          "name": "Arm1_RotateDeceleration",
+          "unit": "deg/s^2",
+          "dataType": "DINT",
+          "upperLimit": 3600,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1014,
+          "name": "Arm1_RotatePosLimitPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 360,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1015,
+          "name": "Arm1_RotateNegLimitPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 0,
+          "lowerLimit": -360
+        },
+        {
+          "id": 1016,
+          "name": "Arm1_RotateNozzlePortPosition",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 360,
+          "lowerLimit": -360
+        },
+        {
+          "id": 1017,
+          "name": "Arm1_RotateNoz1CenterPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 360,
+          "lowerLimit": -360
+        },
+        {
+          "id": 1018,
+          "name": "Arm1_RotateNoz2CenterPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 360,
+          "lowerLimit": -360
+        },
+        {
+          "id": 1019,
+          "name": "Arm1_RotateNoz3CenterPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 360,
+          "lowerLimit": -360
+        },
+        {
+          "id": 1020,
+          "name": "Arm1_RotateNormalTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1021,
+          "name": "Arm1_Noz1ChemicalIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 10,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1022,
+          "name": "Arm1_Noz1FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 150,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1023,
+          "name": "Arm1_Noz1SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1024,
+          "name": "Arm1_Noz1Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1025,
+          "name": "Arm1_Noz1StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1026,
+          "name": "Arm1_Noz1PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1027,
+          "name": "Arm1_Noz1NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1028,
+          "name": "Arm1_Noz2ChemicalIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 10,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1029,
+          "name": "Arm1_Noz2FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 150,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1030,
+          "name": "Arm1_Noz2SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1031,
+          "name": "Arm1_Noz2Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1032,
+          "name": "Arm1_Noz2StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1033,
+          "name": "Arm1_Noz2PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1034,
+          "name": "Arm1_Noz2NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1035,
+          "name": "Arm1_Noz3ChemicalIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 10,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1036,
+          "name": "Arm1_Noz3FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 150,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1037,
+          "name": "Arm1_Noz3SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1038,
+          "name": "Arm1_Noz3Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1039,
+          "name": "Arm1_Noz3StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1040,
+          "name": "Arm1_Noz3PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1041,
+          "name": "Arm1_Noz3NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1042,
+          "name": "Arm1_NozPortNoz1ChemName",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 1043,
+          "name": "Arm1_NozPortNozzle1FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 150,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1044,
+          "name": "Arm1_NozPortNoz1SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1045,
+          "name": "Arm1_NozPortNoz1Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1046,
+          "name": "Arm1_NozPortNoz1StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1047,
+          "name": "Arm1_NozPortNoz1PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1048,
+          "name": "Arm1_NozPortNoz1NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1049,
+          "name": "Arm1_NozPortNoz2ChemicalName",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 1050,
+          "name": "Arm1_NozPortNoz2FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 150,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1051,
+          "name": "Arm1_NozPortNoz2SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1052,
+          "name": "Arm1_NozPortNoz2Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1053,
+          "name": "Arm1_NozPortNoz2StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1054,
+          "name": "Arm1_NozPortNoz2PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1055,
+          "name": "Arm1_NozPortNoz2NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1056,
+          "name": "Arm1_NozPortNoz3ChemicalName",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 1057,
+          "name": "Arm1_NozPortNoz3FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 150,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1058,
+          "name": "Arm1_NozPortNoz3SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1059,
+          "name": "Arm1_NozPortNoz3Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1060,
+          "name": "Arm1_NozPortNoz3StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1061,
+          "name": "Arm1_NozPortNoz3PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1062,
+          "name": "Arm1_NozPortNoz3NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1063,
+          "name": "Arm1_NozPortDrainTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1064,
+          "name": "Arm1_NozPreflushEnable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 1065,
+          "name": "Arm1_NozPreflushIdleTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 86400000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1066,
+          "name": "Arm1_NozPreflushFlushTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1067,
+          "name": "Arm1_NozPreflushTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 6000000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1068,
+          "name": "Arm1_NozCleanIdleEnable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 1069,
+          "name": "Arm1_NozCleanIdleTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 86400000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1070,
+          "name": "Arm1_NozCleanWaferCountEnable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 1071,
+          "name": "Arm1_NozCleanWaferCount",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 100000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1072,
+          "name": "Arm1_NozCleanNoz1SupplyTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1073,
+          "name": "Arm1_NozCleanNoz2SupplyTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1074,
+          "name": "Arm1_NozCleanNoz3SupplyTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1075,
+          "name": "Arm1_NozCleanUpDownCycleCount",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 100,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1076,
+          "name": "Arm1_NozCleanTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1101,
+          "name": "Arm2_LiftNormalSpeed",
+          "unit": "mm/s",
+          "dataType": "DINT",
+          "upperLimit": 500,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1102,
+          "name": "Arm2_LiftAcceleration",
+          "unit": "mm/s^2",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1103,
+          "name": "Arm2_LiftDeceleration",
+          "unit": "mm/s^2",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1104,
+          "name": "Arm2_LiftPositiveLimitPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1105,
+          "name": "Arm2_LiftNegativeLimitPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 0,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 1106,
+          "name": "Arm2_LiftTopPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 1107,
+          "name": "Arm2_LiftDownPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 1108,
+          "name": "Arm2_LiftTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1109,
+          "name": "Arm2_RotateNormalSpeed",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 3000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1110,
+          "name": "Arm2_RotateJogSpeed",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 300,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1111,
+          "name": "Arm2_RotateFeedrate",
+          "unit": "%",
+          "dataType": "REAL",
+          "upperLimit": 100,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1112,
+          "name": "Arm2_RotateAcceleration",
+          "unit": "deg/s^2",
+          "dataType": "DINT",
+          "upperLimit": 3600,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1113,
+          "name": "Arm2_RotateDeceleration",
+          "unit": "deg/s^2",
+          "dataType": "DINT",
+          "upperLimit": 3600,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1114,
+          "name": "Arm2_RotatePosLimitPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 360,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1115,
+          "name": "Arm2_RotateNegLimitPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 0,
+          "lowerLimit": -360
+        },
+        {
+          "id": 1116,
+          "name": "Arm2_RotateNozzlePortPosition",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 360,
+          "lowerLimit": -360
+        },
+        {
+          "id": 1117,
+          "name": "Arm2_RotateNoz1CenterPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 360,
+          "lowerLimit": -360
+        },
+        {
+          "id": 1118,
+          "name": "Arm2_RotateNoz2CenterPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 360,
+          "lowerLimit": -360
+        },
+        {
+          "id": 1119,
+          "name": "Arm2_RotateNoz3CenterPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 360,
+          "lowerLimit": -360
+        },
+        {
+          "id": 1120,
+          "name": "Arm2_RotateNormalTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1121,
+          "name": "Arm2_Noz1ChemicalIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 10,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1122,
+          "name": "Arm2_Noz1FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 150,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1123,
+          "name": "Arm2_Noz1SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1124,
+          "name": "Arm2_Noz1Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1125,
+          "name": "Arm2_Noz1StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1126,
+          "name": "Arm2_Noz1PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1127,
+          "name": "Arm2_Noz1NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1128,
+          "name": "Arm2_Noz2ChemicalIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 10,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1129,
+          "name": "Arm2_Noz2FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 150,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1130,
+          "name": "Arm2_Noz2SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1131,
+          "name": "Arm2_Noz2Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1132,
+          "name": "Arm2_Noz2StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1133,
+          "name": "Arm2_Noz2PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1134,
+          "name": "Arm2_Noz2NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1135,
+          "name": "Arm2_Noz3ChemicalIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 10,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1136,
+          "name": "Arm2_Noz3FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 150,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1137,
+          "name": "Arm2_Noz3SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1138,
+          "name": "Arm2_Noz3Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1139,
+          "name": "Arm2_Noz3StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1140,
+          "name": "Arm2_Noz3PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1141,
+          "name": "Arm2_Noz3NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1142,
+          "name": "Arm2_NozPortNoz1ChemName",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 1143,
+          "name": "Arm2_NozPortNozzle1FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 150,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1144,
+          "name": "Arm2_NozPortNoz1SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1145,
+          "name": "Arm2_NozPortNoz1Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1146,
+          "name": "Arm2_NozPortNoz1StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1147,
+          "name": "Arm2_NozPortNoz1PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1148,
+          "name": "Arm2_NozPortNoz1NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1149,
+          "name": "Arm2_NozPortNoz2ChemicalName",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 1150,
+          "name": "Arm2_NozPortNoz2FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 150,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1151,
+          "name": "Arm2_NozPortNoz2SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1152,
+          "name": "Arm2_NozPortNoz2Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1153,
+          "name": "Arm2_NozPortNoz2StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1154,
+          "name": "Arm2_NozPortNoz2PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1155,
+          "name": "Arm2_NozPortNoz2NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1156,
+          "name": "Arm2_NozPortNoz3ChemicalName",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 1157,
+          "name": "Arm2_NozPortNoz3FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 150,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1158,
+          "name": "Arm2_NozPortNoz3SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1159,
+          "name": "Arm2_NozPortNoz3Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1160,
+          "name": "Arm2_NozPortNoz3StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1161,
+          "name": "Arm2_NozPortNoz3PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1162,
+          "name": "Arm2_NozPortNoz3NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1163,
+          "name": "Arm2_NozPortDrainTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1164,
+          "name": "Arm2_NozPreflushEnable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 1165,
+          "name": "Arm2_NozPreflushIdleTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 86400000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1166,
+          "name": "Arm2_NozPreflushFlushTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1167,
+          "name": "Arm2_NozPreflushTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 6000000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1168,
+          "name": "Arm2_NozCleanIdleEnable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 1169,
+          "name": "Arm2_NozCleanIdleTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 86400000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1170,
+          "name": "Arm2_NozCleanWaferCountEnable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 1171,
+          "name": "Arm2_NozCleanWaferCount",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 100000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1172,
+          "name": "Arm2_NozCleanNoz1SupplyTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1173,
+          "name": "Arm2_NozCleanNoz2SupplyTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1174,
+          "name": "Arm2_NozCleanNoz3SupplyTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1175,
+          "name": "Arm2_NozCleanUpDownCycleCount",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 100,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1176,
+          "name": "Arm2_NozCleanTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1201,
+          "name": "Arm3_LiftNormalSpeed",
+          "unit": "mm/s",
+          "dataType": "DINT",
+          "upperLimit": 500,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1202,
+          "name": "Arm3_LiftAcceleration",
+          "unit": "mm/s^2",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1203,
+          "name": "Arm3_LiftDeceleration",
+          "unit": "mm/s^2",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1204,
+          "name": "Arm3_LiftPositiveLimitPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1205,
+          "name": "Arm3_LiftNegativeLimitPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 0,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 1206,
+          "name": "Arm3_LiftTopPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 1207,
+          "name": "Arm3_LiftDownPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 1208,
+          "name": "Arm3_LiftTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1209,
+          "name": "Arm3_RotateNormalSpeed",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 3000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1210,
+          "name": "Arm3_RotateJogSpeed",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 300,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1211,
+          "name": "Arm3_RotateFeedrate",
+          "unit": "%",
+          "dataType": "REAL",
+          "upperLimit": 100,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1212,
+          "name": "Arm3_RotateAcceleration",
+          "unit": "deg/s^2",
+          "dataType": "DINT",
+          "upperLimit": 3600,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1213,
+          "name": "Arm3_RotateDeceleration",
+          "unit": "deg/s^2",
+          "dataType": "DINT",
+          "upperLimit": 3600,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1214,
+          "name": "Arm3_RotatePosLimitPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 360,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1215,
+          "name": "Arm3_RotateNegLimitPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 0,
+          "lowerLimit": -360
+        },
+        {
+          "id": 1217,
+          "name": "Arm3_RotateNoz1CenterPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 360,
+          "lowerLimit": -360
+        },
+        {
+          "id": 1218,
+          "name": "Arm3_RotateNoz2CenterPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 360,
+          "lowerLimit": -360
+        },
+        {
+          "id": 1220,
+          "name": "Arm3_RotateNormalTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1221,
+          "name": "Arm3_Noz1ChemicalIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 10,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1222,
+          "name": "Arm3_Noz1FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 150,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1223,
+          "name": "Arm3_Noz1SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1224,
+          "name": "Arm3_Noz1Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1225,
+          "name": "Arm3_Noz1StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1226,
+          "name": "Arm3_Noz1PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1227,
+          "name": "Arm3_Noz1NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1228,
+          "name": "Arm3_Noz2ChemicalIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 10,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1229,
+          "name": "Arm3_Noz2FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 150,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1230,
+          "name": "Arm3_Noz2SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1231,
+          "name": "Arm3_Noz2Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1232,
+          "name": "Arm3_Noz2StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1233,
+          "name": "Arm3_Noz2PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1234,
+          "name": "Arm3_Noz2NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1264,
+          "name": "Arm3_NozPreflushEnable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 1265,
+          "name": "Arm3_NozPreflushIdleTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 86400000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1266,
+          "name": "Arm3_NozPreflushFlushTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1267,
+          "name": "Arm3_NozPreflushTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 6000000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1268,
+          "name": "Arm3_NozCleanIdleEnable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 1269,
+          "name": "Arm3_NozCleanIdleTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 86400000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1270,
+          "name": "Arm3_NozCleanWaferCountEnable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 1271,
+          "name": "Arm3_NozCleanWaferCount",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 100000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1272,
+          "name": "Arm3_NozCleanNoz1SupplyTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1273,
+          "name": "Arm3_NozCleanNoz2SupplyTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1275,
+          "name": "Arm3_NozCleanUpDownCycleCount",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 100,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1276,
+          "name": "Arm3_NozCleanTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1301,
+          "name": "Arm4_LiftNormalSpeed",
+          "unit": "mm/s",
+          "dataType": "DINT",
+          "upperLimit": 500,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1302,
+          "name": "Arm4_LiftAcceleration",
+          "unit": "mm/s^2",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1303,
+          "name": "Arm4_LiftDeceleration",
+          "unit": "mm/s^2",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1304,
+          "name": "Arm4_LiftPositiveLimitPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1305,
+          "name": "Arm4_LiftNegativeLimitPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 0,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 1306,
+          "name": "Arm4_LiftTopPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 1307,
+          "name": "Arm4_LiftDownPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 1308,
+          "name": "Arm4_LiftTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1309,
+          "name": "Arm4_RotateNormalSpeed",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 3000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1310,
+          "name": "Arm4_RotateJogSpeed",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 300,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1311,
+          "name": "Arm4_RotateFeedrate",
+          "unit": "%",
+          "dataType": "REAL",
+          "upperLimit": 100,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1312,
+          "name": "Arm4_RotateAcceleration",
+          "unit": "deg/s^2",
+          "dataType": "DINT",
+          "upperLimit": 3600,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1313,
+          "name": "Arm4_RotateDeceleration",
+          "unit": "deg/s^2",
+          "dataType": "DINT",
+          "upperLimit": 3600,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1314,
+          "name": "Arm4_RotatePosLimitPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 360,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1315,
+          "name": "Arm4_RotateNegLimitPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 0,
+          "lowerLimit": -360
+        },
+        {
+          "id": 1317,
+          "name": "Arm4_RotateNoz1CenterPos",
+          "unit": "deg",
+          "dataType": "DINT",
+          "upperLimit": 360,
+          "lowerLimit": -360
+        },
+        {
+          "id": 1320,
+          "name": "Arm4_RotateNormalTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1321,
+          "name": "Arm4_Noz1ChemicalIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 10,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1322,
+          "name": "Arm4_Noz1FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 150,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1323,
+          "name": "Arm4_Noz1SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1324,
+          "name": "Arm4_Noz1Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1325,
+          "name": "Arm4_Noz1StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1326,
+          "name": "Arm4_Noz1PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1327,
+          "name": "Arm4_Noz1NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1364,
+          "name": "Arm4_NozPreflushEnable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 1365,
+          "name": "Arm4_NozPreflushIdleTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 86400000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1366,
+          "name": "Arm4_NozPreflushFlushTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1367,
+          "name": "Arm4_NozPreflushTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 6000000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1368,
+          "name": "Arm4_NozCleanIdleEnable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 1369,
+          "name": "Arm4_NozCleanIdleTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 86400000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1370,
+          "name": "Arm4_NozCleanWaferCountEnable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 1371,
+          "name": "Arm4_NozCleanWaferCount",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 100000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1372,
+          "name": "Arm4_NozCleanNoz1SupplyTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1375,
+          "name": "Arm4_NozCleanUpDownCycleCount",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 100,
+          "lowerLimit": 0
+        },
+        {
+          "id": 1376,
+          "name": "Arm4_NozCleanTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2001,
+          "name": "Cup1_JogSpeed",
+          "unit": "mm/s",
+          "dataType": "DINT",
+          "upperLimit": 500,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2002,
+          "name": "Cup1_NormalSpeed",
+          "unit": "mm/s",
+          "dataType": "DINT",
+          "upperLimit": 500,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2003,
+          "name": "Cup1_Acceleration",
+          "unit": "mm/s^2",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2004,
+          "name": "Cup1_Deceleration",
+          "unit": "mm/s^2",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2005,
+          "name": "Cup1_PositiveLimitPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2006,
+          "name": "Cup1_NegativeLimitPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 0,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 2007,
+          "name": "Cup1_TopPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 2008,
+          "name": "Cup1_DownPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 2009,
+          "name": "Cup1_MiddlePosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 2010,
+          "name": "Cup1_AlarmTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2011,
+          "name": "Cup1_WarningTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2012,
+          "name": "Cup1_DrainSelectTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2013,
+          "name": "Cup1_Drainer1Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 2014,
+          "name": "Cup1_Drainer2Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 2015,
+          "name": "Cup1_Drainer3Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 2101,
+          "name": "Cup2_JogSpeed",
+          "unit": "mm/s",
+          "dataType": "DINT",
+          "upperLimit": 500,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2102,
+          "name": "Cup2_NormalSpeed",
+          "unit": "mm/s",
+          "dataType": "DINT",
+          "upperLimit": 500,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2103,
+          "name": "Cup2_Acceleration",
+          "unit": "mm/s^2",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2104,
+          "name": "Cup2_Deceleration",
+          "unit": "mm/s^2",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2105,
+          "name": "Cup2_PositiveLimitPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2106,
+          "name": "Cup2_NegativeLimitPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 0,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 2107,
+          "name": "Cup2_TopPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 2108,
+          "name": "Cup2_DownPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 2109,
+          "name": "Cup2_MiddlePosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 2110,
+          "name": "Cup2_AlarmTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2111,
+          "name": "Cup2_WarningTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2112,
+          "name": "Cup2_DrainSelectTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2113,
+          "name": "Cup2_Drainer1Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 2114,
+          "name": "Cup2_Drainer2Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 2115,
+          "name": "Cup2_Drainer3Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 2201,
+          "name": "Cup3_JogSpeed",
+          "unit": "mm/s",
+          "dataType": "DINT",
+          "upperLimit": 500,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2202,
+          "name": "Cup3_NormalSpeed",
+          "unit": "mm/s",
+          "dataType": "DINT",
+          "upperLimit": 500,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2203,
+          "name": "Cup3_Acceleration",
+          "unit": "mm/s^2",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2204,
+          "name": "Cup3_Deceleration",
+          "unit": "mm/s^2",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2205,
+          "name": "Cup3_PositiveLimitPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2206,
+          "name": "Cup3_NegativeLimitPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 0,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 2207,
+          "name": "Cup3_TopPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 2208,
+          "name": "Cup3_DownPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 2209,
+          "name": "Cup3_MiddlePosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 2210,
+          "name": "Cup3_AlarmTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2211,
+          "name": "Cup3_WarningTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2212,
+          "name": "Cup3_DrainSelectTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2213,
+          "name": "Cup3_Drainer1Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 2214,
+          "name": "Cup3_Drainer2Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 2215,
+          "name": "Cup3_Drainer3Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 2301,
+          "name": "Cup4_JogSpeed",
+          "unit": "mm/s",
+          "dataType": "DINT",
+          "upperLimit": 500,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2302,
+          "name": "Cup4_NormalSpeed",
+          "unit": "mm/s",
+          "dataType": "DINT",
+          "upperLimit": 500,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2303,
+          "name": "Cup4_Acceleration",
+          "unit": "mm/s^2",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2304,
+          "name": "Cup4_Deceleration",
+          "unit": "mm/s^2",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2305,
+          "name": "Cup4_PositiveLimitPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2306,
+          "name": "Cup4_NegativeLimitPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 0,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 2307,
+          "name": "Cup4_TopPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 2308,
+          "name": "Cup4_DownPosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 2309,
+          "name": "Cup4_MiddlePosition",
+          "unit": "mm",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": -1000
+        },
+        {
+          "id": 2310,
+          "name": "Cup4_AlarmTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2311,
+          "name": "Cup4_WarningTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2312,
+          "name": "Cup4_DrainSelectTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 2313,
+          "name": "Cup4_Drainer1Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 2314,
+          "name": "Cup4_Drainer2Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 2315,
+          "name": "Cup4_Drainer3Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 3001,
+          "name": "Holder_RotateNormalSpeed",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3002,
+          "name": "Holder_RotateAcceleration",
+          "unit": "deg/s^2",
+          "dataType": "DINT",
+          "upperLimit": 36000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3003,
+          "name": "Holder_RotateDeceleration",
+          "unit": "deg/s^2",
+          "dataType": "DINT",
+          "upperLimit": 36000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3004,
+          "name": "Holder_RotateOprTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3005,
+          "name": "Holder_RotateNormalTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3006,
+          "name": "Holder_RotatePosSpeedDevLim",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3007,
+          "name": "Holder_RotateNegSpeedDevLim",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3008,
+          "name": "Holder_GripperTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3101,
+          "name": "FixedNoz1_ChemicalName",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 3102,
+          "name": "FixedNoz1_FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 100,
+          "lowerLimit": -100
+        },
+        {
+          "id": 3103,
+          "name": "FixedNoz1_SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3104,
+          "name": "FixedNoz1_Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3105,
+          "name": "FixedNoz1_StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3106,
+          "name": "FixedNoz1_PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3107,
+          "name": "FixedNoz1_NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3111,
+          "name": "FixedNoz2_ChemicalName",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 3112,
+          "name": "FixedNoz2_FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 100,
+          "lowerLimit": -100
+        },
+        {
+          "id": 3113,
+          "name": "FixedNoz2_SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3114,
+          "name": "FixedNoz2_Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3115,
+          "name": "FixedNoz2_StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3116,
+          "name": "FixedNoz2_PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3117,
+          "name": "FixedNoz2_NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3121,
+          "name": "FixedNoz3_ChemicalName",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 3122,
+          "name": "FixedNoz3_FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 100,
+          "lowerLimit": -100
+        },
+        {
+          "id": 3123,
+          "name": "FixedNoz3_SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3124,
+          "name": "FixedNoz3_Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3125,
+          "name": "FixedNoz3_StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3126,
+          "name": "FixedNoz3_PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3127,
+          "name": "FixedNoz3_NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3131,
+          "name": "FixedNoz4_ChemicalName",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 3132,
+          "name": "FixedNoz4_FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 100,
+          "lowerLimit": -100
+        },
+        {
+          "id": 3133,
+          "name": "FixedNoz4_SuckbackTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3134,
+          "name": "FixedNoz4_Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3135,
+          "name": "FixedNoz4_StableTime",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 60000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3136,
+          "name": "FixedNoz4_PosFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3137,
+          "name": "FixedNoz4_NegFlowDevLim",
+          "unit": "ml/sec",
+          "dataType": "DINT",
+          "upperLimit": 1000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3201,
+          "name": "OutsideRing_LiftTimeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3202,
+          "name": "OutsideRing_RotateSpeed",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 3000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3203,
+          "name": "OutsideRing_RotateAcceleration",
+          "unit": "deg/s^2",
+          "dataType": "DINT",
+          "upperLimit": 36000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3204,
+          "name": "OutsideRing_RotateDeceleration",
+          "unit": "deg/s^2",
+          "dataType": "DINT",
+          "upperLimit": 36000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3301,
+          "name": "Shutter_Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3401,
+          "name": "ExhaustFan1_TargetPressure",
+          "unit": "Pa",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": -5000
+        },
+        {
+          "id": 3402,
+          "name": "ExhaustFan1_MaximumSpeedLimit",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 6000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3403,
+          "name": "ExhaustFan1_PressureTolerance",
+          "unit": "Pa",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3404,
+          "name": "ExhaustFan1_Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3411,
+          "name": "ExhaustFan2_TargetPressure",
+          "unit": "Pa",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": -5000
+        },
+        {
+          "id": 3412,
+          "name": "ExhaustFan2_MaximumSpeedLimit",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 6000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3413,
+          "name": "ExhaustFan2_PressureTolerance",
+          "unit": "Pa",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3414,
+          "name": "ExhaustFan2_Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3421,
+          "name": "ExhaustFan3_TargetPressure",
+          "unit": "Pa",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": -5000
+        },
+        {
+          "id": 3422,
+          "name": "ExhaustFan3_MaximumSpeedLimit",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 6000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3423,
+          "name": "ExhaustFan3_PressureTolerance",
+          "unit": "Pa",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3424,
+          "name": "ExhaustFan3_Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3431,
+          "name": "ExhaustFan4_TargetPressure",
+          "unit": "Pa",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": -5000
+        },
+        {
+          "id": 3432,
+          "name": "ExhaustFan4_MaximumSpeedLimit",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 6000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3433,
+          "name": "ExhaustFan4_PressureTolerance",
+          "unit": "Pa",
+          "dataType": "DINT",
+          "upperLimit": 5000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3434,
+          "name": "ExhaustFan4_Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3491,
+          "name": "ExhaustDamper_Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3501,
+          "name": "SideVent1_Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3502,
+          "name": "SideVent2_Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3503,
+          "name": "SideVent3_Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3504,
+          "name": "SideVent4_Timeout",
+          "unit": "ms",
+          "dataType": "DINT",
+          "upperLimit": 600000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3601,
+          "name": "Ffu_Enable",
+          "unit": "",
+          "dataType": "BOOL"
+        },
+        {
+          "id": 3602,
+          "name": "Ffu_Speed",
+          "unit": "RPM",
+          "dataType": "DINT",
+          "upperLimit": 6000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3603,
+          "name": "Ffu_UpperPressureLimit",
+          "unit": "Pa",
+          "dataType": "REAL",
+          "upperLimit": 500,
+          "lowerLimit": 0
+        },
+        {
+          "id": 3604,
+          "name": "Ffu_LowerPressureLimit",
+          "unit": "Pa",
+          "dataType": "REAL",
+          "upperLimit": 0,
+          "lowerLimit": -500
+        },
+        {
+          "id": 4001,
+          "name": "Chemical1_Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 4002,
+          "name": "Chemical1_RelatedCupIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 4,
+          "lowerLimit": 0
+        },
+        {
+          "id": 4011,
+          "name": "Chemical2_Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 4012,
+          "name": "Chemical2_RelatedCupIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 4,
+          "lowerLimit": 0
+        },
+        {
+          "id": 4021,
+          "name": "Chemical3_Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 4022,
+          "name": "Chemical3_RelatedCupIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 4,
+          "lowerLimit": 0
+        },
+        {
+          "id": 4031,
+          "name": "Chemical4_Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 4032,
+          "name": "Chemical4_RelatedCupIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 4,
+          "lowerLimit": 0
+        },
+        {
+          "id": 4041,
+          "name": "Chemical5_Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 4042,
+          "name": "Chemical5_RelatedCupIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 4,
+          "lowerLimit": 0
+        },
+        {
+          "id": 4051,
+          "name": "Chemical6_Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 4052,
+          "name": "Chemical6_RelatedCupIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 4,
+          "lowerLimit": 0
+        },
+        {
+          "id": 4061,
+          "name": "Chemical7_Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 4062,
+          "name": "Chemical7_RelatedCupIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 4,
+          "lowerLimit": 0
+        },
+        {
+          "id": 4071,
+          "name": "Chemical8_Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 4072,
+          "name": "Chemical8_RelatedCupIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 4,
+          "lowerLimit": 0
+        },
+        {
+          "id": 4081,
+          "name": "Chemical9_Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 4082,
+          "name": "Chemical9_RelatedCupIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 4,
+          "lowerLimit": 0
+        },
+        {
+          "id": 4091,
+          "name": "Chemical10_Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 4092,
+          "name": "Chemical10_RelatedCupIndex",
+          "unit": "",
+          "dataType": "DINT",
+          "upperLimit": 4,
+          "lowerLimit": 0
+        },
+        {
+          "id": 5001,
+          "name": "Ionizer1_FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 100,
+          "lowerLimit": -100
+        },
+        {
+          "id": 5002,
+          "name": "Ionizer1_MaximumFlowLimit",
+          "unit": "Pa",
+          "dataType": "DINT",
+          "upperLimit": 10000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 5003,
+          "name": "Ionizer1_MinimumFlowLimit",
+          "unit": "Pa",
+          "dataType": "DINT",
+          "upperLimit": 10000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 5004,
+          "name": "Ionizer1_Name",
+          "unit": "",
+          "dataType": "STRING"
+        },
+        {
+          "id": 5011,
+          "name": "Ionizer2_FlowOffset",
+          "unit": "%",
+          "dataType": "DINT",
+          "upperLimit": 100,
+          "lowerLimit": -100
+        },
+        {
+          "id": 5012,
+          "name": "Ionizer2_MaximumFlowLimit",
+          "unit": "Pa",
+          "dataType": "DINT",
+          "upperLimit": 10000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 5013,
+          "name": "Ionizer2_MinimumFlowLimit",
+          "unit": "Pa",
+          "dataType": "DINT",
+          "upperLimit": 10000,
+          "lowerLimit": 0
+        },
+        {
+          "id": 5014,
+          "name": "Ionizer2_Name",
+          "unit": "",
+          "dataType": "STRING"
+        }
+      ]
+    }
+  ]
+}

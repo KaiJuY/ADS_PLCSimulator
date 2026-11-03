@@ -1,0 +1,64 @@
+1	Module Mode		DINT
+2	Arm1 Lift Position	mm	REAL
+3	Arm1 Rotate Position	deg	REAL
+4	Arm1 Lift Speed	mm/s	REAL
+5	Arm1 Rotate Speed	RPM	DINT
+6	Arm1 Noz1 Temperature	degC	REAL
+7	Arm1 Noz2 Temperature	degC	REAL
+8	Arm1 Noz3 Temperature	degC	REAL
+9	Arm1 Noz1 Flow/Pressure	ml/s / Pa	DINT
+10	Arm1 Noz2 Flow/Pressure	ml/s / Pa	DINT
+11	Arm1 Noz3 Flow/Pressure	ml/s / Pa	DINT
+12	Arm1 NP Noz1 Flow/Pressure	ml/s / Pa	DINT
+13	Arm1 NP Noz2 Flow/Pressure	ml/s / Pa	DINT
+14	Arm1 NP Noz3 Flow/Pressure	ml/s / Pa	DINT
+15	Arm2 Lift Position	mm	REAL
+16	Arm2 Rotate Position	deg	REAL
+17	Arm2 Lift Speed	mm/s	REAL
+18	Arm2 Rotate Speed	RPM	DINT
+19	Arm2 Noz1 Temperature	degC	REAL
+20	Arm2 Noz2 Temperature	degC	REAL
+21	Arm2 Noz3 Temperature	degC	REAL
+22	Arm2 Noz1 Flow/Pressure	ml/s / Pa	DINT
+23	Arm2 Noz2 Flow/Pressure	ml/s / Pa	DINT
+24	Arm2 Noz3 Flow/Pressure	ml/s / Pa	DINT
+25	Arm2 NP Noz1 Flow/Pressure	ml/s / Pa	DINT
+26	Arm2 NP Noz2 Flow/Pressure	ml/s / Pa	DINT
+27	Arm2 NP Noz3 Flow/Pressure	ml/s / Pa	DINT
+28	Arm3 Lift Position	mm	REAL
+29	Arm3 Rotate Position	deg	REAL
+30	Arm3 Lift Speed	mm/s	REAL
+31	Arm3 Rotate Speed	RPM	DINT
+32	Arm3 Noz1 Temperature	degC	REAL
+33	Arm3 Noz2 Temperature	degC	REAL
+34	Arm3 Noz1 Flow/Pressure	ml/s / Pa	DINT
+35	Arm3 Noz2 Flow/Pressure	ml/s / Pa	DINT
+36	Arm3 NP Noz1 Flow/Pressure	ml/s / Pa	DINT
+37	Arm3 NP Noz2 Flow/Pressure	ml/s / Pa	DINT
+38	Arm4 Lift Position	mm	REAL
+39	Arm4 Rotate Position	deg	REAL
+40	Arm4 Lift Speed	mm/s	REAL
+41	Arm4 Rotate Speed	RPM	DINT
+42	Arm4 Noz1 Temperature	degC	REAL
+43	Arm4 Noz1 Flow/Pressure	ml/s / Pa	DINT
+44	Arm4 NP Noz1 Flow/Pressure	ml/s / Pa	DINT
+45	Cup1 Master Lift Position	mm	REAL
+46	Cup1 Slave Lift Position	mm	REAL
+47	Cup2 Master Lift Position	mm	REAL
+48	Cup2 Slave Lift Position	mm	REAL
+49	Cup3 Master Lift Position	mm	REAL
+50	Cup3 Slave Lift Position	mm	REAL
+51	Cup4 Master Lift Position	mm	REAL
+52	Cup4 Slave Lift Position	mm	REAL
+53	Holder Rotate Speed	RPM	DINT
+54	FixNozzle1 Flow/Pressure	ml/s / Pa	DINT
+55	FixNozzle2 Flow/Pressure	ml/s / Pa	DINT
+56	FixNozzle3 Flow/Pressure	ml/s / Pa	DINT
+57	FixNozzle4 Flow/Pressure	ml/s / Pa	DINT
+58	Outside Ring Rotate Speed	RPM	DINT
+59	ExhaustFan1 Pressure	Pa	REAL
+60	ExhaustFan2 Pressure	Pa	REAL
+61	ExhaustFan3 Pressure	Pa	REAL
+62	ExhaustFan4 Pressure	Pa	REAL
+63	FFU Speed	RPM	DINT
+64	FFU Pressure	Pa	REAL
