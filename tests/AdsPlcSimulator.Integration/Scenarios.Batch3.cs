@@ -81,13 +81,13 @@ internal static partial class Scenarios
         {
             session.Write(Arm1Noz1Setpoint, 12);
             await CheckSpeedAsync(checks, session, Arm1Noz1Supply, Arm1Noz1FlowSvid, VariableValue(entry), "12");
-            checks.True("SetMode 2 reaches Complete", await SetModeToAsync(session, 2));
+            checks.True("Mode 2 reached", await SwitchModeAsync(session, 2));
             await CheckSpeedAsync(checks, session, Arm1Noz1Supply, Arm1Noz1FlowSvid, VariableValue(entry), "0");
         }
         finally
         {
             session.Write(Arm1Noz1Setpoint, setpoint);
-            checks.True($"SetMode back to {mode}", await SetModeToAsync(session, mode));
+            checks.True($"SetMode back to {mode}", await SwitchModeAsync(session, mode));
         }
 
         return checks;

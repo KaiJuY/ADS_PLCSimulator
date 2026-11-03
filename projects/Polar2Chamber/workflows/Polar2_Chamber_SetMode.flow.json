@@ -19,21 +19,48 @@
       }
     },
     {
-      "id": "inRange",
+      "id": "atLeast1",
       "type": "logic.compare",
       "x": 360,
       "y": 300,
       "params": {
-        "operator": "<=",
-        "b": "3"
+        "operator": ">=",
+        "b": "1"
       }
     },
     {
-      "id": "branch",
+      "id": "atMost2",
+      "type": "logic.compare",
+      "x": 360,
+      "y": 420,
+      "params": {
+        "operator": "<=",
+        "b": "2"
+      }
+    },
+    {
+      "id": "atLeast1Branch",
       "type": "flow.branch",
       "x": 360,
       "y": 60,
       "params": {}
+    },
+    {
+      "id": "atMost2Branch",
+      "type": "flow.branch",
+      "x": 520,
+      "y": 60,
+      "params": {}
+    },
+    {
+      "id": "toSvid",
+      "type": "math.arithmetic",
+      "x": 680,
+      "y": 180,
+      "params": {
+        "operator": "-",
+        "a": "2"
+      }
     },
     {
       "id": "write",
@@ -61,7 +88,7 @@
       "params": {
         "service": "GVL_Module.Chamber_Control[#].ServiceCtrl.Chamber.SetMode",
         "mainErrorId": "1",
-        "message": "TargetMode out of range (0~3)."
+        "message": "TargetMode must be 1 (Manual) or 2 (Disable)."
       }
     },
     {
@@ -78,23 +105,41 @@
     {
       "fromNode": "trigger",
       "fromPort": "then",
-      "toNode": "branch",
+      "toNode": "atLeast1Branch",
       "toPort": "exec"
     },
     {
       "fromNode": "read",
       "fromPort": "value",
-      "toNode": "inRange",
+      "toNode": "atLeast1",
       "toPort": "a"
     },
     {
-      "fromNode": "inRange",
+      "fromNode": "atLeast1",
       "fromPort": "result",
-      "toNode": "branch",
+      "toNode": "atLeast1Branch",
       "toPort": "condition"
     },
     {
-      "fromNode": "branch",
+      "fromNode": "atLeast1Branch",
+      "fromPort": "true",
+      "toNode": "atMost2Branch",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "read",
+      "fromPort": "value",
+      "toNode": "atMost2",
+      "toPort": "a"
+    },
+    {
+      "fromNode": "atMost2",
+      "fromPort": "result",
+      "toNode": "atMost2Branch",
+      "toPort": "condition"
+    },
+    {
+      "fromNode": "atMost2Branch",
       "fromPort": "true",
       "toNode": "complete",
       "toPort": "exec"
@@ -102,6 +147,12 @@
     {
       "fromNode": "read",
       "fromPort": "value",
+      "toNode": "toSvid",
+      "toPort": "b"
+    },
+    {
+      "fromNode": "toSvid",
+      "fromPort": "result",
       "toNode": "write",
       "toPort": "value"
     },
@@ -112,7 +163,13 @@
       "toPort": "exec"
     },
     {
-      "fromNode": "branch",
+      "fromNode": "atLeast1Branch",
+      "fromPort": "false",
+      "toNode": "addError",
+      "toPort": "exec"
+    },
+    {
+      "fromNode": "atMost2Branch",
       "fromPort": "false",
       "toNode": "addError",
       "toPort": "exec"

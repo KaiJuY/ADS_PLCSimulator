@@ -75,7 +75,7 @@ Polar2 的規則：
 
 - Mode 0（Disable）：只有 `Chamber.SetMode` 能執行。這是例外，記在 #10 的規格待確認清單。
 - Mode 1（Manual）：`Chamber.SingleProcess`、`Chamber.EMGS` 不能執行。
-- Mode 2（DryRun）、3（Auto）：全部允許。
+- Mode 2（DryRun）、3（Auto）：全部允許。`Chamber.SetMode` 不能寫入 2、3：先 `SetMode` 1 回到 Manual，再用 `Chamber.Initial` 的 `SwitchModeAfterFinish`（1 = DryRun、2 = Auto）切換，Initial 等 5000 ms 後才寫入 SVID 1。
 - `Chamber.ArmAlignTest`、`Chamber.ArmTest`：`ArmIndex` 1..4、`NozzleIndex` 1..3；`Chamber.FlowCalibration`：`ArmIndex` 1..4、`ArmNozzleIndex` 1..3。
 - `Chamber.ArmAlignTest`、`Chamber.FlowCalibration` 以 `TestTime` 為執行時間（為 0 時 MainErrorId 1）；`Chamber.ArmTest` 沒有 TestTime，用 `service.host` 的 `defaultDelayMs`。
 - `Holder.Rotate.MoveVelocityCW` 進入 Execute 時把 SVID 53 寫成 ECID 318，`MoveVelocityCCW` 寫成負值；任何離開 Execute（Complete、Stop、Abort、Hold、Suspend）時寫回 0；Unhold、Unsuspend 回到 Execute 時再寫一次。
@@ -105,7 +105,7 @@ Polar2 的規則：
 
 注意：
 
-- Mode 改成 0 之後只有 `Chamber.SetMode` 能跑，手動測試完要用 SetMode 把 Mode 寫回。
+- Mode 改成 0 之後只有 `Chamber.SetMode` 能跑，手動測試完要用 SetMode 1 回到 Manual；要回 DryRun 或 Auto，再用 `Chamber.Initial` 切換。
 - Run 之後到 `Polar2_ModuleModeInit` 寫 `'1'` 之前，SVID 1 是初始值 `"0"`，Mode 是 Disable；`Polar2_ModuleModeInit` 載入失敗時一直如此。
 - `duration`、`beforeComplete` 只對 NaturalCompletion 的 service 有作用；寫在 ExecuteUntilExternalStop 的 service 上不會報錯，但沒有效果（Host 在 Run 時不讀 identity file，無法發現）。
 - 重新載入 `Polar2_ServiceHost` 時，Execute 中的 service 不經過離開 Execute，`onLeave` 不會寫，速度、流量、壓力 SVID（例 SVID 53、Arm 的 Rotate Speed、Nozzle Flow/Pressure、ExhaustFan Pressure）可能停在 Execute 時的值。
@@ -279,7 +279,7 @@ Run 前若 `AlarmAckRequest.bChangeRequest` 還是 TRUE，新的 host 會把它�
 
 - `Polar2_ServiceHost`：執行 `GVL_Module.Chamber_Control` 底下所有 module 的 PackML 交握，ServiceId 與 CompletionBehavior 來自 `plc/ServiceIdentity/` 的 identity 檔。
 - `Polar2_ModuleModeInit`：啟動時把 slot 1 的 SVID 1（`Module Mode`）寫成 `'1'`。slot 1 的 identity（`ModuleId=1`、`Enabled=TRUE`、`ModuleType=Polar2`）與 SVID、ECID 內容由 `config/module-config.json` 在 Run 時發布；其餘 slot 保持 0、FALSE、空字串。
-- `Polar2_Chamber_SetMode`：Chamber.SetMode 進入 Execute 時，`TargetMode`（`E_PolarIIChamberTargetMode`：0=Disable、1=Manual、2=DryRun、3=Auto，與 SVID 1 的 Mode 相同）在 0 到 3 時先完成 service，再原值寫入 SVID 1（Complete 前被 Abort 時 SVID 不變）。超出範圍時 SVID 不變，改用 `action.addServiceError` 把 MainErrorId 1、SourceErrorId = `TargetMode`、訊息 `TargetMode out of range (0~3).` 加入 `ErrorList`，再用 `action.abortService` 中止 service。MainErrorId 1 是暫定值：規格書 ALID 沒有 SetMode 的項目。
+- `Polar2_Chamber_SetMode`：Chamber.SetMode 進入 Execute 時，`TargetMode` 只接受 1（Manual）和 2（Disable），這和 `E_PolarIIChamberTargetMode`（0=Disable、1=Manual、2=DryRun、3=Auto，與 SVID 1 的 Mode 相同）不同：1 寫入 SVID 1 為 `'1'`，2 寫入 `'0'`（`2 - TargetMode`），都是先完成 service 再寫入（Complete 前被 Abort 時 SVID 不變）。DryRun、Auto 不能用 SetMode 切換，要用 `Chamber.Initial`。其他值時 SVID 不變，改用 `action.addServiceError` 把 MainErrorId 1、SourceErrorId = `TargetMode`、訊息 `TargetMode must be 1 (Manual) or 2 (Disable).` 加入 `ErrorList`，再用 `action.abortService` 中止 service。MainErrorId 1 是暫定值：規格書 ALID 沒有 SetMode 的項目。
 - `Polar2_Chamber_Initial`：Chamber.Initial 進入 Execute 後等待 5000 ms 再完成；依 `SwitchModeAfterFinish` 把 SVID 1 寫成 `'2'`（1）或 `'3'`（2），其他值保持原值。
 
 `plc/` 資料夾以 `.gitattributes` 的 `-text` 規則逐位元組保存，不做換行轉換；複製後的檔案與來源的 SHA-256 相同，例外：Service ID enum（加了 `Holder_VacuumEstablish := 3007`）、`E_PolarIIChamberTargetMode`（本地修改）、identity 檔（見「來源」）。
