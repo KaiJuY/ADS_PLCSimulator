@@ -10,7 +10,7 @@ from typing import NamedTuple
 SVID_SHEET = "ModuleVariableList_SVID"
 QUANTITY_SHEET = "Object Quantity"
 
-# Source: note on the "Nozzle1 Flow Offset" row of the 1007 spec ECID sheet (Arm1,2 have 3 nozzles; Arm3 has 2; Arm4 has 1).
+# Source: note on the "Nozzle1 Flow Offset" row of the 20261027 spec ECID sheet (Arm1,2 have 3 nozzles; Arm3 has 2; Arm4 has 1).
 ARM_NOZZLES = {1: 3, 2: 3, 3: 2, 4: 1}
 
 TYPE_MAP = {"Integer_32bit": "DINT", "Float_32bit": "REAL", "Boolean": "BOOL", "String(80)": "STRING"}
@@ -202,8 +202,11 @@ def build_list(sheet_name, rows, quantities):
 
 
 def read_plc_ecids(plc_path):
-    with open(plc_path, encoding="utf-8") as f:
-        plc = json.load(f)
+    try:
+        with open(plc_path, encoding="utf-8") as f:
+            plc = json.load(f)
+    except (OSError, json.JSONDecodeError) as e:
+        raise SpecError(f"{plc_path}: {e}") from e
     modules = plc.get("modules") if isinstance(plc, dict) else None
     first = modules[0] if isinstance(modules, list) and modules and isinstance(modules[0], dict) else {}
     ecids = first.get("configParamList")

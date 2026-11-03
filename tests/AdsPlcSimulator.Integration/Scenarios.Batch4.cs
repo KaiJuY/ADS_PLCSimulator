@@ -51,7 +51,7 @@ internal static partial class Scenarios
         finally
         {
             Restore(session, saved);
-            checks.True($"SetMode back to {mode}", await SwitchModeAsync(session, mode));
+            checks.True($"Mode {mode} restored", await SwitchModeAsync(session, mode));
         }
 
         return checks;
@@ -103,7 +103,7 @@ internal static partial class Scenarios
         finally
         {
             Restore(session, saved);
-            checks.True($"SetMode back to {mode}", await SwitchModeAsync(session, mode));
+            checks.True($"Mode {mode} restored", await SwitchModeAsync(session, mode));
         }
 
         return checks;
@@ -127,7 +127,7 @@ internal static partial class Scenarios
         finally
         {
             Restore(session, saved);
-            checks.True($"SetMode back to {mode}", await SwitchModeAsync(session, mode));
+            checks.True($"Mode {mode} restored", await SwitchModeAsync(session, mode));
         }
 
         return checks;

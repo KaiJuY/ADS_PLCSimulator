@@ -87,7 +87,7 @@ internal static partial class Scenarios
         finally
         {
             session.Write(Arm1Noz1Setpoint, setpoint);
-            checks.True($"SetMode back to {mode}", await SwitchModeAsync(session, mode));
+            checks.True($"Mode {mode} restored", await SwitchModeAsync(session, mode));
         }
 
         return checks;

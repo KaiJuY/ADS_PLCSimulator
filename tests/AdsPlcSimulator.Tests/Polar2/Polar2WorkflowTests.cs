@@ -356,7 +356,7 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
         Assert.Equal("2", Read(SvidValue));
         Assert.Equal(1, ReadNumber($"{Status("Chamber.SetMode")}.ErrorList[1].MainErrorId"));
         Assert.Equal(targetMode, ReadNumber($"{Status("Chamber.SetMode")}.ErrorList[1].SourceErrorId"));
-        Assert.Equal("TargetMode must be 1 (Manual) or 2 (Disable).",Read($"{Status("Chamber.SetMode")}.ErrorList[1].Message"));
+        Assert.Equal("TargetMode must be 1 (Manual) or 2 (Disable).", Read($"{Status("Chamber.SetMode")}.ErrorList[1].Message"));
         await WaitUntilAsync(() => ReadNumber($"{Module1}.ModuleAlarmList[1].MainErrorId") == 1, "the alarm in ModuleAlarmList");
         Assert.Equal(targetMode, ReadNumber($"{Module1}.ModuleAlarmList[1].SourceErrorId"));
         Assert.Equal(1, ReadNumber($"{Module1}.ModuleAlarmList[1].Active"));

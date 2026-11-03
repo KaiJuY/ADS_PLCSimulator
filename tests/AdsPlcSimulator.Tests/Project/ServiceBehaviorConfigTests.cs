@@ -321,7 +321,11 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
             ServiceBehavior service = services[key];
             IEnumerable<SvidWrite> writes = [.. service.OnEnter, .. service.BeforeComplete, .. service.OnLeave];
             Assert.All(writes, write => Assert.StartsWith(prefix, VariableName(write.Target)));
-            Assert.All(writes.Where(write => write.Value.Kind == SvidValueKind.Ecid), write => Assert.StartsWith(ecidPrefix ?? "no ECID expected: ", EcidName(write.Value.Source!)));
+            IEnumerable<SvidWrite> ecidWrites = writes.Where(write => write.Value.Kind == SvidValueKind.Ecid);
+            if (ecidPrefix is null)
+                Assert.Empty(ecidWrites);
+            else
+                Assert.All(ecidWrites, write => Assert.StartsWith(ecidPrefix, EcidName(write.Value.Source!)));
             Assert.All(
                 positions.Where(pair => key.EndsWith(pair.Key)),
                 pair => Assert.EndsWith(pair.Value, EcidName(service.BeforeComplete.Single().Value.Source!)));
