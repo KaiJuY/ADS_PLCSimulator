@@ -44,7 +44,7 @@ internal static partial class Scenarios
         string speedBefore = session.Read<string>($"{ConfigParamEntry(ecid)}.Value");
         try
         {
-            // ECID 318 starts at "0", which SVID 53 already shows; 25 proves the write.
+            // ECID 3001 starts at "0", which SVID 53 already shows; 25 proves the write.
             checks.True($"SetConfig ECID {ConfigEcid} = 25", await SetConfigToAsync(session, ConfigEcid, "25"));
             session.Write(MoveModuloPosition, 400.0);
             await CheckRefusedAsync(checks, session, MoveModulo, ParameterOutOfRange, 400, "Position out of range (0~360).");

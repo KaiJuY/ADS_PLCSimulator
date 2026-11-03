@@ -30,7 +30,7 @@ internal static partial class Scenarios
     private const short DuplicateRequest = 2;
     private const short AcknowledgeEverything = 2;
     private const short Integer32 = 2;
-    private const uint ConfigEcid = 318;
+    private const uint ConfigEcid = 3001;
     private const uint UnknownEcid = 4294967000;
     private const int ConfigParamScanLength = 450;
     private const string SetConfigParam = Module1 + ".ServiceParam.Chamber.SetConfig";
@@ -40,10 +40,10 @@ internal static partial class Scenarios
     private const string MoveModuloPosition = Module1 + ".ServiceParam.Holder.Rotate.MoveModulo.Position";
     private const string Cup1JogPosition = Module1 + ".ServiceParam.Cup[1].Lift.IncrementalJog.Position";
     private const uint OutsideRingSpeedSvid = 58;
-    private const uint OutsideRingSpeedEcid = 361;
+    private const uint OutsideRingSpeedEcid = 3202;
     private const uint Cup1MasterSvid = 45;
     private const uint Cup1SlaveSvid = 46;
-    private const uint Cup1TopEcid = 276;
+    private const uint Cup1TopEcid = 2007;
     private const double JogStep = 5;
     private const int VariableScanLength = 64;
     private const uint ParameterOutOfRange = 1;
@@ -110,8 +110,8 @@ internal static partial class Scenarios
         new("S22", "Manual refuses EMGS", ManualRefusesAsync),
         new("S23", "ArmTest ArmIndex 5 is out of range", ArmIndexOutOfRangeAsync),
         new("S24", "ArmAlignTest runs for TestTime", TestTimeAsync),
-        new("S25", "Holder speed SVID follows ECID 318", HolderSpeedAsync),
-        new("S26", "OutsideRing speed SVID follows ECID 361", OutsideRingSpeedAsync),
+        new("S25", $"Holder speed SVID follows ECID {ConfigEcid}", HolderSpeedAsync),
+        new("S26", $"OutsideRing speed SVID follows ECID {OutsideRingSpeedEcid}", OutsideRingSpeedAsync),
         new("S27", "MoveModulo checks Position and writes the Holder speed", MoveModuloAsync),
         new("S28", "Cup1 TopPos writes the lift height before Complete", Cup1TopAsync),
         new("S29", "Cup1 IncrementalJog adds Position", Cup1JogAsync),
@@ -774,13 +774,13 @@ internal static partial class Scenarios
         string before = session.Read<string>(ecidValue);
         try
         {
-            checks.True("SetConfig ECID 318 = 30", await SetConfigToAsync(session, ConfigEcid, "30"));
+            checks.True($"SetConfig ECID {ConfigEcid} = 30", await SetConfigToAsync(session, ConfigEcid, "30"));
             await CheckSpeedAsync(checks, session, HolderMove, HolderSpeedSvid, speed, "30");
             await CheckSpeedAsync(checks, session, HolderMoveCcw, HolderSpeedSvid, speed, "-30");
         }
         finally
         {
-            checks.True($"SetConfig ECID 318 back to '{before}'", await SetConfigToAsync(session, ConfigEcid, before));
+            checks.True($"SetConfig ECID {ConfigEcid} back to '{before}'", await SetConfigToAsync(session, ConfigEcid, before));
         }
 
         return checks;

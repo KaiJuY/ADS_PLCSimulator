@@ -1,11 +1,11 @@
-using System.Text.RegularExpressions;
+using System.Text.Json;
 using AdsPlcSimulator.Core.PackML.Alarm;
 using AdsPlcSimulator.Core.Plc;
 using AdsPlcSimulator.Host.Project;
 
 namespace AdsPlcSimulator.Tests.Project;
 
-public sealed partial class ModuleConfigTests : IDisposable
+public sealed class ModuleConfigTests : IDisposable
 {
     private const string Path = "module-config.json";
 
@@ -314,20 +314,61 @@ public sealed partial class ModuleConfigTests : IDisposable
         Assert.Equal("Float_32bit", EnumName(image, program, $"{module}.ModuleVariableList[2].DataType"));
         Assert.Equal("mm", Read(image, program, $"{module}.ModuleVariableList[2].Unit"));
         Assert.Equal(0L, Read(image, program, $"{module}.ModuleVariableList[65].Id"));
-        Assert.Equal("Module Disable", Read(image, program, $"{module}.ModuleConfigParamList[1].Name"));
+        Assert.Equal("DoorInterlockDisable", Read(image, program, $"{module}.ModuleConfigParamList[1].Name"));
         Assert.Equal("Boolean", EnumName(image, program, $"{module}.ModuleConfigParamList[1].DataType"));
-        Assert.NotEqual(0L, Read(image, program, $"{module}.ModuleConfigParamList[438].Id"));
-        Assert.Equal(0L, Read(image, program, $"{module}.ModuleConfigParamList[439].Id"));
+        Assert.Equal(5014L, Read(image, program, $"{module}.ModuleConfigParamList[390].Id"));
+        Assert.Equal(0L, Read(image, program, $"{module}.ModuleConfigParamList[391].Id"));
         for (int slot = 2; slot <= 6; slot++)
             Assert.Equal(0L, Read(image, program, $"GVL_Module.Chamber_Control[{slot}].ModuleStatus.Variable.PublishedCount"));
 
-        string[] names = Enumerable.Range(1, 438)
+        string[] names = Enumerable.Range(1, 390)
             .Select(index => (string)Read(image, program, $"{module}.ModuleConfigParamList[{index}].Name"))
             .ToArray();
         Assert.All(names, name => Assert.True(name.Length is > 0 and <= 30, name));
         Assert.Equal(names.Length, names.Distinct().Count());
-        Assert.DoesNotContain(names, name => name.StartsWith("Arm4 ", StringComparison.Ordinal) && NozzleTwoOrThree().IsMatch(name));
     }
+
+    [Fact]
+    [Trait("AC", "1")]
+    public void Polar2_ecids_equal_the_PLC_file()
+    {
+        JsonElement[] expected = ConfigParamList(System.IO.Path.Combine(TestPaths.Polar2Project, "spec", "plc-module-config.json"));
+        JsonElement[] actual = ConfigParamList(System.IO.Path.Combine(TestPaths.Polar2Project, "config", "module-config.json"));
+
+        Assert.Equal(390, expected.Length);
+        Assert.Equal(expected.Length, actual.Length);
+        for (int index = 0; index < expected.Length; index++)
+        {
+            foreach (string key in new[] { "id", "name", "unit", "dataType", "lowerLimit", "upperLimit" })
+                Assert.Equal(Member(expected[index], key), Member(actual[index], key));
+        }
+    }
+
+    [Fact]
+    [Trait("AC", "3")]
+    public void Polar2_svids_match_golden_list()
+    {
+        string[] golden = File.ReadAllLines(System.IO.Path.Combine(TestPaths.SolutionRoot, "tests", "AdsPlcSimulator.Tests", "Polar2", "Svids.golden.tsv"));
+        using JsonDocument config = JsonDocument.Parse(File.ReadAllText(System.IO.Path.Combine(TestPaths.Polar2Project, "config", "module-config.json")));
+        JsonElement[] svids = [.. config.RootElement.GetProperty("modules")[0].GetProperty("variableList").EnumerateArray().Select(entry => entry.Clone())];
+
+        Assert.Equal(64, golden.Length);
+        Assert.Equal(golden.Length, svids.Length);
+        for (int index = 0; index < golden.Length; index++)
+        {
+            string row = string.Join('\t', Member(svids[index], "id"), Member(svids[index], "name"), Member(svids[index], "unit"), Member(svids[index], "dataType"));
+            Assert.Equal(golden[index], row);
+        }
+    }
+
+    private static JsonElement[] ConfigParamList(string file)
+    {
+        using JsonDocument document = JsonDocument.Parse(File.ReadAllText(file));
+        return [.. document.RootElement.GetProperty("modules")[0].GetProperty("configParamList").EnumerateArray().Select(entry => entry.Clone())];
+    }
+
+    private static string Member(JsonElement entry, string key) =>
+        entry.TryGetProperty(key, out JsonElement value) ? value.ToString() : "(absent)";
 
     private const string TwoEcids = "GVL_Module.Chamber_Control[2].ModuleConfigParamList";
 
@@ -434,22 +475,20 @@ public sealed partial class ModuleConfigTests : IDisposable
 
     [Fact]
     [Trait("AC", "1")]
-    public void Polar2_config_publishes_the_type_range_for_numeric_ecids()
+    public void Polar2_config_publishes_the_PLC_limits_for_numeric_ecids()
     {
         PlcProgram program = s_polar2.Value;
         ProcessImage image = program.CreateProcessImage();
 
         ModuleConfigPublisher.PublishIfPresent(TestPaths.Polar2Project, program.Symbols, image);
 
-        const string ecid = "GVL_Module.Chamber_Control[1].ModuleConfigParamList[318]";
-        Assert.Equal(318L, Read(image, program, $"{ecid}.Id"));
+        string ecid = Enumerable.Range(1, 390)
+            .Select(index => $"GVL_Module.Chamber_Control[1].ModuleConfigParamList[{index}]")
+            .First(path => (long)Read(image, program, $"{path}.Id") == 3001);
         Assert.Equal(true, Read(image, program, $"{ecid}.HasLimits"));
-        Assert.Equal(-2147483648d, Read(image, program, $"{ecid}.LowerLimit"));
-        Assert.Equal(2147483647d, Read(image, program, $"{ecid}.UpperLimit"));
+        Assert.Equal(0d, Read(image, program, $"{ecid}.LowerLimit"));
+        Assert.Equal(5000d, Read(image, program, $"{ecid}.UpperLimit"));
     }
-
-    [GeneratedRegex("No(z|zzle)[23]")]
-    private static partial Regex NozzleTwoOrThree();
 
     private static string Module(string modules) => $$"""{"schemaVersion":4,"modules":[{{modules}}]}""";
 

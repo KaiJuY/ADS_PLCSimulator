@@ -1,0 +1,61 @@
+6	Arm1 Lift Speed (Normal)	mm/s	DINT	1001	Arm1_LiftNormalSpeed
+12	Arm1 Lift Top Pos	mm	DINT	1006	Arm1_LiftTopPosition
+13	Arm1 Lift Down Pos	mm	DINT	1007	Arm1_LiftDownPosition
+15	Arm1 Rotate Speed (Normal)	RPM	DINT	1009	Arm1_RotateNormalSpeed
+16	Arm1 Rotate Speed (Jog)	RPM	DINT	1010	Arm1_RotateJogSpeed
+20	Arm1 Rotate Pos Limit Pos	deg	DINT	1014	Arm1_RotatePosLimitPos
+21	Arm1 Rotate Neg Limit Pos	deg	DINT	1015	Arm1_RotateNegLimitPos
+22	Arm1 Rotate Nozzle Port Pos	deg	DINT	1016	Arm1_RotateNozzlePortPosition
+23	Arm1 Rotate Noz1 Center Pos	deg	DINT	1017	Arm1_RotateNoz1CenterPos
+24	Arm1 Rotate Noz2 Center Pos	deg	DINT	1018	Arm1_RotateNoz2CenterPos
+25	Arm1 Rotate Noz3 Center Pos	deg	DINT	1019	Arm1_RotateNoz3CenterPos
+84	Arm2 Lift Speed (Normal)	mm/s	DINT	1101	Arm2_LiftNormalSpeed
+90	Arm2 Lift Top Pos	mm	DINT	1106	Arm2_LiftTopPosition
+91	Arm2 Lift Down Pos	mm	DINT	1107	Arm2_LiftDownPosition
+93	Arm2 Rotate Speed (Normal)	RPM	DINT	1109	Arm2_RotateNormalSpeed
+94	Arm2 Rotate Speed (Jog)	RPM	DINT	1110	Arm2_RotateJogSpeed
+98	Arm2 Rotate Pos Limit Pos	deg	DINT	1114	Arm2_RotatePosLimitPos
+99	Arm2 Rotate Neg Limit Pos	deg	DINT	1115	Arm2_RotateNegLimitPos
+100	Arm2 Rotate Nozzle Port Pos	deg	DINT	1116	Arm2_RotateNozzlePortPosition
+101	Arm2 Rotate Noz1 Center Pos	deg	DINT	1117	Arm2_RotateNoz1CenterPos
+102	Arm2 Rotate Noz2 Center Pos	deg	DINT	1118	Arm2_RotateNoz2CenterPos
+103	Arm2 Rotate Noz3 Center Pos	deg	DINT	1119	Arm2_RotateNoz3CenterPos
+162	Arm3 Lift Speed (Normal)	mm/s	DINT	1201	Arm3_LiftNormalSpeed
+168	Arm3 Lift Top Pos	mm	DINT	1206	Arm3_LiftTopPosition
+169	Arm3 Lift Down Pos	mm	DINT	1207	Arm3_LiftDownPosition
+171	Arm3 Rotate Speed (Normal)	RPM	DINT	1209	Arm3_RotateNormalSpeed
+172	Arm3 Rotate Speed (Jog)	RPM	DINT	1210	Arm3_RotateJogSpeed
+176	Arm3 Rotate Pos Limit Pos	deg	DINT	1214	Arm3_RotatePosLimitPos
+177	Arm3 Rotate Neg Limit Pos	deg	DINT	1215	Arm3_RotateNegLimitPos
+179	Arm3 Rotate Noz1 Center Pos	deg	DINT	1217	Arm3_RotateNoz1CenterPos
+180	Arm3 Rotate Noz2 Center Pos	deg	DINT	1218	Arm3_RotateNoz2CenterPos
+224	Arm4 Lift Speed (Normal)	mm/s	DINT	1301	Arm4_LiftNormalSpeed
+230	Arm4 Lift Top Pos	mm	DINT	1306	Arm4_LiftTopPosition
+231	Arm4 Lift Down Pos	mm	DINT	1307	Arm4_LiftDownPosition
+233	Arm4 Rotate Speed (Normal)	RPM	DINT	1309	Arm4_RotateNormalSpeed
+234	Arm4 Rotate Speed (Jog)	RPM	DINT	1310	Arm4_RotateJogSpeed
+238	Arm4 Rotate Pos Limit Pos	deg	DINT	1314	Arm4_RotatePosLimitPos
+239	Arm4 Rotate Neg Limit Pos	deg	DINT	1315	Arm4_RotateNegLimitPos
+241	Arm4 Rotate Noz1 Center Pos	deg	DINT	1317	Arm4_RotateNoz1CenterPos
+270	Cup1 Speed (Jog)	mm/s	DINT	2001	Cup1_JogSpeed
+276	Cup1 Top Pos	mm	DINT	2007	Cup1_TopPosition
+277	Cup1 Down Pos	mm	DINT	2008	Cup1_DownPosition
+278	Cup1 Middle Pos	mm	DINT	2009	Cup1_MiddlePosition
+282	Cup2 Speed (Jog)	mm/s	DINT	2101	Cup2_JogSpeed
+288	Cup2 Top Pos	mm	DINT	2107	Cup2_TopPosition
+289	Cup2 Down Pos	mm	DINT	2108	Cup2_DownPosition
+290	Cup2 Middle Pos	mm	DINT	2109	Cup2_MiddlePosition
+294	Cup3 Speed (Jog)	mm/s	DINT	2201	Cup3_JogSpeed
+300	Cup3 Top Pos	mm	DINT	2207	Cup3_TopPosition
+301	Cup3 Down Pos	mm	DINT	2208	Cup3_DownPosition
+302	Cup3 Middle Pos	mm	DINT	2209	Cup3_MiddlePosition
+306	Cup4 Speed (Jog)	mm/s	DINT	2301	Cup4_JogSpeed
+312	Cup4 Top Pos	mm	DINT	2307	Cup4_TopPosition
+313	Cup4 Down Pos	mm	DINT	2308	Cup4_DownPosition
+314	Cup4 Middle Pos	mm	DINT	2309	Cup4_MiddlePosition
+318	Holder Rotate Speed (Normal)	RPM	DINT	3001	Holder_RotateNormalSpeed
+361	Outside Ring Rotate Speed	RPM	DINT	3202	OutsideRing_RotateSpeed
+365	ExhaustFan1 Target Pressure	Pa	DINT	3401	ExhaustFan1_TargetPressure
+369	ExhaustFan2 Target Pressure	Pa	DINT	3411	ExhaustFan2_TargetPressure
+373	ExhaustFan3 Target Pressure	Pa	DINT	3421	ExhaustFan3_TargetPressure
+377	ExhaustFan4 Target Pressure	Pa	DINT	3431	ExhaustFan4_TargetPressure

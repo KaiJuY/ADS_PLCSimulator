@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using AdsPlcSimulator.Core.PackML;
 using AdsPlcSimulator.Core.PackML.Behavior;
@@ -68,7 +69,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
     {
         string project = TestPaths.Polar2Project;
         ModuleConfigFile config = ModuleConfigPublisher.Parse(File.ReadAllText(System.IO.Path.Combine(project, "config", "module-config.json")), "module-config.json");
-        PositionsOf(config, out int svid53, out int ecid318);
+        PositionsOf(config, out int svid53, out int holderSpeedEcid);
 
         ServiceBehaviorTable? table = ServiceBehaviorLoader.LoadIfPresent(project, s_polar2.Value.Symbols, config);
 
@@ -77,7 +78,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         ServiceBehavior cw = module.Services["Holder.Rotate.MoveVelocityCW"];
         ServiceBehavior ccw = module.Services["Holder.Rotate.MoveVelocityCCW"];
         Assert.Equal($"ModuleVariableList[{svid53}].Value", cw.OnEnter[0].Target);
-        Assert.Equal($"ModuleConfigParamList[{ecid318}].Value", cw.OnEnter[0].Value.Source);
+        Assert.Equal($"ModuleConfigParamList[{holderSpeedEcid}].Value", cw.OnEnter[0].Value.Source);
         Assert.False(cw.OnEnter[0].Value.Negate);
         Assert.True(ccw.OnEnter[0].Value.Negate);
         Assert.Equal("TestTime", module.Services["Chamber.ArmAlignTest"].DurationField);
@@ -87,7 +88,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         {
             ModuleConfigEntry slot = file.Modules!.Single(entry => entry!.Enabled)!;
             svid = slot.VariableList!.FindIndex(item => item!.Id == 53) + 1;
-            ecid = slot.ConfigParamList!.FindIndex(item => item!.Id == 318) + 1;
+            ecid = slot.ConfigParamList!.FindIndex(item => item!.Id == 3001) + 1;
         }
     }
 
@@ -137,7 +138,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         Assert.Equal(135, services.Count);
         Assert.Equal(new ParamRange("Position", 0, 360), services["Holder.Rotate.MoveModulo"].Ranges.Single());
         Assert.Equal($"ModuleVariableList[{SvidPosition(53)}].Value", services["Holder.Rotate.MoveModulo"].OnEnter.Single().Target);
-        Assert.Equal(new SvidValue(SvidValueKind.Ecid, 0, $"ModuleConfigParamList[{EcidPosition(361)}].Value", true), services["OutsideRing.Rotate.MoveVelocityCCW"].OnEnter.Single().Value);
+        Assert.Equal(new SvidValue(SvidValueKind.Ecid, 0, $"ModuleConfigParamList[{EcidPosition(3202)}].Value", true), services["OutsideRing.Rotate.MoveVelocityCCW"].OnEnter.Single().Value);
         Assert.Equal($"ModuleVariableList[{SvidPosition(58)}].Value", services["OutsideRing.Rotate.MoveVelocityCW"].OnLeave.Single().Target);
         Assert.Equal(
             [$"ModuleVariableList[{SvidPosition(51)}].Value", $"ModuleVariableList[{SvidPosition(52)}].Value"],
@@ -148,10 +149,10 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
             Assert.Equal(new SvidValue(SvidValueKind.AddParam, 0, "Position", false), write.Value);
         });
         Assert.Equal(
-            [$"ModuleConfigParamList[{EcidPosition(312)}].Value", $"ModuleConfigParamList[{EcidPosition(312)}].Value"],
+            [$"ModuleConfigParamList[{EcidPosition(2307)}].Value", $"ModuleConfigParamList[{EcidPosition(2307)}].Value"],
             services["Cup[4].Lift.TopPos"].BeforeComplete.Select(write => write.Value.Source!).ToArray());
-        Assert.Equal($"ModuleConfigParamList[{EcidPosition(314)}].Value", services["Cup[4].Lift.MiddlePos"].BeforeComplete[1].Value.Source);
-        Assert.Equal($"ModuleConfigParamList[{EcidPosition(289)}].Value", services["Cup[2].Lift.DownPos"].BeforeComplete[0].Value.Source);
+        Assert.Equal($"ModuleConfigParamList[{EcidPosition(2309)}].Value", services["Cup[4].Lift.MiddlePos"].BeforeComplete[1].Value.Source);
+        Assert.Equal($"ModuleConfigParamList[{EcidPosition(2108)}].Value", services["Cup[2].Lift.DownPos"].BeforeComplete[0].Value.Source);
         Assert.Equal($"ModuleVariableList[{SvidPosition(49)}].Value", services["Cup[3].Lift.TopPos"].BeforeComplete[0].Target);
         Assert.All(services["Cup[1].Lift.TopPos"].BeforeComplete, write => Assert.False(write.DryRunZero));
         Assert.All(
@@ -177,21 +178,21 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
 
         ServiceBehavior lift = services["Arm[2].Lift.DownPos"];
         Assert.Equal(Svid(17), lift.OnEnter.Single().Target);
-        Assert.Equal(Ecid(84), lift.OnEnter.Single().Value.Source);
+        Assert.Equal(Ecid(1101), lift.OnEnter.Single().Value.Source);
         Assert.Equal(Svid(15), lift.BeforeComplete.Single().Target);
         Assert.True(lift.BeforeComplete.Single().IsReal);
-        Assert.Equal(Ecid(91), lift.BeforeComplete.Single().Value.Source);
+        Assert.Equal(Ecid(1107), lift.BeforeComplete.Single().Value.Source);
         Assert.Equal(Svid(17), lift.OnLeave.Single().Target);
         Assert.Equal(new SvidValue(SvidValueKind.Constant, 0, null, false), lift.OnLeave.Single().Value);
 
         ServiceBehavior center = services["Arm[3].Rotate.Noz2CenterPos"];
-        Assert.Equal(Ecid(171), center.OnEnter.Single().Value.Source);
+        Assert.Equal(Ecid(1209), center.OnEnter.Single().Value.Source);
         Assert.Equal(Svid(29), center.BeforeComplete.Single().Target);
-        Assert.Equal(Ecid(180), center.BeforeComplete.Single().Value.Source);
+        Assert.Equal(Ecid(1218), center.BeforeComplete.Single().Value.Source);
 
         ServiceBehavior jog = services["Arm[4].Rotate.JogNegative"];
         Assert.Equal(Svid(41), jog.OnEnter.Single().Target);
-        Assert.Equal(new SvidValue(SvidValueKind.Ecid, 0, Ecid(234), true), jog.OnEnter.Single().Value);
+        Assert.Equal(new SvidValue(SvidValueKind.Ecid, 0, Ecid(1310), true), jog.OnEnter.Single().Value);
         Assert.Empty(jog.BeforeComplete);
 
         SvidWrite increment = services["Arm[1].Rotate.IncrementalJog"].BeforeComplete.Single();
@@ -211,7 +212,7 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         SvidWrite fan = services["Exhaust.Fan[2].SupplyFlowPID"].OnEnter.Single();
         Assert.Equal(Svid(60), fan.Target);
         Assert.True(fan.IsReal);
-        Assert.Equal(Ecid(369), fan.Value.Source);
+        Assert.Equal(Ecid(3411), fan.Value.Source);
         Assert.False(fan.DryRunZero);
 
         Assert.DoesNotContain("Arm[1].Rotate.MoveRecipe", services.Keys);
@@ -260,8 +261,8 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         ProcessWrite master = clean.Writes[6], slave = clean.Writes[7];
         Assert.Equal(new SvidTarget(Svid(47), true), master.Target.Choices["2"]);
         Assert.Equal(new SvidTarget(Svid(48), true), slave.Target.Choices["2"]);
-        Assert.Equal(Ecid(288), master.Value.Ecid!.Choices["2"]);
-        Assert.Equal(Ecid(288), slave.Value.Ecid!.Choices["2"]);
+        Assert.Equal(Ecid(2107), master.Value.Ecid!.Choices["2"]);
+        Assert.Equal(Ecid(2107), slave.Value.Ecid!.Choices["2"]);
         Assert.Equal((true, true), (master.Keep, slave.Keep));
         Assert.Equal(new ProcessCondition("CleanSettings[i].CleanType", 1), master.When);
         Assert.All(["Chamber.ArmTest", "Chamber.FlowCalibration"], key => Assert.Null(services[key].Process));
@@ -296,30 +297,97 @@ public sealed class ServiceBehaviorConfigTests : IDisposable
         ModuleConfigEntry slot = config.Modules!.Single(entry => entry!.Enabled)!;
         IReadOnlyDictionary<string, ServiceBehavior> services = ServiceBehaviorLoader.LoadIfPresent(TestPaths.Polar2Project, s_polar2.Value.Symbols, config)!.For(Module1)!.Services;
         Dictionary<string, string> devices = new() { ["Arm"] = "Arm{0} ", ["FixedNozzle"] = "FixNozzle{0} ", ["Exhaust.Fan"] = "ExhaustFan{0} " };
+        Dictionary<string, string> ecidDevices = new() { ["Arm"] = "Arm{0}_", ["Exhaust.Fan"] = "ExhaustFan{0}_" };
         Dictionary<string, string> positions = new()
         {
-            [".Lift.TopPos"] = "Lift Top Pos", [".Lift.DownPos"] = "Lift Down Pos",
-            [".Rotate.NegLimitPos"] = "Rotate Neg Limit Pos", [".Rotate.PosLimitPos"] = "Rotate Pos Limit Pos",
-            [".Rotate.NozzlePortPos"] = "Rotate Nozzle Port Pos", [".Rotate.Noz1CenterPos"] = "Rotate Noz1 Center Pos",
-            [".Rotate.Noz2CenterPos"] = "Rotate Noz2 Center Pos", [".Rotate.Noz3CenterPos"] = "Rotate Noz3 Center Pos",
+            [".Lift.TopPos"] = "LiftTopPosition", [".Lift.DownPos"] = "LiftDownPosition",
+            [".Rotate.NegLimitPos"] = "RotateNegLimitPos", [".Rotate.PosLimitPos"] = "RotatePosLimitPos",
+            [".Rotate.NozzlePortPos"] = "RotateNozzlePortPosition", [".Rotate.Noz1CenterPos"] = "RotateNoz1CenterPos",
+            [".Rotate.Noz2CenterPos"] = "RotateNoz2CenterPos", [".Rotate.Noz3CenterPos"] = "RotateNoz3CenterPos",
         };
         string VariableName(string path) => slot.VariableList![PositionOf(path) - 1]!.Name!;
         string EcidName(string path) => slot.ConfigParamList![PositionOf(path) - 1]!.Name!;
-        (string Key, string Prefix)[] batch = [.. services.Keys
+        (string Key, string Prefix, string? EcidPrefix)[] batch = [.. services.Keys
             .Select(key => (Key: key, Match: Regex.Match(key, @"^(Arm|FixedNozzle|Exhaust\.Fan)\[(\d)\]")))
             .Where(item => item.Match.Success && HasSvidWrites(services[item.Key]))
-            .Select(item => (item.Key, string.Format(devices[item.Match.Groups[1].Value], item.Match.Groups[2].Value)))];
+            .Select(item => (
+                item.Key,
+                string.Format(devices[item.Match.Groups[1].Value], item.Match.Groups[2].Value),
+                ecidDevices.TryGetValue(item.Match.Groups[1].Value, out string? ecidFormat) ? string.Format(ecidFormat, item.Match.Groups[2].Value) : null))];
 
         Assert.Equal(62, batch.Length);
-        foreach ((string key, string prefix) in batch)
+        foreach ((string key, string prefix, string? ecidPrefix) in batch)
         {
             ServiceBehavior service = services[key];
             IEnumerable<SvidWrite> writes = [.. service.OnEnter, .. service.BeforeComplete, .. service.OnLeave];
             Assert.All(writes, write => Assert.StartsWith(prefix, VariableName(write.Target)));
-            Assert.All(writes.Where(write => write.Value.Kind == SvidValueKind.Ecid), write => Assert.StartsWith(prefix, EcidName(write.Value.Source!)));
+            Assert.All(writes.Where(write => write.Value.Kind == SvidValueKind.Ecid), write => Assert.StartsWith(ecidPrefix ?? "no ECID expected: ", EcidName(write.Value.Source!)));
             Assert.All(
                 positions.Where(pair => key.EndsWith(pair.Key)),
                 pair => Assert.EndsWith(pair.Value, EcidName(service.BeforeComplete.Single().Value.Source!)));
+        }
+    }
+
+    [Fact]
+    [Trait("AC", "2")]
+    public void Service_behavior_ecids_follow_the_ECID_map()
+    {
+        string[][] occurrences = ReadGolden("EcidOccurrences.golden.tsv");
+        string[][] map = ReadGolden("EcidMap.golden.tsv");
+        using JsonDocument behaviors = JsonDocument.Parse(File.ReadAllText(System.IO.Path.Combine(TestPaths.Polar2Project, "config", "service-behaviors.json")));
+        Dictionary<string, long> actual = [];
+        CollectEcids(behaviors.RootElement, "", actual);
+
+        Assert.Equal(242, occurrences.Length);
+        Assert.Equal(actual.Count, occurrences.Length);
+        foreach (string[] row in occurrences)
+        {
+            Assert.True(actual.TryGetValue(row[0], out long id), $"{row[0]} is not an ECID occurrence");
+            Assert.Equal(long.Parse(row[2]), id);
+        }
+
+        Assert.Equal(61, map.Length);
+        Assert.Equal(map.Select(row => long.Parse(row[4])).Order(), actual.Values.Distinct().Order());
+        using JsonDocument config = JsonDocument.Parse(File.ReadAllText(System.IO.Path.Combine(TestPaths.Polar2Project, "config", "module-config.json")));
+        Dictionary<long, JsonElement> ecids = config.RootElement.GetProperty("modules")[0].GetProperty("configParamList")
+            .EnumerateArray().ToDictionary(entry => entry.GetProperty("id").GetInt64());
+        foreach (string[] row in map)
+        {
+            JsonElement entry = ecids[long.Parse(row[4])];
+            Assert.Equal(row[5], entry.GetProperty("name").GetString());
+            Assert.Equal(row[2], entry.GetProperty("unit").GetString());
+            Assert.Equal(row[3], entry.GetProperty("dataType").GetString());
+        }
+    }
+
+    private static string[][] ReadGolden(string name) =>
+        [.. File.ReadAllLines(System.IO.Path.Combine(TestPaths.SolutionRoot, "tests", "AdsPlcSimulator.Tests", "Polar2", name))
+            .Where(line => line.Length > 0)
+            .Select(line => line.Split('\t'))];
+
+    private static void CollectEcids(JsonElement element, string pointer, Dictionary<string, long> found)
+    {
+        if (element.ValueKind == JsonValueKind.Array)
+        {
+            int index = 0;
+            foreach (JsonElement item in element.EnumerateArray())
+                CollectEcids(item, $"{pointer}/{index++}", found);
+            return;
+        }
+
+        if (element.ValueKind != JsonValueKind.Object)
+            return;
+
+        foreach (JsonProperty property in element.EnumerateObject())
+        {
+            string path = $"{pointer}/{property.Name}";
+            if (property.Name == "ecid" && property.Value.ValueKind == JsonValueKind.Number)
+                found.Add(path, property.Value.GetInt64());
+            else if (property.Name == "ecidBy")
+                foreach (JsonProperty choice in property.Value.GetProperty("values").EnumerateObject())
+                    found.Add($"{path}/values/{choice.Name}", choice.Value.GetInt64());
+            else
+                CollectEcids(property.Value, path, found);
         }
     }
 
