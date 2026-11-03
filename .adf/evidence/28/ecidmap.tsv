@@ -1,0 +1,62 @@
+oldId	oldName	oldUnit	newId	newName	newUnit	newRange	check
+6	Arm1 Lift Speed (Normal)	mm/s	1001	Arm1_LiftNormalSpeed	mm/s	0~500	OK
+12	Arm1 Lift Top Pos	mm	1006	Arm1_LiftTopPosition	mm	-1000~1000	OK
+13	Arm1 Lift Down Pos	mm	1007	Arm1_LiftDownPosition	mm	-1000~1000	OK
+15	Arm1 Rotate Speed (Normal)	RPM	1009	Arm1_RotateNormalSpeed	RPM	0~3000	OK
+16	Arm1 Rotate Speed (Jog)	RPM	1010	Arm1_RotateJogSpeed	RPM	0~300	OK
+20	Arm1 Rotate Pos Limit Pos	deg	1014	Arm1_RotatePosLimitPos	deg	0~360	OK
+21	Arm1 Rotate Neg Limit Pos	deg	1015	Arm1_RotateNegLimitPos	deg	-360~0	OK
+22	Arm1 Rotate Nozzle Port Pos	deg	1016	Arm1_RotateNozzlePortPosition	deg	-360~360	OK
+23	Arm1 Rotate Noz1 Center Pos	deg	1017	Arm1_RotateNoz1CenterPos	deg	-360~360	OK
+24	Arm1 Rotate Noz2 Center Pos	deg	1018	Arm1_RotateNoz2CenterPos	deg	-360~360	OK
+25	Arm1 Rotate Noz3 Center Pos	deg	1019	Arm1_RotateNoz3CenterPos	deg	-360~360	OK
+84	Arm2 Lift Speed (Normal)	mm/s	1101	Arm2_LiftNormalSpeed	mm/s	0~500	OK
+90	Arm2 Lift Top Pos	mm	1106	Arm2_LiftTopPosition	mm	-1000~1000	OK
+91	Arm2 Lift Down Pos	mm	1107	Arm2_LiftDownPosition	mm	-1000~1000	OK
+93	Arm2 Rotate Speed (Normal)	RPM	1109	Arm2_RotateNormalSpeed	RPM	0~3000	OK
+94	Arm2 Rotate Speed (Jog)	RPM	1110	Arm2_RotateJogSpeed	RPM	0~300	OK
+98	Arm2 Rotate Pos Limit Pos	deg	1114	Arm2_RotatePosLimitPos	deg	0~360	OK
+99	Arm2 Rotate Neg Limit Pos	deg	1115	Arm2_RotateNegLimitPos	deg	-360~0	OK
+100	Arm2 Rotate Nozzle Port Pos	deg	1116	Arm2_RotateNozzlePortPosition	deg	-360~360	OK
+101	Arm2 Rotate Noz1 Center Pos	deg	1117	Arm2_RotateNoz1CenterPos	deg	-360~360	OK
+102	Arm2 Rotate Noz2 Center Pos	deg	1118	Arm2_RotateNoz2CenterPos	deg	-360~360	OK
+103	Arm2 Rotate Noz3 Center Pos	deg	1119	Arm2_RotateNoz3CenterPos	deg	-360~360	OK
+162	Arm3 Lift Speed (Normal)	mm/s	1201	Arm3_LiftNormalSpeed	mm/s	0~500	OK
+168	Arm3 Lift Top Pos	mm	1206	Arm3_LiftTopPosition	mm	-1000~1000	OK
+169	Arm3 Lift Down Pos	mm	1207	Arm3_LiftDownPosition	mm	-1000~1000	OK
+171	Arm3 Rotate Speed (Normal)	RPM	1209	Arm3_RotateNormalSpeed	RPM	0~3000	OK
+172	Arm3 Rotate Speed (Jog)	RPM	1210	Arm3_RotateJogSpeed	RPM	0~300	OK
+176	Arm3 Rotate Pos Limit Pos	deg	1214	Arm3_RotatePosLimitPos	deg	0~360	OK
+177	Arm3 Rotate Neg Limit Pos	deg	1215	Arm3_RotateNegLimitPos	deg	-360~0	OK
+179	Arm3 Rotate Noz1 Center Pos	deg	1217	Arm3_RotateNoz1CenterPos	deg	-360~360	OK
+180	Arm3 Rotate Noz2 Center Pos	deg	1218	Arm3_RotateNoz2CenterPos	deg	-360~360	OK
+224	Arm4 Lift Speed (Normal)	mm/s	1301	Arm4_LiftNormalSpeed	mm/s	0~500	OK
+230	Arm4 Lift Top Pos	mm	1306	Arm4_LiftTopPosition	mm	-1000~1000	OK
+231	Arm4 Lift Down Pos	mm	1307	Arm4_LiftDownPosition	mm	-1000~1000	OK
+233	Arm4 Rotate Speed (Normal)	RPM	1309	Arm4_RotateNormalSpeed	RPM	0~3000	OK
+234	Arm4 Rotate Speed (Jog)	RPM	1310	Arm4_RotateJogSpeed	RPM	0~300	OK
+238	Arm4 Rotate Pos Limit Pos	deg	1314	Arm4_RotatePosLimitPos	deg	0~360	OK
+239	Arm4 Rotate Neg Limit Pos	deg	1315	Arm4_RotateNegLimitPos	deg	-360~0	OK
+241	Arm4 Rotate Noz1 Center Pos	deg	1317	Arm4_RotateNoz1CenterPos	deg	-360~360	OK
+270	Cup1 Speed (Jog)	mm/s	2001	Cup1_JogSpeed	mm/s	0~500	OK
+276	Cup1 Top Pos	mm	2007	Cup1_TopPosition	mm	-1000~1000	OK
+277	Cup1 Down Pos	mm	2008	Cup1_DownPosition	mm	-1000~1000	OK
+278	Cup1 Middle Pos	mm	2009	Cup1_MiddlePosition	mm	-1000~1000	OK
+282	Cup2 Speed (Jog)	mm/s	2101	Cup2_JogSpeed	mm/s	0~500	OK
+288	Cup2 Top Pos	mm	2107	Cup2_TopPosition	mm	-1000~1000	OK
+289	Cup2 Down Pos	mm	2108	Cup2_DownPosition	mm	-1000~1000	OK
+290	Cup2 Middle Pos	mm	2109	Cup2_MiddlePosition	mm	-1000~1000	OK
+294	Cup3 Speed (Jog)	mm/s	2201	Cup3_JogSpeed	mm/s	0~500	OK
+300	Cup3 Top Pos	mm	2207	Cup3_TopPosition	mm	-1000~1000	OK
+301	Cup3 Down Pos	mm	2208	Cup3_DownPosition	mm	-1000~1000	OK
+302	Cup3 Middle Pos	mm	2209	Cup3_MiddlePosition	mm	-1000~1000	OK
+306	Cup4 Speed (Jog)	mm/s	2301	Cup4_JogSpeed	mm/s	0~500	OK
+312	Cup4 Top Pos	mm	2307	Cup4_TopPosition	mm	-1000~1000	OK
+313	Cup4 Down Pos	mm	2308	Cup4_DownPosition	mm	-1000~1000	OK
+314	Cup4 Middle Pos	mm	2309	Cup4_MiddlePosition	mm	-1000~1000	OK
+318	Holder Rotate Speed (Normal)	RPM	3001	Holder_RotateNormalSpeed	RPM	0~5000	OK
+361	Outside Ring Rotate Speed	RPM	3202	OutsideRing_RotateSpeed	RPM	0~3000	OK
+365	ExhaustFan1 Target Pressure	Pa	3401	ExhaustFan1_TargetPressure	Pa	-5000~5000	OK
+369	ExhaustFan2 Target Pressure	Pa	3411	ExhaustFan2_TargetPressure	Pa	-5000~5000	OK
+373	ExhaustFan3 Target Pressure	Pa	3421	ExhaustFan3_TargetPressure	Pa	-5000~5000	OK
+377	ExhaustFan4 Target Pressure	Pa	3431	ExhaustFan4_TargetPressure	Pa	-5000~5000	OK
