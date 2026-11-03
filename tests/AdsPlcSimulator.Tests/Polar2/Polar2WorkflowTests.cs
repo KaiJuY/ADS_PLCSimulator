@@ -62,9 +62,9 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
     private static WorkflowDocument SetModeWithHoldBeforeComplete(string delayMs)
     {
         WorkflowDocument document = LoadDocument("Polar2_Chamber_SetMode");
-        document.Links.RemoveAll(link => link is { FromNode: "branch", FromPort: "true" });
+        document.Links.RemoveAll(link => link is { FromNode: "atMost2Branch", FromPort: "true" });
         document.Nodes.Add(new WorkflowNode { Id = "hold", Type = "flow.delay", Params = { ["ms"] = delayMs } });
-        document.Links.Add(new WorkflowLink("branch", "true", "hold", "exec"));
+        document.Links.Add(new WorkflowLink("atMost2Branch", "true", "hold", "exec"));
         document.Links.Add(new WorkflowLink("hold", "then", "complete", "exec"));
         return document;
     }
@@ -167,7 +167,7 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
 
     [Fact]
     [Trait("AC", "1")]
-    public async Task Holder_vacuum_establish_has_service_id_3007_and_completes()
+    public async Task Holder_vacuum_establish_has_service_id_3007_and_runs_until_stop()
     {
         await StartPlcAsync();
         await WaitUntilAsync(() => ReadNumber($"{Root}[6].ModuleStatus.PackMLOut.eStateCurrent") == (long)PackMLState.Execute, "the last module to initialize");
@@ -177,10 +177,28 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
         for (int module = 1; module <= 6; module++)
         {
             Assert.Equal(3007, ReadNumber($"{Root}[{module}].ServiceStatus.Holder.VacuumEstablish.ServiceId"));
-            Assert.Equal((long)CompletionBehavior.NaturalCompletion, ReadNumber($"{Root}[{module}].ServiceStatus.Holder.VacuumEstablish.CompletionBehavior"));
+            Assert.Equal((long)CompletionBehavior.ExecuteUntilExternalStop, ReadNumber($"{Root}[{module}].ServiceStatus.Holder.VacuumEstablish.CompletionBehavior"));
         }
 
-        await CommandAsync("Holder.VacuumEstablish", PackMLCommand.Start, PackMLState.Complete);
+        await CommandAsync("Holder.VacuumEstablish", PackMLCommand.Start, PackMLState.Execute);
+        await Task.Delay(300);
+        Assert.Equal(PackMLState.Execute, State("Holder.VacuumEstablish"));
+        await CommandAsync("Holder.VacuumEstablish", PackMLCommand.Stop, PackMLState.Stopped);
+    }
+
+    [Fact]
+    [Trait("AC", "6")]
+    public async Task Holder_vacuum_establish_alive_timeout_aborts_with_alarm_940()
+    {
+        await StartPlcAsync();
+        await WaitUntilAsync(() => ReadNumber($"{Root}[6].ModuleStatus.PackMLOut.eStateCurrent") == (long)PackMLState.Execute, "the last module to initialize");
+        Write($"{Ctrl("Holder.VacuumEstablish")}.AliveTimeout", 500L);
+
+        await CommandAsync("Holder.VacuumEstablish", PackMLCommand.Start, PackMLState.Execute);
+        await WaitForStateAsync("Holder.VacuumEstablish", PackMLState.Aborted);
+
+        Assert.Equal(940, ReadNumber($"{Status("Holder.VacuumEstablish")}.ErrorList[1].MainErrorId"));
+        Assert.Equal(500, ReadNumber($"{Status("Holder.VacuumEstablish")}.ErrorList[1].SourceErrorId"));
     }
 
     [Fact]
@@ -255,14 +273,13 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
 
     [Theory]
     [Trait("AC", "10")]
-    [InlineData(0, "0")]
     [InlineData(1, "1")]
-    [InlineData(2, "2")]
-    [InlineData(3, "3")]
+    [InlineData(2, "0")]
     public async Task SetMode_writes_target_mode_to_svid(long targetMode, string expected)
     {
         await StartPlcAsync();
         Load("setmode", LoadDocument("Polar2_Chamber_SetMode"));
+        Write(SvidValue, "2");
 
         Write($"{Module1}.ServiceParam.Chamber.SetMode.TargetMode", targetMode);
         await CommandAsync("Chamber.SetMode", PackMLCommand.Start, PackMLState.Complete);
@@ -322,21 +339,24 @@ public sealed partial class Polar2WorkflowTests : IAsyncLifetime
 
     [Theory]
     [Trait("AC", "10")]
+    [InlineData(0)]
+    [InlineData(3)]
     [InlineData(4)]
     [InlineData(65535)]
     public async Task SetMode_out_of_range_adds_error_and_aborts(long targetMode)
     {
         await StartPlcAsync();
         Load("setmode", LoadDocument("Polar2_Chamber_SetMode"));
+        Write(SvidValue, "2");
 
         Write($"{Module1}.ServiceParam.Chamber.SetMode.TargetMode", targetMode);
         await CommandAsync("Chamber.SetMode", PackMLCommand.Start, PackMLState.Aborted);
         await WaitForRunAsync("setmode", FlowEventKind.RunCompleted);
 
-        Assert.Equal("1", Read(SvidValue));
+        Assert.Equal("2", Read(SvidValue));
         Assert.Equal(1, ReadNumber($"{Status("Chamber.SetMode")}.ErrorList[1].MainErrorId"));
         Assert.Equal(targetMode, ReadNumber($"{Status("Chamber.SetMode")}.ErrorList[1].SourceErrorId"));
-        Assert.Equal("TargetMode out of range (0~3).", Read($"{Status("Chamber.SetMode")}.ErrorList[1].Message"));
+        Assert.Equal("TargetMode must be 1 (Manual) or 2 (Disable).",Read($"{Status("Chamber.SetMode")}.ErrorList[1].Message"));
         await WaitUntilAsync(() => ReadNumber($"{Module1}.ModuleAlarmList[1].MainErrorId") == 1, "the alarm in ModuleAlarmList");
         Assert.Equal(targetMode, ReadNumber($"{Module1}.ModuleAlarmList[1].SourceErrorId"));
         Assert.Equal(1, ReadNumber($"{Module1}.ModuleAlarmList[1].Active"));
